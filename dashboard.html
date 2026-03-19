@@ -141,7 +141,7 @@
         <div class="stat-card stat-quotes" data-view="quotes">
           <div class="stat-card-content">
             <span class="stat-label">Total Quotes</span>
-            <span class="stat-value">5</span>
+            <span class="stat-value" id="totalQuotesValue">5</span>
             <span class="stat-change positive">↑ 100.0% vs prev</span>
           </div>
           <div class="stat-icon-box stat-icon-orange">
@@ -151,7 +151,7 @@
         <div class="stat-card stat-bookings" data-view="bookings">
           <div class="stat-card-content">
             <span class="stat-label">Active Bookings</span>
-            <span class="stat-value">3</span>
+            <span class="stat-value" id="activeBookingsValue">3</span>
             <span class="stat-change positive">↑ 100.0% vs prev</span>
           </div>
           <div class="stat-icon-box stat-icon-blue">
@@ -160,8 +160,8 @@
         </div>
         <div class="stat-card stat-revenue" data-view="bookings">
           <div class="stat-card-content">
-            <span class="stat-label">Revenue (30d)</span>
-            <span class="stat-value">₹7,67,732</span>
+            <span class="stat-label" id="revenueLabel">Revenue (30d)</span>
+            <span class="stat-value" id="revenueValue">₹7,67,732</span>
             <span class="stat-change positive">↑ 100.0% vs prev</span>
           </div>
           <div class="stat-icon-box stat-icon-green">
@@ -171,7 +171,7 @@
         <div class="stat-card stat-customers" data-view="customers">
           <div class="stat-card-content">
             <span class="stat-label">Total Customers</span>
-            <span class="stat-value">6</span>
+            <span class="stat-value" id="totalCustomersValue">6</span>
             <span class="stat-change positive">↑ 100.0% vs prev</span>
           </div>
           <div class="stat-icon-box stat-icon-purple">
@@ -3370,7 +3370,7 @@
       opt.addEventListener('click', (e) => {
         e.stopPropagation();
         const value = opt.dataset.value;
-        const currentValue = label.textContent.trim();
+        const previousValue = label.textContent.trim();
 
         // Update active state
         options.forEach(o => o.classList.remove('active'));
@@ -3382,12 +3382,39 @@
         // Close dropdown
         wrapper.classList.remove('open');
 
-        // Refresh the page if the option changed
-        if (value !== currentValue) {
-          location.reload();
+        // Dynamically update stat cards (Mock data)
+        if (value !== previousValue) {
+          updateDashboardStats(value);
         }
       });
     });
+
+    function updateDashboardStats(period) {
+      const stats = {
+        'Last 30 days': { quotes: '5', bookings: '3', revenue: '₹7,67,732', customers: '6', revLabel: 'Revenue (30d)' },
+        'Last 60 days': { quotes: '12', bookings: '8', revenue: '₹14,25,900', customers: '14', revLabel: 'Revenue (60d)' },
+        'Last 90 days': { quotes: '19', bookings: '12', revenue: '₹22,10,450', customers: '22', revLabel: 'Revenue (90d)' },
+        'Last 1 year': { quotes: '84', bookings: '56', revenue: '₹89,45,200', customers: '98', revLabel: 'Revenue (1y)' },
+        'All Time': { quotes: '156', bookings: '112', revenue: '₹1,56,80,000', customers: '245', revLabel: 'Revenue (Total)' }
+      };
+
+      const data = stats[period] || stats['Last 30 days'];
+      
+      const qVal = document.getElementById('totalQuotesValue');
+      const bVal = document.getElementById('activeBookingsValue');
+      const rVal = document.getElementById('revenueValue');
+      const cVal = document.getElementById('totalCustomersValue');
+      const rLab = document.getElementById('revenueLabel');
+
+      if (qVal) qVal.textContent = data.quotes;
+      if (bVal) bVal.textContent = data.bookings;
+      if (rVal) rVal.textContent = data.revenue;
+      if (cVal) cVal.textContent = data.customers;
+      if (rLab) rLab.textContent = data.revLabel;
+
+      // Also trigger chart updates if they exist (though they have their own dropdowns)
+      // For now, these are separate components as requested in previous turns.
+    }
 
     // Close on outside click
     document.addEventListener('click', (e) => {
