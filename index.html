@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoonTrip — The Operating System for Modern Indian Travel Agencies</title>
+  <meta name="description" content="One platform for Quotes, Itineraries, and 100% GST-Compliant Invoices with Flexible Settlement Options, Net Profit Tracking, Pending Payments and Automated Workflows." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#" class="nav-logo">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="white" fill-opacity="0.2"/><circle cx="12" cy="12" r="6" fill="white" fill-opacity="0.5"/><circle cx="12" cy="12" r="3" fill="white"/></svg>
+        </div>
+        <span>MoonTrip</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#guides">Guides</a>
+        <a href="#testimonials">Testimonials</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <a href="#" class="btn-login">Log In</a>
+        <a href="#" class="btn-primary">Get Started Free</a>
+      </div>
+      <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#guides">Guides</a>
+      <a href="#testimonials">Testimonials</a>
+      <a href="#" class="btn-login">Log In</a>
+      <a href="#" class="btn-primary">Get Started Free</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-container">
+      <div class="hero-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5h4.5l-3.6 2.6 1.4 4.4L12 11l-3.8 2.5 1.4-4.4L6 6.5h4.5z"/></svg>
+        Built for Indian Travel Agencies
+      </div>
+      <h1 class="hero-title">
+        The Operating System for <span class="accent">Modern Indian Travel Agencies.</span>
+      </h1>
+      <p class="hero-subtitle">
+        One platform for Quotes, Itineraries, and 100% GST-Compliant Invoices with Flexible Settlement Options, Net Profit Tracking, Pending Payments and Automated Workflows.
+      </p>
+      <div class="hero-cta">
+        <a href="#" class="btn-primary">Get Started Free <span>→</span></a>
+        <a href="#pricing" class="btn-secondary">See Pricing <span>▷</span></a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-number">0</span>
+          <span class="stat-label">Spreadsheets</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-number">5 min</span>
+          <span class="stat-label">Quick Setup</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-number">100%</span>
+          <span class="stat-label">GST Compliant</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard preview -->
+    <div class="dashboard-preview">
+      <div class="dashboard-mockup">
+        <div class="dash-header">
+          <div class="dash-title">Dashboard</div>
+          <div class="dash-actions">
+            <span class="dash-badge">aamir khan</span>
+          </div>
+        </div>
+        <div class="dash-metrics">
+          <div class="metric-card">
+            <div class="metric-label">Total Revenue</div>
+            <div class="metric-value">₹19,17,035</div>
+            <div class="metric-change up">↑ 100.0% vs prev period</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Active Bookings</div>
+            <div class="metric-value">37</div>
+            <div class="metric-change up">↑ 100.0% vs prev period</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Pending Payments</div>
+            <div class="metric-value">₹4,15,986</div>
+            <div class="metric-change up">↑ 100.0% vs prev period</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Net Profit</div>
+            <div class="metric-value">₹1,74,480</div>
+            <div class="metric-change up">↑ 100.0% vs prev period</div>
+          </div>
+        </div>
+        <div class="dash-body">
+          <div class="dash-chart">
+            <div class="chart-title">Revenue Overview</div>
+            <div class="chart-sub">Last 6 months performance</div>
+            <div class="chart-area">
+              <svg viewBox="0 0 400 120" preserveAspectRatio="none" class="chart-svg">
+                <defs>
+                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#F47D5B" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#F47D5B" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0,110 L60,100 L120,80 L180,30 L240,15 L300,50 L360,90 L400,105" fill="none" stroke="#F47D5B" stroke-width="2"/>
+                <path d="M0,110 L60,100 L120,80 L180,30 L240,15 L300,50 L360,90 L400,105 L400,120 L0,120 Z" fill="url(#chartGrad)"/>
+                <path d="M0,115 L60,112 L120,110 L180,108 L240,105 L300,107 L360,112 L400,115" fill="none" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="4"/>
+              </svg>
+              <div class="chart-labels">
+                <span>Oct 2025</span><span>Nov 2025</span><span>Dec 2025</span><span>Jan 2026</span><span>Feb 2026</span><span>Mar 2026</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-activity">
+            <div class="activity-title">Recent Activity</div>
+            <div class="activity-sub">Latest quotes and bookings</div>
+            <div class="activity-item">
+              <div class="activity-icon quote-icon">📄</div>
+              <div class="activity-info">
+                <span class="activity-ref">NA-1530-QT</span>
+                <span class="activity-customer">aamir khan</span>
+              </div>
+              <span class="badge rejected">Rejected</span>
+              <span class="activity-amount">₹1,75,000</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon booking-icon">📅</div>
+              <div class="activity-info">
+                <span class="activity-ref">NA-336-25-26</span>
+                <span class="activity-customer">aamir khan</span>
+              </div>
+              <span class="activity-amount">₹78,000</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon quote-icon">📄</div>
+              <div class="activity-info">
+                <span class="activity-ref">NA-1529-QT</span>
+                <span class="activity-customer">aamir khan</span>
+              </div>
+              <span class="badge converted">Converted</span>
+              <span class="activity-amount">₹78,000</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon booking-icon">📅</div>
+              <div class="activity-info">
+                <span class="activity-ref">NA-335-25-26</span>
+                <span class="activity-customer">UTSAV</span>
+              </div>
+              <span class="activity-amount">₹5,922</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-container">
+      <p class="section-eyebrow">HOW IT WORKS</p>
+      <h2 class="section-title">From Chaos to Clarity in Three Steps</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Add Your Customers</h3>
+          <p>Import or create customer profiles with all their travel preferences, passport details, and history in one place.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <h3>Create Quotes &amp; Book</h3>
+          <p>Build beautiful, itemized quotes with services, hotels, and transport. Convert approved quotes to bookings instantly.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h3>Track Payments</h3>
+          <p>Monitor every rupee with real-time payment tracking, automated reminders, and professional tax invoices your clients will love.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CORE FEATURES -->
+  <section class="core-features" id="features">
+    <div class="section-container">
+      <p class="section-eyebrow">CORE FEATURES</p>
+      <h2 class="section-title">Everything Your Agency Needs,<br/>Nothing It Doesn't</h2>
+
+      <!-- Feature 1 -->
+      <div class="feature-row">
+        <div class="feature-content">
+          <div class="feature-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <h3 class="feature-title">Smart Quote Builder</h3>
+          <p class="feature-desc">Create detailed, professional quotes with itemized services, hotels, flights, and transport. Set margins, add notes, and share polished PDFs with your clients in seconds — not hours.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> Multi-service quote support</li>
+            <li><span class="check">✓</span> One-click PDF generation &amp; sharing</li>
+            <li><span class="check">✓</span> Quote-to-booking conversion</li>
+          </ul>
+        </div>
+        <div class="feature-image">
+          <div class="app-screenshot quotes-screenshot">
+            <div class="ss-header">
+              <span class="ss-title">Quotes</span>
+              <button class="ss-btn">+ New Quote</button>
+            </div>
+            <div class="ss-table">
+              <div class="ss-table-head">
+                <span>QUOTE #</span><span>CUSTOMER</span><span>DESTINATION</span><span>AMOUNT</span><span>PROFIT</span><span>STATUS</span><span>DUE DATE</span>
+              </div>
+              <div class="ss-row"><span>NA-1530-QT</span><span>aamir khan</span><span>—</span><span>₹1,75,000</span><span>₹743</span><span class="status-badge rejected">Rejected</span><span>27 Feb 2026</span></div>
+              <div class="ss-row"><span>NA-1516-QT</span><span>ABC</span><span>—</span><span>₹0</span><span>₹0</span><span class="status-badge draft">Draft</span><span>—</span></div>
+              <div class="ss-row"><span>NA-1516-QT</span><span>ABC</span><span>—</span><span>₹0</span><span>₹0</span><span class="status-badge draft">Draft</span><span>—</span></div>
+              <div class="ss-row"><span>NA-1500-QT</span><span>ABC</span><span>—</span><span>₹1,500</span><span>₹0</span><span class="status-badge draft">Draft</span><span>—</span></div>
+              <div class="ss-row"><span>T-MK395-QT16-4</span><span>aamir</span><span>—</span><span>₹74,05,029</span><span>₹160</span><span class="status-badge approved">Approved ↗</span><span>16 Feb 2026</span></div>
+              <div class="ss-row"><span>QT26-11</span><span>UTSAV</span><span>bolt</span><span>₹5,26,145</span><span>₹500</span><span class="status-badge approved">Approved</span><span>17 Feb 2026</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="feature-row reverse">
+        <div class="feature-image">
+          <div class="app-screenshot bookings-screenshot">
+            <div class="ss-header">
+              <span class="ss-title">Bookings</span>
+              <button class="ss-btn">Export</button>
+            </div>
+            <div class="ss-table">
+              <div class="ss-table-head">
+                <span>BOOKING #</span><span>CUSTOMER</span><span>DESTINATION</span><span>TOTAL</span><span>PROFIT</span><span>PAYMENT</span><span>STATUS</span>
+              </div>
+              <div class="ss-row"><span>NA-336-25-26</span><span>aamir khan</span><span>0+</span><span>₹78,000</span><span>₹2,613</span><span class="payment-partial">Total ₹78,049</span><span class="status-badge confirmed">Confirmed</span></div>
+              <div class="ss-row"><span>NA-335-25-26</span><span>UTSAV</span><span>—</span><span>₹5,922</span><span>—</span><span>—</span><span class="status-badge confirmed">Confirmed</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="feature-content">
+          <div class="feature-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <h3 class="feature-title">Effortless Booking Management</h3>
+          <p class="feature-desc">From confirmed quotes to active bookings — manage every trip with timeline views, service breakdowns, and real-time status updates all in one dashboard.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> Real-time status updates</li>
+            <li><span class="check">✓</span> Service-level detail tracking</li>
+            <li><span class="check">✓</span> Calendar &amp; timeline views</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="feature-row">
+        <div class="feature-content">
+          <div class="feature-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <h3 class="feature-title">Complete Payment Ledger</h3>
+          <p class="feature-desc">Track advances, partial payments, and final settlements with a crystal-clear ledger. Generate GST-compliant tax invoices and share them via WhatsApp, email, or print.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> Advance &amp; balance tracking</li>
+            <li><span class="check">✓</span> Professional tax invoices (GST)</li>
+            <li><span class="check">✓</span> Share via WhatsApp, email, or print</li>
+          </ul>
+        </div>
+        <div class="feature-image">
+          <div class="app-screenshot payments-screenshot">
+            <div class="ss-header">
+              <span class="ss-title">Payments</span>
+              <button class="ss-btn">+ Record Payment</button>
+            </div>
+            <div class="payments-summary">
+              <div class="pay-metric"><span class="pay-icon green">₹</span><div><small>Total Received</small><strong>₹18,03,829</strong></div></div>
+              <div class="pay-metric"><span class="pay-icon blue">37</span><div><small>Transactions</small><strong>Payments</strong></div></div>
+              <div class="pay-metric"><span class="pay-icon orange">₹</span><div><small>Outstanding</small><strong>₹4,15,986</strong></div></div>
+              <div class="pay-metric"><span class="pay-icon purple">₹</span><div><small>Net Refunds</small><strong>₹1,74,480</strong></div></div>
+            </div>
+            <div class="ss-table">
+              <div class="ss-table-head"><span>PAYMENT</span><span>INVOICE</span><span>CUSTOMER</span><span>AMOUNT</span><span>MODE</span><span>DATE</span></div>
+              <div class="ss-row"><span>Rec-26-27</span><span>NA-326-25-26</span><span>aamir khan</span><span>₹9,000</span><span>Bank Transfer</span><span>07 Mar 2026</span></div>
+              <div class="ss-row"><span>Rec-26-26</span><span>—</span><span>UTSAV</span><span>₹17,291</span><span>Bank Transfer</span><span>02 Mar 2026</span></div>
+              <div class="ss-row"><span>Rec-26-25</span><span>—</span><span>UTSAV</span><span>₹56,798</span><span>Bank Transfer</span><span>02 Mar 2026</span></div>
+              <div class="ss-row refund"><span>Rec-26-24</span><span class="refund-badge">REFUND</span><span>Harsh Soni</span><span>-₹6,476</span><span>Cash</span><span>19 Mar 2026</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUILT FOR WAY YOU WORK -->
+  <section class="built-for" id="guides">
+    <div class="section-container">
+      <p class="section-eyebrow">BUILT FOR THE WAY YOU WORK</p>
+      <h2 class="section-title">Everything Your Agency Needs, <br/>in One Place</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h4>Multi-Tenant Ready</h4>
+          <p>Each agency gets its own secure workspace. Your data stays yours — always.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <h4>Mobile-First Design</h4>
+          <p>Manage your entire agency from your phone. Every feature, everywhere you go.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </div>
+          <h4>Instant PDF Sharing</h4>
+          <p>Share quotes and invoices via WhatsApp, email, or any channel your clients prefer.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          </div>
+          <h4>Bank-Grade Security</h4>
+          <p>Encrypted data, secure authentication, and role-based access keep your agency safe.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/></svg>
+          </div>
+          <h4>Service Management</h4>
+          <p>Flights, hotels, transport, visas — manage every service type with custom fields and pricing.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
+          <h4>Business Insights</h4>
+          <p>See revenue, outstanding payments, and booking trends at a glance from your dashboard.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials" id="testimonials">
+    <div class="section-container">
+      <p class="section-eyebrow">WHY MOONTRIP</p>
+      <h2 class="section-title">Built for Every Travel Agency</h2>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <blockquote>"Handling trips across spreadsheets and WhatsApp groups was becoming confusing for our team. MoonTrip helped us bring quotes, bookings, and payments together, and it's much easier to manage now."</blockquote>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">RM</div>
+            <div>
+              <strong>Rajesh Mehta</strong>
+              <span>Agency Founder</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <blockquote>"MoonTrip makes it really easy to see which bookings are paid, pending, or overdue. Everything is visible at a glance, so there's no need to keep checking with clients or matching numbers later."</blockquote>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">KN</div>
+            <div>
+              <strong>Karthik Nair</strong>
+              <span>Finance Manager</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <blockquote>"Ek hi platform par quotes, booking aur GST invoices isne humara kaam bahut aasan kar diya aur time bhi bach gaya. Team ko sikhane mein bhi koi dikkat nahi hui."</blockquote>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">PS</div>
+            <div>
+              <strong>Priya Sharma</strong>
+              <span>Operations Head</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing" id="pricing">
+    <div class="section-container">
+      <p class="section-eyebrow">PRICING</p>
+      <h2 class="section-title">Simple, Transparent Pricing</h2>
+      <p class="section-subtitle">Start free. Scale as you grow. No hidden fees.</p>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="plan-name">Free</div>
+          <div class="plan-price"><span class="price-amount">₹0</span></div>
+          <div class="plan-period">forever</div>
+          <p class="plan-desc">Perfect for trying out MoonTrip</p>
+          <hr class="plan-divider"/>
+          <ul class="plan-features">
+            <li class="included"><span class="check">✓</span> 5 quotes per month</li>
+            <li class="included"><span class="check">✓</span> Watermarked GST invoices</li>
+            <li class="included"><span class="check">✓</span> 25 customers</li>
+            <li class="included"><span class="check">✓</span> WhatsApp sharing</li>
+            <li class="excluded"><span class="cross">✕</span> Branded PDF</li>
+            <li class="excluded"><span class="cross">✕</span> Payment management</li>
+            <li class="excluded"><span class="cross">✕</span> Reports &amp; analytics</li>
+          </ul>
+          <a href="#" class="plan-btn outline">Start Free</a>
+        </div>
+
+        <div class="pricing-card">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price"><span class="price-currency">₹</span><span class="price-amount">299</span><span class="price-freq">/month</span></div>
+          <p class="plan-desc">For solo agents getting started</p>
+          <hr class="plan-divider"/>
+          <ul class="plan-features">
+            <li class="included"><span class="check">✓</span> 50 quotes per month</li>
+            <li class="included"><span class="check">✓</span> All GST forms</li>
+            <li class="included"><span class="check">✓</span> 200 customers</li>
+            <li class="included"><span class="check">✓</span> Branded PDF exports</li>
+            <li class="included"><span class="check">✓</span> WhatsApp sharing</li>
+            <li class="included"><span class="check">✓</span> Payment management</li>
+            <li class="included"><span class="check">✓</span> Logo on PDF</li>
+          </ul>
+          <a href="#" class="plan-btn outline">Get Started</a>
+        </div>
+
+        <div class="pricing-card featured">
+          <div class="popular-badge">Most Popular</div>
+          <div class="plan-name">Growth</div>
+          <div class="plan-price"><span class="price-currency">₹</span><span class="price-amount">599</span><span class="price-freq">/month</span></div>
+          <p class="plan-desc">For growing agencies that need more</p>
+          <hr class="plan-divider"/>
+          <ul class="plan-features">
+            <li class="included"><span class="check">✓</span> Unlimited quotes</li>
+            <li class="included"><span class="check">✓</span> Unlimited customers</li>
+            <li class="included"><span class="check">✓</span> All Starter features</li>
+            <li class="included"><span class="check">✓</span> Reports &amp; analytics</li>
+            <li class="included"><span class="check">✓</span> Advanced payment ledger</li>
+            <li class="included"><span class="check">✓</span> Priority support</li>
+          </ul>
+          <a href="#" class="plan-btn primary">Start Growth</a>
+        </div>
+
+        <div class="pricing-card">
+          <div class="plan-name">Pro</div>
+          <div class="plan-price"><span class="price-currency">₹</span><span class="price-amount">999</span><span class="price-freq">/month</span></div>
+          <p class="plan-desc">Everything unlimited, for teams</p>
+          <hr class="plan-divider"/>
+          <ul class="plan-features">
+            <li class="included"><span class="check">✓</span> Everything in Growth</li>
+            <li class="included"><span class="check">✓</span> 1 admin + 2 support users</li>
+            <li class="included"><span class="check">✓</span> Unlimited everything</li>
+            <li class="included"><span class="check">✓</span> Priority support</li>
+            <li class="included"><span class="check">✓</span> Extra seats available</li>
+          </ul>
+          <p class="plan-addon">+ ₹200/seat/month for additional users</p>
+          <a href="#" class="plan-btn outline">Go Pro</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="section-container faq-container">
+      <p class="section-eyebrow">FAQ</p>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <p class="section-subtitle">Everything you need to know about MoonTrip. Can't find what you're looking for? <a href="mailto:support@moontrip.app" class="accent-link">Reach out to our team.</a></p>
+
+      <div class="faq-group">
+        <p class="faq-category">GETTING STARTED</p>
+        <div class="faq-item active">
+          <button class="faq-question">How does the free trial work for travel agencies and tour operators? <span class="faq-icon">^</span></button>
+          <div class="faq-answer">
+            <p>Start with our Free plan — no credit card required. You get 5 quotes, 25 customers, and full WhatsApp sharing for sending branded PDF quotes to passengers. When you're ready for more bookings and GST invoicing, upgrade to any paid plan. You can cancel anytime with no charges.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Is my passenger and booking data secure on MoonTrip? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Yes. All data is encrypted at rest and in transit. We use bank-grade security with role-based access controls so only authorized team members can view sensitive customer information.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Can I share travel quotes and itineraries with passengers via WhatsApp? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Absolutely. MoonTrip generates PDF quotes and invoices that can be shared instantly via WhatsApp, email, or any other channel your clients prefer.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Does MoonTrip support multiple currencies for international tour packages? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Yes, MoonTrip supports multi-currency pricing for international packages while keeping your GST invoicing in INR as required by Indian tax law.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Do you offer annual billing discounts for travel agencies? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Yes, we offer discounted annual plans. Contact our team at support@moontrip.app for annual billing options.</p></div>
+        </div>
+      </div>
+
+      <div class="faq-group">
+        <p class="faq-category">TECHNICAL &amp; COMPLIANCE</p>
+        <div class="faq-item">
+          <button class="faq-question">Is MoonTrip's invoicing 100% compliant with Indian Travel GST-1 and GST-3B regulations? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Yes. MoonTrip generates fully GST-compliant invoices that meet all requirements for GST-1 and GST-3B filing for travel agencies.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">How does the Air GST module calculate taxes on GDS and LCC commissions? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>The Air GST module automatically calculates taxes based on your commission structure for both GDS (Amadeus, Sabre, Galileo) and LCC bookings.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">How does a travel agency use dual invoicing to separate customer pricing from internal profit margins? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>MoonTrip supports dual invoicing — one customer-facing invoice and one internal cost sheet — so your margins stay confidential while your clients see a professional document.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">How does MoonTrip calculate net profit for travel agents across different billing models and income scenarios? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Net profit is calculated by subtracting all service costs from the total quote amount. You can set margins per service and the system aggregates them automatically.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Does the ledger support travel-specific settlements like Balance Carry-Forwards? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Yes, the payment ledger supports advance payments, partial settlements, and balance carry-forwards specific to the travel industry.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">How does the PNR-to-Itinerary Converter handle multi-sector flights from Amadeus, Sabre, and Galileo? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Paste any PNR from Amadeus, Sabre, or Galileo and it automatically parses multi-sector flights into a clean itinerary format.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">How do automated pending payment reminders work for group bookings? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Set due dates for payment milestones and MoonTrip will automatically remind both you and your clients when payments are upcoming or overdue.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Does the Commission and Discount module affect GST reporting for travel agents? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Commissions and discounts are handled separately from the taxable value so your GST reporting remains accurate and compliant.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">How do Indian travel agents handle customer booking cancellations and refunds in MoonTrip? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>Cancellations trigger a refund workflow where you can issue partial or full refunds, record cancellation charges, and generate a credit note — all GST-compliant.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">How does the Customer Advance Ledger work for travel agencies managing deposits and prepayments? <span class="faq-icon">∨</span></button>
+          <div class="faq-answer"><p>The advance ledger tracks every deposit and prepayment per customer, with clear visibility into what's been applied and what's outstanding.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-banner">
+    <div class="section-container cta-content">
+      <h2>Ready to transform your travel agency?</h2>
+      <p>Join thousands of travel agencies across India who trust MoonTrip to manage their business.</p>
+      <div class="cta-buttons">
+        <a href="#" class="btn-primary">Get Started Free →</a>
+        <a href="#pricing" class="btn-secondary">View Pricing ▷</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo">
+          <div class="logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="white" fill-opacity="0.2"/><circle cx="12" cy="12" r="6" fill="white" fill-opacity="0.5"/><circle cx="12" cy="12" r="3" fill="white"/></svg>
+          </div>
+          <span>MoonTrip</span>
+        </a>
+        <p>The operating system for modern Indian travel agencies.</p>
+        <a href="mailto:support@moontrip.app" class="footer-email">support@moontrip.app</a>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h5>Product</h5>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <div class="footer-col">
+          <h5>Account</h5>
+          <a href="#">Sign Up Free</a>
+          <a href="#">Log In</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 MoonTrip. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
