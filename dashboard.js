@@ -2,15 +2,62 @@
 // DASHBOARD CHART & INTERACTIVITY
 // ===========================
 
-document.addEventListener('DOMContentLoaded', () => {
-  drawRevenueChart();
-  drawBookingsChart();
-  drawIndiaMap();
-  drawWorldMap();
-  initFinancialSummary();
-  initChartDropdowns();
-  initLogsPopup();
-});
+
+/**
+ * ANIMATE VALUE (Count-up)
+ */
+function animateValue(el, start, end, duration) {
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    const value = progress * (end - start) + start;
+    
+    // Formatting
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    
+    if (el.dataset.countup.includes('.')) {
+      el.innerText = prefix + value.toFixed(1) + suffix;
+    } else {
+      el.innerText = prefix + Math.floor(value).toLocaleString('en-IN') + suffix;
+    }
+    
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    }
+  };
+  window.requestAnimationFrame(step);
+}
+
+function initCountUp() {
+  const elements = document.querySelectorAll('[data-countup]');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const end = parseFloat(el.dataset.countup);
+        animateValue(el, 0, end, 1500);
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  elements.forEach(el => observer.observe(el));
+}
+
+/**
+ * SIMULATE LOADING (Skeleton)
+ */
+function simulateLoading() {
+  // Show skeletons for 1s then reveal content
+  setTimeout(() => {
+    document.querySelectorAll('.loading').forEach(el => {
+      el.classList.remove('loading');
+    });
+  }, 1200);
+}
 
 function drawRevenueChart(months = 6) {
   const canvas = document.getElementById('revenueChart');
@@ -531,64 +578,115 @@ window.addEventListener('resize', () => {
 
 // SPA routing handles nav item active states now.
 
-function initFinancialSummary() {
-  const popup = document.getElementById('fsPopupDashboard');
+function initGlobalInfoPopups() {
+  const popup = document.getElementById('globalInfoPopup');
   const content = popup.querySelector('.fs-popup-content');
-  const infoBtns = document.querySelectorAll('.fs-info-btn');
+  const infoBtns = document.querySelectorAll('.info-btn');
 
   const infoData = {
+    // Dashboard Stats
     revenue: "Cumulative <strong>total billed</strong> across all confirmed bookings.",
     profit: "Sum of all <strong>margins and commissions</strong> earned across bookings.",
     pending: "Total <strong>outstanding balance</strong> owed by customers across all bookings that are not yet fully paid.",
     conversion: "Percentage of quotes that were successfully <strong>converted</strong> into confirmed bookings.",
     quotes: "Total number of <strong>quotes created</strong> for customers across all destinations.",
     bookings: "Number of <strong>active and upcoming</strong> trips currently managed in the system.",
-    customers: "Total number of <strong>unique customers</strong> registered in the system."
+    customers: "Total number of <strong>unique customers</strong> registered in the system.",
+
+    // Payments section
+    total_received: "The total amount of <strong>money actually collected</strong> from customers, including partial and advance payments.",
+    transactions: "The total count of <strong>successful payment records</strong> processed through the system.",
+    credit: "Money received into the <strong>advance balance</strong> through advance deposits.",
+    debit: "Money applied from the <strong>advance balance</strong> towards a booking payment.",
+    advance: "Total <strong>unallocated advance money</strong> held on behalf of customers. These are amounts received but not yet applied to any specific booking.",
+    mode: "<strong>Adjusted via Advance</strong> means the payment was settled using the customer's existing advance balance, rather than a new direct payment.",
+
+    // Invoices section
+    ext_info: "Primary is the main tax invoice for a booking. <strong>EXT (Extension)</strong> is an additional invoice issued when some services are billed under a different GST rate.",
+    status_info: "Shows whether the booking is <strong>active or cancelled</strong>. Cancelled invoices are voided and linked to a Credit Note if one was generated.",
+
+    // Settings General
+    slug: "Your unique subdomain on moontrip.app. This is how your customer-facing quote links are structured. It cannot be changed.",
+    gstin: "Your 15-character GST Identification Number. Enter your GSTIN and click Verify to auto-fill company details from the GST portal.",
+    gst_billing: "Toggle GST billing globally. When enabled, GST fields like GSTIN and HSN/SAC codes will be mandatory on invoices. Ideal for small-scale businesses not registered under GST.",
+    pan: "Your company's 10-character Permanent Account Number. Required for tax invoices above ₹2 lakh.",
+
+    // Settings Bank
+    ifsc: "11-character bank branch code used for NEFT/RTGS transfers. Bank name and branch are auto-filled when you enter a valid IFSC.",
+    upi: "A QR code will be auto-generated from this UPI ID and printed on your invoices and quotes for easy payment collection.",
+
+    // Settings Documents
+    terms: "This text appears at the bottom of Tax Invoice PDFs sent to customers.",
+    pdf_theme: "Choose the visual style for all customer-facing PDFs — quotes, invoices, and receipts.",
+
+    // Settings Nomenclature
+    nom_prefix_booking: "Text that appears before the booking number. For example, prefix INV with number 5 produces INV-5.",
+    nom_number_booking: "The sequence number for your next document. Setting this lower than existing documents may cause duplicate conflicts.",
+    nom_suffix_booking: "Text that appears after the booking number. Commonly used for financial year codes, e.g. FY26 produces INV-5-FY26.",
+    nom_prefix_quote: "Text that appears before the quote number. For example, prefix Q with number 5 produces Q-5.",
+    nom_number_quote: "The sequence number for your next document. Setting this lower than existing documents may cause duplicate conflicts.",
+    nom_suffix_quote: "Text that appears after the quote number. Commonly used for financial year codes, e.g. FY26 produces Q-5-FY26.",
+    nom_payment: "Payment receipt numbers are auto-assigned in sequential order and cannot be customized."
   };
 
-  infoBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const type = btn.dataset.info;
-      content.innerHTML = infoData[type];
+  const handlePopup = (btn) => {
+    const type = btn.dataset.info;
+    if (!infoData[type]) return;
 
-      // Reset active states
-      infoBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    content.innerHTML = infoData[type];
 
-      // Position popup relative to viewport with boundary checking
-      const btnRect = btn.getBoundingClientRect();
-      let left = btnRect.left + btnRect.width / 2;
-      let top = btnRect.top - 12;
+    // Reset active states dynamically (important for SPA view swaps)
+    document.querySelectorAll('.info-btn.active').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
+    // Position popup relative to viewport (fixed positioning)
+    const btnRect = btn.getBoundingClientRect();
+    let left = btnRect.left + btnRect.width / 2;
+    let top = btnRect.top - 12;
+
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+    popup.style.transform = "translate(-50%, -100%)";
+    
+    popup.classList.add('active');
+
+    // Boundary check
+    const popupRect = popup.getBoundingClientRect();
+    const padding = 20;
+
+    if (popupRect.right > window.innerWidth - padding) {
+      const diff = popupRect.right - (window.innerWidth - padding);
+      left -= diff;
       popup.style.left = left + 'px';
-      popup.style.top = top + 'px';
-      popup.style.transform = "translate(-50%, -100%)";
-      popup.classList.add('active');
-
-      // Boundary check
-      const popupRect = popup.getBoundingClientRect();
-      const padding = 20;
-
-      if (popupRect.right > window.innerWidth - padding) {
-          const diff = popupRect.right - (window.innerWidth - padding);
-          left -= diff;
-          popup.style.left = left + 'px';
-      }
-      if (popupRect.left < padding) {
-          const diff = padding - popupRect.left;
-          left += diff;
-          popup.style.left = left + 'px';
-      }
-    });
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!popup.contains(e.target)) {
-      popup.classList.remove('active');
-      infoBtns.forEach(b => b.classList.remove('active'));
     }
-  });
+    if (popupRect.left < padding) {
+      const diff = padding - popupRect.left;
+      left += diff;
+      popup.style.left = left + 'px';
+    }
+  };
+
+  // mousedown in capture phase is most reliable for "click outside" dismissal
+  document.addEventListener('mousedown', (e) => {
+    const activePopup = document.getElementById('globalInfoPopup');
+    if (!activePopup) return;
+
+    const btn = e.target.closest('.info-btn');
+    if (btn) {
+      const isCurrentlyActive = btn.classList.contains('active');
+      
+      // Close all first
+      activePopup.classList.remove('active');
+      document.querySelectorAll('.info-btn').forEach(b => b.classList.remove('active'));
+      
+      if (!isCurrentlyActive) {
+        handlePopup(btn);
+      }
+    } else if (activePopup.classList.contains('active') && !activePopup.contains(e.target)) {
+      activePopup.classList.remove('active');
+      document.querySelectorAll('.info-btn').forEach(b => b.classList.remove('active'));
+    }
+  }, true);
 }
 
 // Logs Popup logic
@@ -620,5 +718,75 @@ function initLogsPopup() {
   });
 }
 
-// Initialize on load
+// Status Dropdown and Demo Modal logic
+function initStatusDropdowns() {
+  const statusWrappers = document.querySelectorAll('.status-dropdown-wrapper');
+  const demoModal = document.getElementById('demoModal');
+  const closeDemoModal = document.getElementById('closeDemoModal');
 
+  if (!statusWrappers || !demoModal || !closeDemoModal) return;
+
+  statusWrappers.forEach(wrapper => {
+    const pill = wrapper.querySelector('.status-pill');
+    const dropdownItems = wrapper.querySelectorAll('.status-dropdown-item');
+
+    // Toggle dropdown
+    pill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      // Close all other status dropdowns
+      statusWrappers.forEach(w => {
+        if (w !== wrapper) w.classList.remove('active');
+      });
+
+      wrapper.classList.toggle('active');
+    });
+
+    // Handle dropdown items
+    dropdownItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        wrapper.classList.remove('active');
+        
+        // Show Demo Modal
+        demoModal.classList.add('active');
+      });
+    });
+  });
+
+  // Close demo modal
+  closeDemoModal.addEventListener('click', () => {
+    demoModal.classList.remove('active');
+  });
+
+  // Close dropdowns and modal on outside click
+  document.addEventListener('click', (e) => {
+    statusWrappers.forEach(w => {
+      if (!w.contains(e.target)) {
+        w.classList.remove('active');
+      }
+    });
+
+    if (demoModal.classList.contains('active') && !demoModal.querySelector('.demo-modal-content').contains(e.target)) {
+        demoModal.classList.remove('active');
+    }
+  });
+}
+
+// Initialize on load
+// Initialize all on load
+document.addEventListener('DOMContentLoaded', () => {
+    // UX & Chart Enhancements
+    initCountUp();
+    simulateLoading();
+    drawRevenueChart();
+    drawBookingsChart();
+    drawIndiaMap();
+    drawWorldMap();
+    initChartDropdowns();
+
+    // Global Components
+    initGlobalInfoPopups();
+    initLogsPopup();
+    initStatusDropdowns();
+});

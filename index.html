@@ -8,7 +8,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="dashboard.css?v=5" />
+  <style>
+    /* SPA Section Transitions */
+    .page-view {
+      display: none;
+      opacity: 0;
+    }
+    .page-view.active {
+      display: block !important;
+      animation: viewFadeIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes viewFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -138,44 +159,60 @@
 
       <!-- STAT CARDS -->
       <div class="stat-cards">
-        <div class="stat-card stat-quotes" data-view="quotes">
-          <div class="stat-card-content">
+        <div class="stat-card stat-quotes loading" data-view="quotes">
+          <div class="stat-card-content skeleton-target">
             <span class="stat-label">Total Quotes</span>
-            <span class="stat-value" id="totalQuotesValue">5</span>
+            <span class="stat-value" id="totalQuotesValue" data-countup="5">5</span>
             <span class="stat-change positive">↑ 100.0% vs prev</span>
           </div>
-          <div class="stat-icon-box stat-icon-orange">
+          <div class="stat-icon-box stat-icon-orange skeleton-target">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           </div>
+          <div class="loading-overlay" style="width: 100%;">
+            <div class="skeleton-title skeleton"></div>
+            <div class="skeleton-text skeleton" style="width: 40%;"></div>
+          </div>
         </div>
-        <div class="stat-card stat-bookings" data-view="bookings">
-          <div class="stat-card-content">
+        <div class="stat-card stat-bookings loading" data-view="bookings">
+          <div class="stat-card-content skeleton-target">
             <span class="stat-label">Active Bookings</span>
-            <span class="stat-value" id="activeBookingsValue">3</span>
+            <span class="stat-value" id="activeBookingsValue" data-countup="3">3</span>
             <span class="stat-change positive">↑ 100.0% vs prev</span>
           </div>
-          <div class="stat-icon-box stat-icon-blue">
+          <div class="stat-icon-box stat-icon-blue skeleton-target">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
+          <div class="loading-overlay" style="width: 100%;">
+            <div class="skeleton-title skeleton"></div>
+            <div class="skeleton-text skeleton" style="width: 40%;"></div>
+          </div>
         </div>
-        <div class="stat-card stat-revenue" data-view="bookings">
-          <div class="stat-card-content">
+        <div class="stat-card stat-revenue loading" data-view="bookings">
+          <div class="stat-card-content skeleton-target">
             <span class="stat-label" id="revenueLabel">Revenue (30d)</span>
-            <span class="stat-value" id="revenueValue">₹7,67,732</span>
+            <span class="stat-value" id="revenueValue" data-countup="767732" data-prefix="₹">₹7,67,732</span>
             <span class="stat-change positive">↑ 100.0% vs prev</span>
           </div>
-          <div class="stat-icon-box stat-icon-green">
+          <div class="stat-icon-box stat-icon-green skeleton-target">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
           </div>
+          <div class="loading-overlay" style="width: 100%;">
+            <div class="skeleton-title skeleton"></div>
+            <div class="skeleton-text skeleton" style="width: 40%;"></div>
+          </div>
         </div>
-        <div class="stat-card stat-customers" data-view="customers">
-          <div class="stat-card-content">
+        <div class="stat-card stat-customers loading" data-view="customers">
+          <div class="stat-card-content skeleton-target">
             <span class="stat-label">Total Customers</span>
-            <span class="stat-value" id="totalCustomersValue">6</span>
+            <span class="stat-value" id="totalCustomersValue" data-countup="6">6</span>
             <span class="stat-change positive">↑ 100.0% vs prev</span>
           </div>
-          <div class="stat-icon-box stat-icon-purple">
+          <div class="stat-icon-box stat-icon-purple skeleton-target">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="loading-overlay" style="width: 100%;">
+            <div class="skeleton-title skeleton"></div>
+            <div class="skeleton-text skeleton" style="width: 40%;"></div>
           </div>
         </div>
       </div>
@@ -245,7 +282,7 @@
               <div class="activity-details">
                 <div class="activity-top-row">
                   <span class="activity-ref">WL-Q-0001</span>
-                  <span class="activity-amount">₹1,40,952</span>
+                  <span class="activity-amount" data-countup="140952" data-prefix="₹">₹1,40,952</span>
                 </div>
                 <div class="activity-bottom-row">
                   <span class="activity-badge converted">Converted</span>
@@ -266,7 +303,7 @@
               <div class="activity-details">
                 <div class="activity-top-row">
                   <span class="activity-ref">WL-Q-0002</span>
-                  <span class="activity-amount">₹1,10,520</span>
+                  <span class="activity-amount" data-countup="110520" data-prefix="₹">₹1,10,520</span>
                 </div>
                 <div class="activity-bottom-row">
                   <span class="activity-badge sent">Sent</span>
@@ -287,7 +324,7 @@
               <div class="activity-details">
                 <div class="activity-top-row">
                   <span class="activity-ref">WL-Q-0003</span>
-                  <span class="activity-amount">₹4,69,900</span>
+                  <span class="activity-amount" data-countup="469900" data-prefix="₹">₹4,69,900</span>
                 </div>
                 <div class="activity-bottom-row">
                   <span class="activity-badge converted">Converted</span>
@@ -308,7 +345,7 @@
               <div class="activity-details">
                 <div class="activity-top-row">
                   <span class="activity-ref">WL-Q-0004</span>
-                  <span class="activity-amount">₹2,34,900</span>
+                  <span class="activity-amount" data-countup="234900" data-prefix="₹">₹2,34,900</span>
                 </div>
                 <div class="activity-bottom-row">
                   <span class="activity-badge draft">Draft</span>
@@ -330,7 +367,7 @@
                 <div class="activity-details">
                   <div class="activity-top-row">
                     <span class="activity-ref">WL-B-0089</span>
-                    <span class="activity-amount">₹1,56,880</span>
+                    <span class="activity-amount" data-countup="156880" data-prefix="₹">₹1,56,880</span>
                   </div>
                   <div class="activity-bottom-row">
                     <span class="activity-badge converted">Completed</span>
@@ -351,7 +388,7 @@
                 <div class="activity-details">
                   <div class="activity-top-row">
                     <span class="activity-ref">WL-Q-0005</span>
-                    <span class="activity-amount">₹85,000</span>
+                    <span class="activity-amount" data-countup="85000" data-prefix="₹">₹85,000</span>
                   </div>
                   <div class="activity-bottom-row">
                     <span class="activity-badge sent">Sent</span>
@@ -372,7 +409,7 @@
                 <div class="activity-details">
                   <div class="activity-top-row">
                     <span class="activity-ref">WL-B-0088</span>
-                    <span class="activity-amount">₹6,10,852</span>
+                    <span class="activity-amount" data-countup="610852" data-prefix="₹">₹6,10,852</span>
                   </div>
                   <div class="activity-bottom-row">
                     <span class="activity-badge converted">Active</span>
@@ -446,15 +483,15 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
               <div class="fs-info">
-                <span class="fs-label">Total Revenue <span class="fs-info-btn" data-info="revenue">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-                    <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-                    <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-                    <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-                    <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+                <span class="fs-label">Total Revenue <span class="info-btn" data-info="revenue">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                    <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                    <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                    <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
                   </svg>
                 </span></span>
-                <span class="fs-value">₹7,67,732</span>
+                <span class="fs-value" data-countup="767732" data-prefix="₹">₹7,67,732</span>
               </div>
             </div>
             <div class="fs-item">
@@ -462,15 +499,15 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
               </div>
               <div class="fs-info">
-                <span class="fs-label">Total Profit <span class="fs-info-btn" data-info="profit">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-                    <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-                    <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-                    <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-                    <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+                <span class="fs-label">Total Profit <span class="info-btn" data-info="profit">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                    <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                    <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                    <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
                   </svg>
                 </span></span>
-                <span class="fs-value">₹89,000</span>
+                <span class="fs-value" data-countup="89000" data-prefix="₹">₹89,000</span>
               </div>
             </div>
             <div class="fs-item">
@@ -478,15 +515,15 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
               <div class="fs-info">
-                <span class="fs-label">Pending Payments <span class="fs-info-btn" data-info="pending">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-                    <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-                    <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-                    <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-                    <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+                <span class="fs-label">Pending Payments <span class="info-btn" data-info="pending">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                    <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                    <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                    <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
                   </svg>
                 </span></span>
-                <span class="fs-value">₹2,34,900</span>
+                <span class="fs-value" data-countup="234900" data-prefix="₹">₹2,34,900</span>
               </div>
             </div>
             <div class="fs-item">
@@ -494,24 +531,20 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
               </div>
               <div class="fs-info">
-                <span class="fs-label">Quote Conversion <span class="fs-info-btn" data-info="conversion">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-                    <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-                    <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-                    <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-                    <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+                <span class="fs-label">Quote Conversion <span class="info-btn" data-info="conversion">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                    <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                    <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                    <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
                   </svg>
                 </span></span>
-                <span class="fs-value">60.0%</span>
+                <span class="fs-value" data-countup="60.0" data-suffix="%">60.0%</span>
                 <span class="fs-subtext">3 of 5 quotes</span>
               </div>
             </div>
           </div>
-          <div id="fsPopupDashboard" class="fs-popup">
-            <div class="fs-popup-content"></div>
-            <a href="#" class="fs-popup-link">Learn more <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
-            <div class="fs-popup-arrow"></div>
-          </div>
+
         </div>
       </div>
 
@@ -612,7 +645,7 @@
                 </div>
               </td>
               <td class="tc-bookings">1</td>
-              <td class="tc-revenue">₹4,69,900</td>
+              <td class="tc-revenue" data-countup="469900" data-prefix="₹">₹4,69,900</td>
             </tr>
             <tr>
               <td class="tc-rank">2</td>
@@ -624,7 +657,7 @@
                 </div>
               </td>
               <td class="tc-bookings">1</td>
-              <td class="tc-revenue">₹1,56,880</td>
+              <td class="tc-revenue" data-countup="156880" data-prefix="₹">₹1,56,880</td>
             </tr>
             <tr>
               <td class="tc-rank">3</td>
@@ -636,7 +669,7 @@
                 </div>
               </td>
               <td class="tc-bookings">1</td>
-              <td class="tc-revenue">₹1,40,952</td>
+              <td class="tc-revenue" data-countup="140952" data-prefix="₹">₹1,40,952</td>
             </tr>
           </tbody>
         </table>
@@ -1108,7 +1141,23 @@
               </td>
               <td class="qt-amount">₹1,10,520</td>
               <td class="qt-profit">₹14,000</td>
-              <td><span class="status-pill status-sent">Sent <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></td>
+              <td>
+                <div class="status-dropdown-wrapper">
+                  <span class="status-pill status-sent status-interactive">
+                    Sent <svg class="status-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                  <div class="status-dropdown-menu">
+                    <div class="status-dropdown-item approve">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      Approve
+                    </div>
+                    <div class="status-dropdown-item reject">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                      Reject
+                    </div>
+                  </div>
+                </div>
+              </td>
               <td class="qt-date">01 May 2026</td>
               <td class="qt-created">09 Mar 2026,<br>12:19 pm</td>
               <td class="dt-actions">
@@ -1164,7 +1213,23 @@
               </td>
               <td class="qt-amount">₹8,92,400</td>
               <td class="qt-profit">₹1,05,000</td>
-              <td><span class="status-pill status-draft">Draft</span></td>
+              <td>
+                <div class="status-dropdown-wrapper">
+                  <span class="status-pill status-draft status-interactive">
+                    Draft <svg class="status-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                  <div class="status-dropdown-menu">
+                    <div class="status-dropdown-item approve">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      Approve
+                    </div>
+                    <div class="status-dropdown-item reject">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                      Reject
+                    </div>
+                  </div>
+                </div>
+              </td>
               <td class="qt-date">10 Jun 2026</td>
               <td class="qt-created">09 Mar 2026,<br>12:19 pm</td>
               <td class="dt-actions">
@@ -1176,7 +1241,7 @@
                 </button>
               </td>
             </tr>
-            <tr data-status="sent">
+            <tr data-status="converted">
               <td class="qt-id">WL-Q-0005</td>
               <td class="qt-customer">
                 <div>
@@ -1195,6 +1260,62 @@
               <td><span class="status-pill status-converted">Converted</span></td>
               <td class="qt-date">05 Apr 2026</td>
               <td class="qt-created">09 Mar 2026,<br>12:19 pm</td>
+              <td class="dt-actions">
+                <button class="action-btn download-btn" title="Download">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+                <button class="action-btn delete-btn" title="Delete">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </td>
+            </tr>
+            <tr data-status="approved">
+              <td class="qt-id">WL-Q-0006</td>
+              <td class="qt-customer">
+                <div>
+                  <span class="qt-customer-name">Arjun Singh</span>
+                  <span class="qt-customer-phone">+91 91234 56789</span>
+                </div>
+              </td>
+              <td class="qt-destination">
+                <div>
+                  <span class="qt-dest-name">Leh - Ladakh</span>
+                  <span class="qt-dest-type">domestic</span>
+                </div>
+              </td>
+              <td class="qt-amount">₹78,500</td>
+              <td class="qt-profit">₹9,500</td>
+              <td><span class="status-pill status-approved">Approved</span></td>
+              <td class="qt-date">22 May 2026</td>
+              <td class="qt-created">10 Mar 2026,<br>02:45 pm</td>
+              <td class="dt-actions">
+                <button class="action-btn download-btn" title="Download">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+                <button class="action-btn delete-btn" title="Delete">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </td>
+            </tr>
+            <tr data-status="rejected">
+              <td class="qt-id">WL-Q-0007</td>
+              <td class="qt-customer">
+                <div>
+                  <span class="qt-customer-name">Kavita Sharma</span>
+                  <span class="qt-customer-phone">+91 99988 77766</span>
+                </div>
+              </td>
+              <td class="qt-destination">
+                <div>
+                  <span class="qt-dest-name">Dubai</span>
+                  <span class="qt-dest-type">international</span>
+                </div>
+              </td>
+              <td class="qt-amount">₹2,45,000</td>
+              <td class="qt-profit">₹22,000</td>
+              <td><span class="status-pill status-rejected">Rejected</span></td>
+              <td class="qt-date">10 Apr 2026</td>
+              <td class="qt-created">08 Mar 2026,<br>11:30 am</td>
               <td class="dt-actions">
                 <button class="action-btn download-btn" title="Download">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1517,11 +1638,11 @@
           </div>
           <div class="pstat-content">
             <span class="pstat-value">₹25,000</span>
-            <span class="pstat-label">Advance Balance <span class="pstat-info-btn" data-info="advance"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-              <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-              <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-              <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-              <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+            <span class="pstat-label">Advance Balance <span class="info-btn" data-info="advance"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+              <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+              <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+              <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+              <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
             </svg></span></span>
           </div>
         </div>
@@ -1545,11 +1666,11 @@
               <th>AGAINST</th>
               <th class="th-sortable th-customer">CUSTOMER <span class="th-search-btn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></span></th>
               <th>AMOUNT</th>
-              <th>MODE <span class="pstat-info-btn" data-info="mode"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-  <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-  <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-  <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-  <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+              <th>MODE <span class="info-btn" data-info="mode"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
 </svg></span></th>
               <th>REFERENCE</th>
               <th>REMARKS</th>
@@ -1649,17 +1770,17 @@
               <th class="th-sortable th-customer">CUSTOMER <span class="th-search-btn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></span></th>
               <th>DESCRIPTION</th>
               <th>REMARKS</th>
-              <th>CREDIT (₹) <span class="pstat-info-btn" data-info="credit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-  <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-  <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-  <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-  <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+              <th>CREDIT (₹) <span class="info-btn" data-info="credit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
 </svg></span></th>
-              <th>DEBIT (₹) <span class="pstat-info-btn" data-info="debit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-  <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-  <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-  <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-  <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+              <th>DEBIT (₹) <span class="info-btn" data-info="debit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
 </svg></span></th>
             </tr>
           </thead>
@@ -1743,12 +1864,12 @@
           <button class="filter-tab" data-filter="cancelled">Cancelled</button>
           <button class="filter-tab" data-filter="ext">EXT</button>
         </div>
-        <span class="pstat-info-btn" data-info="ext_info" style="cursor:pointer; display:flex; align-items:center;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-            <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-            <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-            <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+        <span class="info-btn" data-info="ext_info" style="cursor:pointer; display:flex; align-items:center;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+            <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+            <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+            <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
           </svg>
         </span>
         <button class="icon-btn refresh-btn">
@@ -1770,12 +1891,12 @@
               <th>AMOUNT <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></th>
               <th class="th-invoice-customer">CUSTOMER <span class="th-search-btn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; cursor:pointer;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></span></th>
               <th>DESTINATION</th>
-              <th>STATUS <span class="pstat-info-btn" data-info="status_info" style="cursor:pointer; display:inline-flex; align-items:center; vertical-align:middle; margin-left:4px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-                  <circle cx="12" cy="12" r="10" style="opacity:0.15"/>
-                  <circle cx="12" cy="12" r="7.5" style="opacity:0.25"/>
-                  <circle cx="12" cy="12" r="5" style="opacity:0.6"/>
-                  <path d="M12 11v4M12 8h.01" stroke-width="2.2" stroke-linecap="round"/>
+              <th>STATUS <span class="info-btn" data-info="status_info" style="cursor:pointer; display:inline-flex; align-items:center; vertical-align:middle; margin-left:4px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
                 </svg>
               </span></th>
               <th>DATE <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></th>
@@ -1988,7 +2109,12 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
                 <div class="gst-text">
-                  <span class="gst-title">GST Billing <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+                  <span class="gst-title">GST Billing <span class="info-btn" data-info="gst_billing"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                    <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                    <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                    <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                  </svg></span></span>
                   <span class="gst-desc">GST is applied to all quotes and invoices</span>
                 </div>
               </div>
@@ -2010,13 +2136,23 @@
               <div class="form-group">
                 <label class="form-label">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                  Slug <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  Slug <span class="info-btn" data-info="slug"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                    <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                    <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                    <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                  </svg></span>
                 </label>
                 <input type="text" class="form-input" value="demo-wanderlust" />
               </div>
               <div class="form-group">
                 <label class="form-label">
-                  GSTIN <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  GSTIN <span class="info-btn" data-info="gstin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                    <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                    <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                    <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                  </svg></span>
                 </label>
                 <div class="input-with-action">
                   <input type="text" class="form-input uppercase-text" value="27AABCW1234F1ZP" />
@@ -2058,7 +2194,12 @@
             <div class="form-group half-width">
               <label class="form-label">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                PAN <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                PAN <span class="info-btn" data-info="pan"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                </svg></span>
               </label>
               <input type="text" class="form-input uppercase-text" value="AABCW1234F" />
             </div>
@@ -2096,7 +2237,12 @@
               </div>
               <div class="form-group">
                 <label class="form-label">
-                  IFSC Code <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  IFSC Code <span class="info-btn" data-info="ifsc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                    <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                    <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                    <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                  </svg></span>
                 </label>
                 <input type="text" class="form-input uppercase-text" value="HDFC0001234" />
               </div>
@@ -2126,7 +2272,12 @@
 
             <div class="form-group">
               <label class="form-label">
-                UPI ID <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                UPI ID <span class="info-btn" data-info="upi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                </svg></span>
               </label>
               <input type="text" class="form-input disable-bg" value="wanderlust@hdfcbank" />
               <p class="form-helper">A QR code will be auto-generated on invoices and quotes for this UPI ID.</p>
@@ -2137,7 +2288,12 @@
 
             <div class="form-group">
               <label class="form-label">
-                Invoice Terms & Conditions <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Invoice Terms & Conditions <span class="info-btn" data-info="terms"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                </svg></span>
               </label>
               <textarea class="form-input" rows="3" style="resize:vertical;">Payment due within 7 days of invoice date. Late payments attract 1.5% interest per month.</textarea>
               <p class="form-helper">Appears at the bottom of tax invoice PDFs.</p>
@@ -2153,7 +2309,12 @@
             <!-- PDF THEME -->
             <div class="form-section-header" style="margin-top: 32px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              PDF Theme <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              PDF Theme <span class="info-btn" data-info="pdf_theme"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+              </svg></span>
             </div>
 
             <div class="theme-cards">
@@ -2194,15 +2355,30 @@
             </div>
             <div class="nom-grid">
               <div class="form-group m-0">
-                <label class="form-label">Prefix (optional) <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></label>
+                <label class="form-label">Prefix (optional) <span class="info-btn" data-info="nom_prefix_booking"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                </svg></span></label>
                 <input type="text" class="form-input" value="WL-B-" />
               </div>
               <div class="form-group m-0">
-                <label class="form-label">Next Number <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></label>
+                <label class="form-label">Next Number <span class="info-btn" data-info="nom_number_booking"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                </svg></span></label>
                 <input type="text" class="form-input" value="6" />
               </div>
               <div class="form-group m-0">
-                <label class="form-label">Suffix (optional) <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></label>
+                <label class="form-label">Suffix (optional) <span class="info-btn" data-info="nom_suffix_booking"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                </svg></span></label>
                 <input type="text" class="form-input" placeholder="e.g. FY26" />
               </div>
             </div>
@@ -2228,15 +2404,30 @@
             </div>
             <div class="nom-grid">
               <div class="form-group m-0">
-                <label class="form-label">Prefix (optional) <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></label>
+                <label class="form-label">Prefix (optional) <span class="info-btn" data-info="nom_prefix_quote"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                </svg></span></label>
                 <input type="text" class="form-input" value="WL-Q-" />
               </div>
               <div class="form-group m-0">
-                <label class="form-label">Next Number <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></label>
+                <label class="form-label">Next Number <span class="info-btn" data-info="nom_number_quote"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                </svg></span></label>
                 <input type="text" class="form-input" value="8" />
               </div>
               <div class="form-group m-0">
-                <label class="form-label">Suffix (optional) <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></label>
+                <label class="form-label">Suffix (optional) <span class="info-btn" data-info="nom_suffix_quote"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+                  <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+                  <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+                  <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+                </svg></span></label>
                 <input type="text" class="form-input" placeholder="e.g. FY26" />
               </div>
             </div>
@@ -2267,7 +2458,12 @@
                 <span class="np-label" style="color:var(--text-secondary);">Current format:</span> <span class="np-value font-mono" style="color:var(--text-primary);">REC--8</span>
               </div>
             </div>
-            <p class="form-helper" style="margin-top:12px;">Payment receipt nomenclature is system-managed. <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.4; margin-left:2px; vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></p>
+            <p class="form-helper" style="margin-top:12px;">Payment receipt nomenclature is system-managed. <span class="info-btn" data-info="nom_payment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="vertical-align:middle;">
+              <circle cx="12" cy="12" r="11" style="opacity:0.15"/>
+              <circle cx="12" cy="12" r="8.5" style="opacity:0.25"/>
+              <circle cx="12" cy="12" r="6" style="opacity:0.6"/>
+              <path d="M12 11v5M12 7.5h.01" stroke-width="2.5" stroke-linecap="round"/>
+            </svg></span></p>
           </div>
 
         </div>
@@ -2441,7 +2637,6 @@
     </main>
   </div>
 
-  <script src="dashboard.js"></script>
 <script>
 
     // --- SINGLE PAGE APP ROUTING ---
@@ -2460,22 +2655,26 @@
         // Remove active class from all nav items
         document.querySelectorAll('.sidebar-nav .nav-item').forEach(nv => nv.classList.remove('active'));
         
+        // Add active class to clicked nav item
+        item.classList.add('active');
+
         // Hide all views
         views.forEach(v => {
           v.classList.remove('active');
           v.style.display = 'none';
         });
 
-        // Add active class to clicked nav item
-        item.classList.add('active');
-
-        // Show target view
-        const targetViewId = 'view-' + viewName;
-        const targetView = document.getElementById(targetViewId);
-        if (targetView) {
-          targetView.classList.add('active');
-          targetView.style.display = '';
-        }
+        // Small delay and reflow to ensure animation restarts
+        setTimeout(() => {
+          // Show target view
+          const targetViewId = 'view-' + viewName;
+          const targetView = document.getElementById(targetViewId);
+          if (targetView) {
+            targetView.style.display = 'block';
+            void targetView.offsetWidth; // Force reflow
+            targetView.classList.add('active');
+          }
+        }, 10);
       });
     });
 
@@ -2994,54 +3193,8 @@
     searchInput.addEventListener('input', () => applyFilters(false));
     refreshBtn.addEventListener('click', () => applyFilters(true));
 
-    // Tooltip Mapping
-    const tooltipContent = {
-        credit: "Money received into the <strong>advance balance</strong> through advance deposits.",
-        debit: "Money applied from the <strong>advance balance</strong> towards a booking payment.",
-        advance: "Total <strong>unallocated advance money</strong> held on behalf of customers. These are amounts received but not yet applied to any specific booking.",
-        mode: "<strong>Adjusted via Advance</strong> means the payment was settled using the customer's existing advance balance, rather than a new direct payment."
-    };
-
+    // Global info icon handling is now managed in dashboard.js
     paymentsView.addEventListener('click', (e) => {
-        const infoBtn = e.target.closest('.pstat-info-btn');
-        if (infoBtn) {
-            const key = infoBtn.dataset.info;
-            const content = tooltipContent[key];
-            const targetPopup = document.getElementById('fsPopup');
-            const contentBox = targetPopup ? targetPopup.querySelector('.fs-popup-content') : null;
-            
-            if (content && contentBox) {
-                contentBox.innerHTML = content;
-                targetPopup.classList.add('active'); 
-                
-                const btnRect = infoBtn.getBoundingClientRect();
-                let left = btnRect.left + btnRect.width / 2;
-                let top = btnRect.top - 12;
-
-                // Initial position with transform centered
-                targetPopup.style.left = left + 'px';
-                targetPopup.style.top = top + 'px';
-                targetPopup.style.transform = 'translate(-50%, -100%)';
-
-                // Boundary check
-                const popupRect = targetPopup.getBoundingClientRect();
-                const padding = 20;
-
-                if (popupRect.right > window.innerWidth - padding) {
-                    const diff = popupRect.right - (window.innerWidth - padding);
-                    left -= diff;
-                    targetPopup.style.left = left + 'px';
-                }
-                if (popupRect.left < padding) {
-                    const diff = padding - popupRect.left;
-                    left += diff;
-                    targetPopup.style.left = left + 'px';
-                }
-
-                e.stopPropagation();
-            }
-        }
-
         const searchBtn = e.target.closest('.th-search-btn');
         if (searchBtn) {
             let popup = document.getElementById('colSearchPopup');
@@ -3073,7 +3226,7 @@
     });
 
     document.addEventListener('click', () => {
-        const targetPopup = document.getElementById('fsPopup');
+        const targetPopup = document.getElementById('globalInfoPopup');
         if (targetPopup) targetPopup.classList.remove('active');
         const colPopup = document.getElementById('colSearchPopup');
         if (colPopup) colPopup.style.display = 'none';
@@ -3156,47 +3309,13 @@
     searchInput.addEventListener('input', () => applyFilters(false));
     refreshBtn.addEventListener('click', () => applyFilters(true));
 
-    // Tooltip Mapping for Invoices
-    const invoiceTooltipContent = {
-        ext_info: "Primary is the main tax invoice for a booking. <strong>EXT (Extension)</strong> is an additional invoice issued when some services are billed under a different GST rate.",
-        status_info: "Shows whether the booking is <strong>active or cancelled</strong>. Cancelled invoices are voided and linked to a Credit Note if one was generated."
-    };
+    // Tooltips are handled globally in dashboard.js
 
     invoicesView.addEventListener('click', (e) => {
-        const infoBtn = e.target.closest('.pstat-info-btn');
+        const infoBtn = e.target.closest('.info-btn');
         if (infoBtn) {
-            const key = infoBtn.dataset.info;
-            const content = invoiceTooltipContent[key];
-            const targetPopup = document.getElementById('fsPopup');
-            const contentBox = targetPopup ? targetPopup.querySelector('.fs-popup-content') : null;
-            
-            if (content && contentBox) {
-                contentBox.innerHTML = content;
-                targetPopup.classList.add('active'); 
-                
-                const btnRect = infoBtn.getBoundingClientRect();
-                let left = btnRect.left + btnRect.width / 2;
-                let top = btnRect.top - 12;
-
-                targetPopup.style.left = left + 'px';
-                targetPopup.style.top = top + 'px';
-                targetPopup.style.transform = 'translate(-50%, -100%)';
-
-                const popupRect = targetPopup.getBoundingClientRect();
-                const padding = 20;
-
-                if (popupRect.right > window.innerWidth - padding) {
-                    const diff = popupRect.right - (window.innerWidth - padding);
-                    left -= diff;
-                    targetPopup.style.left = left + 'px';
-                }
-                if (popupRect.left < padding) {
-                    const diff = padding - popupRect.left;
-                    left += diff;
-                    targetPopup.style.left = left + 'px';
-                }
-                e.stopPropagation();
-            }
+            e.stopPropagation();
+            return;
         }
 
         const searchBtn = e.target.closest('.th-search-btn');
@@ -3433,7 +3552,7 @@
   </script>
   <div id="chartTooltip" class="chart-tooltip"></div>
   <div id="bookingsTooltip" class="chart-tooltip"></div>
-  <div id="fsPopup" class="fs-popup">
+  <div id="globalInfoPopup" class="info-popup">
     <div class="fs-popup-content"></div>
     <a href="#" class="fs-popup-link">Learn more <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
     <div class="fs-popup-arrow"></div>
@@ -3451,6 +3570,17 @@
     </div>
     <div class="logs-arrow"></div>
   </div>
-  <script src="dashboard.js"></script>
+  <script src="dashboard.js?v=5"></script>
+  <!-- Demo Restriction Modal -->
+  <div id="demoModal" class="demo-modal-overlay">
+    <div class="demo-modal-content">
+      <div class="demo-modal-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      </div>
+      <p>This is a demo account. Changes cannot be made.</p>
+      <button id="closeDemoModal" class="btn-ok">OK</button>
+    </div>
+  </div>
+
 </body>
 </html>
