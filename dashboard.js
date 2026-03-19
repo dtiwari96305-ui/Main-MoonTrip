@@ -8,9 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
   drawIndiaMap();
   drawWorldMap();
   initFinancialSummary();
+  initChartDropdowns();
+  initLogsPopup();
 });
 
-function drawRevenueChart() {
+function drawRevenueChart(months = 6) {
   const canvas = document.getElementById('revenueChart');
   if (!canvas) return;
 
@@ -28,17 +30,28 @@ function drawRevenueChart() {
 
   const W = rect.width;
   const H = rect.height;
-  const padding = { top: 20, right: 10, bottom: 20, left: 0 };
+  const padding = { top: 20, right: 10, bottom: 20, left: 10 };
   const chartW = W - padding.left - padding.right;
   const chartH = H - padding.top - padding.bottom;
 
-  // Data
-  const labels = ["Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026"];
-  const revenueData = [0.5, 0.4, 0.6, 0.8, 2.0, 7.5];
-  const profitData  = [0.1, 0.1, 0.2, 0.3, 0.5, 2.0];
-  const revValues = ["₹51,200", "₹42,500", "₹64,300", "₹82,100", "₹2,05,000", "₹7,67,732"];
-  const profValues = ["₹8,500", "₹6,200", "₹12,400", "₹24,500", "₹48,900", "₹89,000"];
-  const maxVal = 8;
+  // Generate Data
+  const { labels, revenueData, profitData, revValues, profValues } = getRevenueChartData(months);
+  const maxVal = Math.max(...revenueData, 1) * 1.1;
+
+  // Update DOM X-Axis
+  const xAxis = document.getElementById('revenueXAxis');
+  if (xAxis) {
+     xAxis.innerHTML = '';
+     // Only show a subset of labels if months > 6 to avoid crowding
+     const step = months > 12 ? 4 : (months > 6 ? 2 : 1);
+     labels.forEach((label, i) => {
+       if (i % step === 0 || i === labels.length - 1) {
+         const span = document.createElement('span');
+         span.textContent = label;
+         xAxis.appendChild(span);
+       }
+     });
+  }
 
   function dataToPoints(data) {
     return data.map((val, i) => {
@@ -52,6 +65,7 @@ function drawRevenueChart() {
   const profPoints = dataToPoints(profitData);
 
   function drawSmoothLine(points, color, fillColor) {
+    if (points.length < 2) return;
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
 
@@ -79,11 +93,15 @@ function drawRevenueChart() {
     }
   }
 
-  // Draw Grid (5 lines: 8, 6, 4, 2, 0)
+  // Clear
+  ctx.clearRect(0, 0, W, H);
+
+  // Draw Grid (5 lines)
   ctx.strokeStyle = '#f1f5f9';
   ctx.lineWidth = 1;
-  for (let i = 0; i < 5; i++) {
-    const y = padding.top + (chartH / 4) * i;
+  const gridLinesCount = 5;
+  for (let i = 0; i < gridLinesCount; i++) {
+    const y = padding.top + (chartH / (gridLinesCount - 1)) * i;
     ctx.beginPath();
     ctx.moveTo(padding.left, y);
     ctx.lineTo(W - padding.right, y);
@@ -105,11 +123,9 @@ function drawRevenueChart() {
   });
 
   // Tooltip Logic
-  canvas.addEventListener('mousemove', (e) => {
+  const handleMouseMove = (e) => {
     const mouseX = e.offsetX;
-    const mouseY = e.offsetY;
     
-    // Find closest point index
     let closestIdx = 0;
     let minDiff = Infinity;
     
@@ -122,9 +138,9 @@ function drawRevenueChart() {
     });
 
     const pt = revPoints[closestIdx];
+    const threshold = (chartW / labels.length) / 2 + 10;
     
-    // Check if mouse is near enough to show tooltip
-    if (minDiff < 30) {
+    if (minDiff < threshold) {
       tooltip.innerHTML = `
         <span class="tooltip-date">${labels[closestIdx]}</span>
         <div class="tooltip-row">
@@ -137,15 +153,20 @@ function drawRevenueChart() {
         </div>
       `;
       tooltip.classList.add('active');
-      
-      // Position tooltip at center top of the point
       tooltip.style.left = `${pt.x}px`;
       tooltip.style.top = `${pt.y - 12}px`;
       tooltip.style.transform = `translate(-50%, -100%)`;
     } else {
       tooltip.classList.remove('active');
     }
-  });
+  };
+
+  // Re-attach listener
+  if (canvas._lastMoveHandler) {
+    canvas.removeEventListener('mousemove', canvas._lastMoveHandler);
+  }
+  canvas.addEventListener('mousemove', handleMouseMove);
+  canvas._lastMoveHandler = handleMouseMove;
 
   canvas.addEventListener('mouseleave', () => {
     tooltip.classList.remove('active');
@@ -153,7 +174,11 @@ function drawRevenueChart() {
 }
 
 // Bookings bar chart
-function drawBookingsChart() {
+let currentRevenueMonths = 6;
+let currentBookingsMonths = 6;
+
+function drawBookingsChart(months = 6) {
+  currentBookingsMonths = months;
   const canvas = document.getElementById('bookingsChart');
   if (!canvas) return;
 
@@ -168,16 +193,30 @@ function drawBookingsChart() {
 
   const W = rect.width;
   const H = rect.height;
-  const padding = { top: 10, right: 10, bottom: 10, left: 0 };
+  const padding = { top: 10, right: 10, bottom: 10, left: 10 };
   const chartH = H - padding.top - padding.bottom;
-  const maxVal = 4;
-
-  // Data
-  const labels = ["Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026"];
-  const data = [0, 0, 0, 0, 1, 3];
-  const barWidth = 32;
-  const totalBars = data.length;
   const chartW = W - padding.left - padding.right;
+
+  // Generate Data
+  const { labels, data } = getBookingsChartData(months);
+  const maxVal = Math.max(...data, 4);
+
+  // Update DOM X-Axis
+  const xAxis = document.getElementById('bookingsXAxis');
+  if (xAxis) {
+     xAxis.innerHTML = '';
+     const step = months > 12 ? 4 : (months > 6 ? 2 : 1);
+     labels.forEach((label, i) => {
+       if (i % step === 0 || i === labels.length - 1) {
+         const span = document.createElement('span');
+         span.textContent = label;
+         xAxis.appendChild(span);
+       }
+     });
+  }
+
+  const barWidth = months === 6 ? 32 : (months === 12 ? 16 : 8);
+  const totalBars = data.length;
   const gap = (chartW - totalBars * barWidth) / (totalBars + 1);
 
   function draw() {
@@ -201,14 +240,12 @@ function drawBookingsChart() {
       const barH = (val / maxVal) * chartH;
       const y = padding.top + chartH - barH;
 
-      // Draw highlight if hovered
       if (hoveredIdx === i) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
         ctx.fillRect(x - gap/2, padding.top, barWidth + gap, chartH);
       }
 
       if (val > 0) {
-        // Gradient bar
         const grad = ctx.createLinearGradient(x, y, x, y + barH);
         grad.addColorStop(0, '#818cf8');
         grad.addColorStop(1, '#6366f1');
@@ -223,9 +260,8 @@ function drawBookingsChart() {
   let hoveredIdx = -1;
   const tooltip = document.getElementById('bookingsTooltip');
 
-  canvas.addEventListener('mousemove', (e) => {
+  const handleMouseMove = (e) => {
     const mouseX = e.offsetX;
-    
     let currentIdx = -1;
     data.forEach((val, i) => {
       const x = padding.left + gap * (i + 1) + barWidth * i;
@@ -250,22 +286,24 @@ function drawBookingsChart() {
         `;
         tooltip.classList.add('active');
 
-        // Position
         const x = padding.left + gap * (hoveredIdx + 1) + barWidth * hoveredIdx;
         const barH = (val / maxVal) * chartH;
         const y = padding.top + chartH - barH;
         
         tooltip.style.left = `${x}px`;
         tooltip.style.top = `${y - 10}px`;
-        tooltip.style.transform = `translate(-100%, -50%)`; // To the left of the bar as in image
-        if (hoveredIdx < 2) {
-          tooltip.style.transform = `translate(20%, -50%)`; // Flip if too close to left
-        }
+        tooltip.style.transform = `translate(-50%, -100%)`;
       } else {
         tooltip.classList.remove('active');
       }
     }
-  });
+  };
+
+  if (canvas._lastMoveHandler) {
+    canvas.removeEventListener('mousemove', canvas._lastMoveHandler);
+  }
+  canvas.addEventListener('mousemove', handleMouseMove);
+  canvas._lastMoveHandler = handleMouseMove;
 
   canvas.addEventListener('mouseleave', () => {
     hoveredIdx = -1;
@@ -274,6 +312,84 @@ function drawBookingsChart() {
   });
 
   draw();
+}
+
+function getRevenueChartData(months) {
+  const allLabels = ["Apr 2024", "May 2024", "Jun 2024", "Jul 2024", "Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026"];
+  const labels = allLabels.slice(-months);
+  
+  const revenueData = labels.map((_, i) => {
+    const isStored = (i >= labels.length - 6);
+    if (isStored) return [0.5, 0.4, 0.6, 0.8, 2.0, 7.5][i - (labels.length - 6)];
+    return 0.3 + Math.random() * 1.5;
+  });
+
+  const profitData = labels.map((_, i) => {
+    const isStored = (i >= labels.length - 6);
+    if (isStored) return [0.1, 0.1, 0.2, 0.3, 0.5, 2.0][i - (labels.length - 6)];
+    return 0.05 + Math.random() * 0.4;
+  });
+
+  const revValues = revenueData.map(v => `₹${(v * 100000).toLocaleString('en-IN')}`);
+  const profValues = profitData.map(v => `₹${(v * 100000).toLocaleString('en-IN')}`);
+
+  return { labels, revenueData, profitData, revValues, profValues };
+}
+
+function getBookingsChartData(months) {
+  const allLabels = ["Apr 2024", "May 2024", "Jun 2024", "Jul 2024", "Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026"];
+  const labels = allLabels.slice(-months);
+  
+  const data = labels.map((_, i) => {
+    const isStored = (i >= labels.length - 6);
+    if (isStored) return [0, 0, 0, 0, 1, 3][i - (labels.length - 6)];
+    return Math.floor(Math.random() * 3);
+  });
+
+  return { labels, data };
+}
+
+function initChartDropdowns() {
+  const dropdownWrappers = document.querySelectorAll('.chart-period-wrapper');
+
+  dropdownWrappers.forEach(wrapper => {
+    const select = wrapper.querySelector('.chart-period-select');
+    const items = wrapper.querySelectorAll('.chart-dropdown-item');
+    const selectedText = select.querySelector('.selected-period');
+
+    select.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = wrapper.classList.contains('open');
+      document.querySelectorAll('.chart-period-wrapper').forEach(w => w.classList.remove('open'));
+      if (!isOpen) wrapper.classList.add('open');
+    });
+
+    items.forEach(item => {
+      item.addEventListener('click', () => {
+        const months = parseInt(item.dataset.months);
+        selectedText.textContent = item.textContent;
+        
+        items.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        if (wrapper.id === 'revenuePeriodWrapper') {
+          currentRevenueMonths = months;
+          drawRevenueChart(months);
+          document.querySelector('.revenue-chart-card .chart-subtitle').textContent = `Last ${months} months performance`;
+        } else {
+          currentBookingsMonths = months;
+          drawBookingsChart(months);
+          document.querySelector('#bookingsChart').closest('.revenue-chart-card').querySelector('.chart-subtitle').textContent = `Booking volume over last ${months} months`;
+        }
+        
+        wrapper.classList.remove('open');
+      });
+    });
+  });
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.chart-period-wrapper').forEach(w => w.classList.remove('open'));
+  });
 }
 
 // India map (simplified outline with destination dots)
@@ -407,8 +523,8 @@ function drawWorldMap() {
 
 // Redraw on resize
 window.addEventListener('resize', () => {
-  drawRevenueChart();
-  drawBookingsChart();
+  drawRevenueChart(currentRevenueMonths);
+  drawBookingsChart(currentBookingsMonths);
   drawIndiaMap();
   drawWorldMap();
 });
@@ -505,7 +621,4 @@ function initLogsPopup() {
 }
 
 // Initialize on load
-document.addEventListener('DOMContentLoaded', () => {
-  initLogsPopup();
-});
 

@@ -194,9 +194,16 @@
                 <span class="legend-item"><span class="legend-dot revenue-dot"></span> Revenue</span>
                 <span class="legend-item"><span class="legend-dot profit-dot"></span> Profit</span>
               </div>
-              <div class="chart-period-select">
-                <span>6 months</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              <div class="chart-period-wrapper" id="revenuePeriodWrapper">
+                <div class="chart-period-select" id="revenuePeriodSelect">
+                  <span class="selected-period">6 months</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="chart-dropdown">
+                  <div class="chart-dropdown-item active" data-months="6">6 months</div>
+                  <div class="chart-dropdown-item" data-months="12">12 months</div>
+                  <div class="chart-dropdown-item" data-months="24">24 months</div>
+                </div>
               </div>
             </div>
           </div>
@@ -391,9 +398,16 @@
               <p class="chart-subtitle">Booking volume over last 6 months</p>
             </div>
             <div class="chart-header-right">
-              <div class="chart-period-select">
-                <span>6 months</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              <div class="chart-period-wrapper" id="bookingsPeriodWrapper">
+                <div class="chart-period-select" id="bookingsPeriodSelect">
+                  <span class="selected-period">6 months</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="chart-dropdown">
+                  <div class="chart-dropdown-item active" data-months="6">6 months</div>
+                  <div class="chart-dropdown-item" data-months="12">12 months</div>
+                  <div class="chart-dropdown-item" data-months="24">24 months</div>
+                </div>
               </div>
             </div>
           </div>
@@ -3410,5 +3424,6 @@
     </div>
     <div class="logs-arrow"></div>
   </div>
+  <script src="dashboard.js"></script>
 </body>
 </html>
