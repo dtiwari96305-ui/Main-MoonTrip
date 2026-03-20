@@ -44,7 +44,7 @@ export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, ch
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const dateOptions = ['Last 30 days', 'Last 60 days', 'Last 90 days', 'Last 1 year', 'All time'];
+  const dateOptions = ['Last 30 days', 'Last 60 days', 'Last 90 days', 'All time'];
 
   return (
     <div className="page-header-strip">
@@ -55,30 +55,28 @@ export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, ch
         </div>
         <div className="dash-header-right">
           {showDateFilter && (
-            <div className="date-filter-wrapper" ref={dateFilterRef}>
-              <div 
-                className={`date-filter ${isDateFilterOpen ? 'open' : ''}`} 
+            <div className={`date-filter-wrapper ${isDateFilterOpen ? 'open' : ''}`} ref={dateFilterRef}>
+              <div
+                className="date-filter"
                 onClick={(e) => { e.stopPropagation(); setIsDateFilterOpen(!isDateFilterOpen); }}
               >
                 <span>{selectedDate}</span>
                 <svg className="date-filter-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
               </div>
-              {isDateFilterOpen && (
-                <div className="date-filter-dropdown">
-                  {dateOptions.map(option => (
-                    <div 
-                      key={option} 
-                      className={`date-filter-option ${selectedDate === option ? 'active' : ''}`}
-                      onClick={() => {
-                        setSelectedDate(option);
-                        setIsDateFilterOpen(false);
-                      }}
-                    >
-                      {option}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="date-filter-dropdown">
+                {dateOptions.map(option => (
+                  <div
+                    key={option}
+                    className={`date-filter-option ${selectedDate === option ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedDate(option);
+                      setIsDateFilterOpen(false);
+                    }}
+                  >
+                    {option}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
           

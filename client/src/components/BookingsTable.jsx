@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { customers } from './CustomersTable';
+import { openCustomerProfile } from '../utils/customerNav';
 
 const DemoModal = ({ onClose }) => (
   <div className="demo-modal-overlay" onClick={onClose}>
@@ -103,7 +105,7 @@ export const BookingsTable = ({ bookings }) => {
               return (
                 <tr key={b.id} data-status={b.status} className="animate-row">
                   <td><span className="qt-id">{b.id}</span></td>
-                  <td><span className="qt-customer-name">{b.customerName}</span></td>
+                  <td><span className="qt-customer-name cp-name-link" onClick={() => { const c = customers.find(x => x.name === b.customerName); if (c) openCustomerProfile(c.id, 'bookings'); }}>{b.customerName}</span></td>
                   <td>
                     <span className="bk-destination">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{color:'#94a3b8',flexShrink:0}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>

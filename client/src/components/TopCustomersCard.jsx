@@ -1,4 +1,5 @@
 import React from 'react';
+import { openCustomerProfile } from '../utils/customerNav';
 
 export const TopCustomersCard = () => {
   const customers = [
@@ -34,7 +35,7 @@ export const TopCustomersCard = () => {
               <td className="tc-customer">
                 <div className="tc-avatar" style={{ background: c.gradient }}>{c.initials}</div>
                 <div className="tc-customer-info">
-                  <span className="tc-customer-name">{c.name}</span>
+                  <span className="tc-customer-name cp-name-link" onClick={() => openCustomerProfile(c.id, 'dashboard')}>{c.name}</span>
                   <span className="tc-customer-id">{c.id}</span>
                 </div>
               </td>

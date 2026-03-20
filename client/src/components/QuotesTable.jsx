@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { customers } from './CustomersTable';
+import { openCustomerProfile } from '../utils/customerNav';
+import { openQuoteDetail } from '../utils/quoteNav';
 
 const DemoModal = ({ onClose }) => (
   <div className="demo-modal-overlay" onClick={onClose}>
@@ -101,10 +104,10 @@ export const QuotesTable = ({ quotes }) => {
               const actsAsDropdown = q.status === 'sent' || q.status === 'draft';
               return (
                 <tr key={q.id} data-status={q.status} className="animate-row">
-                  <td><span className="qt-id">{q.id}</span></td>
+                  <td><span className="qt-id cp-name-link" onClick={() => openQuoteDetail(q.id, 'quotes')}>{q.id}</span></td>
                   <td className="qt-customer">
                     <div>
-                      <span className="qt-customer-name">{q.customerName}</span>
+                      <span className="qt-customer-name cp-name-link" onClick={() => { const c = customers.find(x => x.name === q.customerName); if (c) openCustomerProfile(c.id, 'quotes'); }}>{q.customerName}</span>
                       <span className="qt-customer-phone">{q.customerPhone}</span>
                     </div>
                   </td>

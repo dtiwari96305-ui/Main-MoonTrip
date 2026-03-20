@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { openCustomerProfile } from '../utils/customerNav';
 
 export const customers = [
   { id: 'WL-C-0001', name: 'Rahul Sharma', phone: '+91 99876 54321', email: 'rahul@example.com', location: 'Mumbai', type: 'Individual', joined: '09 Mar 2026', gradient: 'linear-gradient(135deg, #f093fb, #f5576c)', initials: 'RS' },
@@ -71,7 +72,7 @@ export const CustomersTable = ({ searchQuery = '', onFilteredChange }) => {
                 <div className="dt-customer">
                   <div className="dt-avatar" style={{ background: c.gradient }}>{c.initials}</div>
                   <div className="dt-customer-info">
-                    <span className="dt-customer-name">{c.name}</span>
+                    <span className="dt-customer-name cp-name-link" onClick={() => openCustomerProfile(c.id, 'customers')}>{c.name}</span>
                     <span className="dt-customer-id">{c.id}</span>
                   </div>
                 </div>

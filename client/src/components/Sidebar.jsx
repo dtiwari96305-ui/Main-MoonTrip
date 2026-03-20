@@ -23,26 +23,26 @@ export const Sidebar = ({ activeView, onViewChange }) => {
             <span className="logo-sub">Wanderlust Travels</span>
           </div>
         </div>
-
-        <nav className="sidebar-nav">
-          {navItems.map((item) => {
-            const isActive = activeView === item.id;
-            return (
-              <a
-                key={item.id}
-                href="#"
-                onClick={(e) => { e.preventDefault(); onViewChange(item.id); }}
-                data-view={item.id}
-                id={`nav-${item.id}`}
-                className={`nav-item ${isActive ? 'active' : ''}`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </a>
-            );
-          })}
-        </nav>
       </div>
+
+      <nav className="sidebar-nav">
+        {navItems.map((item) => {
+          const isActive = activeView === item.id;
+          return (
+            <a
+              key={item.id}
+              href="#"
+              onClick={(e) => { e.preventDefault(); onViewChange(item.id); }}
+              data-view={item.id}
+              id={`nav-${item.id}`}
+              className={`nav-item ${isActive ? 'active' : ''}`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </a>
+          );
+        })}
+      </nav>
 
       <div className="sidebar-bottom">
         <div className="sidebar-user-card">

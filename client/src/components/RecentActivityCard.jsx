@@ -1,4 +1,7 @@
 import React from 'react';
+import { customers } from './CustomersTable';
+import { openCustomerProfile } from '../utils/customerNav';
+import { openQuoteDetail } from '../utils/quoteNav';
 
 const activities = [
   { id: 'WL-Q-0001', type: 'quotes', amount: '₹1,40,952', status: 'converted', statusLabel: 'Converted', date: '09 Mar 2026', customer: 'Rahul Sharma', colorClass: 'ai-purple' },
@@ -30,14 +33,14 @@ export const RecentActivityCard = () => {
             </div>
             <div className="activity-details">
               <div className="activity-top-row">
-                <span className="activity-ref">{item.id}</span>
+                <span className="activity-ref cp-name-link" onClick={() => item.type === 'quotes' ? openQuoteDetail(item.id, 'dashboard') : null}>{item.id}</span>
                 <span className="activity-amount">{item.amount}</span>
               </div>
               <div className="activity-bottom-row">
                 <span className={`activity-badge ${item.status}`}>{item.statusLabel}</span>
                 <span className="activity-date">{item.date}</span>
               </div>
-              <span className="activity-customer">{item.customer}</span>
+              <span className="activity-customer cp-name-link" onClick={() => { const c = customers.find(x => x.name === item.customer); if (c) openCustomerProfile(c.id, 'dashboard'); }}>{item.customer}</span>
             </div>
             <div className="activity-arrow">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>

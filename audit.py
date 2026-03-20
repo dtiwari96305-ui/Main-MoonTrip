@@ -2,7 +2,7 @@ import re
 import math
 from collections import defaultdict
 
-css_file = r"dashboard.css"
+css_file = r"client/src/dashboard.css"
 
 with open(css_file, "r", encoding="utf-8") as f:
     css_content = f.read()
