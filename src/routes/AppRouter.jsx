@@ -16,6 +16,9 @@ import { QuoteDetail } from '../pages/QuoteDetail';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { registerCustomerNav } from '../utils/customerNav';
 import { registerQuoteNav } from '../utils/quoteNav';
+import { registerCreateQuoteNav } from '../utils/createQuoteNav';
+import { registerBillingNav } from '../utils/billingNav';
+import { Billing } from '../pages/Billing';
 
 // Mock routing since original app didn't use URL paths for tabs
 export const AppRouter = () => {
@@ -26,6 +29,8 @@ export const AppRouter = () => {
   const [profileFromView, setProfileFromView] = useState(() => sessionStorage.getItem('profileFromView') || 'customers');
   const [quoteDetailId, setQuoteDetailId] = useState(() => sessionStorage.getItem('quoteDetailId') || null);
   const [quoteFromView, setQuoteFromView] = useState(() => sessionStorage.getItem('quoteFromView') || 'quotes');
+  const [createQuoteCustomer, setCreateQuoteCustomer] = useState(null);
+  const [billingFromView, setBillingFromView] = useState('dashboard');
   const activeViewRef = useRef(activeView);
 
   useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
@@ -51,6 +56,23 @@ export const AppRouter = () => {
     });
   }, []);
 
+  // Register create-quote-with-customer navigation handler
+  useEffect(() => {
+    registerCreateQuoteNav((customer) => {
+      setCreateQuoteCustomer(customer);
+      handleViewChange('create-quote');
+    });
+  }, []);
+
+  // Register billing navigation handler
+  useEffect(() => {
+    registerBillingNav((fromView) => {
+      const fv = fromView || activeViewRef.current;
+      setBillingFromView(fv);
+      handleViewChange('billing');
+    });
+  }, []);
+
   // Register global quote navigation handler
   useEffect(() => {
     registerQuoteNav((quoteId, fromView) => {
@@ -65,6 +87,11 @@ export const AppRouter = () => {
 
   const handleViewChange = (newView) => {
     if (newView === activeView && !isLoading) return;
+
+    // Clear pre-filled customer when navigating away from create-quote
+    if (activeViewRef.current === 'create-quote' && newView !== 'create-quote') {
+      setCreateQuoteCustomer(null);
+    }
 
     setPendingView(newView);
     setIsLoading(true);
@@ -89,13 +116,19 @@ export const AppRouter = () => {
               {activeView === 'dashboard' && <Dashboard onViewChange={handleViewChange} />}
               {activeView === 'customers' && <Customers />}
               {activeView === 'quotes' && <Quotes onViewChange={handleViewChange} />}
-              {activeView === 'create-quote' && <CreateQuote onViewChange={handleViewChange} />}
+              {activeView === 'create-quote' && <CreateQuote onViewChange={handleViewChange} prefilledCustomer={createQuoteCustomer} />}
               {activeView === 'bookings' && <Bookings />}
               {activeView === 'livetrips' && <LiveTrips />}
               {activeView === 'payments' && <Payments />}
               {activeView === 'invoices' && <SalesInvoices />}
               {activeView === 'accounts' && <Accounts />}
               {activeView === 'settings' && <Settings />}
+              {activeView === 'billing' && (
+                <Billing
+                  fromView={billingFromView}
+                  onBack={() => handleViewChange(billingFromView || 'settings')}
+                />
+              )}
               {activeView === 'customer-profile' && (
                 <CustomerProfile
                   customerId={customerProfileId}

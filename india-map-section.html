@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>India Map</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #fdf5ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .map-wrap {
+    width: 100%;
+    max-width: 520px;
+    background: #fdf5ec;
+  }
+
+  #mapSvg { display: block; width: 100%; height: auto; }
+
+  .country {
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    transition: fill 0.18s ease;
+    cursor: pointer;
+  }
+  .india     { fill: #fde8d5; stroke: #e8a870; stroke-width: 0.9; }
+  .neighbour { fill: #fdf0e6; stroke: #e8c8a8; stroke-width: 0.65; }
+  .country:hover { fill: #c84e08 !important; }
+
+  .marker { cursor: pointer; }
+  .marker .ring { fill: rgba(210,50,30,0.15); transition: all 0.2s; }
+  .marker .dot {
+    fill: #e84030;
+    stroke: white; stroke-width: 2;
+    filter: drop-shadow(0 1px 4px rgba(210,50,30,0.5));
+    transition: all 0.2s;
+  }
+  .marker:hover .dot, .marker.active .dot {
+    fill: #a31808;
+    filter: drop-shadow(0 2px 8px rgba(210,50,30,0.75));
+  }
+  .marker.active .ring, .marker:hover .ring { r: 14; fill: rgba(210,50,30,0.22); }
+
+  #loadMsg {
+    padding: 4rem 1rem;
+    text-align: center;
+    color: #c0b0a0;
+    font-family: sans-serif;
+    font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+<div class="map-wrap">
+  <div id="loadMsg">Loading map…</div>
+  <svg id="mapSvg" style="display:none;"></svg>
+</div>
+
+<script>
+const places = [
+  { id:'goa',      name:'Goa',                           lat:15.2993, lon:74.1240 },
+  { id:'srinagar', name:'Srinagar – Gulmarg – Pahalgam', lat:34.0836, lon:74.7973 },
+];
+
+const INDIA_ID      = 356;
+const NEIGHBOUR_IDS = new Set([586,156,524,64,50,104,144]);
+
+let active = null;
+
+fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+  .then(r => r.json())
+  .then(world => {
+    document.getElementById('loadMsg').remove();
+
+    const svg = document.getElementById('mapSvg');
+    svg.style.display = 'block';
+
+    const W = 520, H = 560;
+
+    const countries = topojson.feature(world, world.objects.countries);
+    const showIds   = new Set([INDIA_ID, ...NEIGHBOUR_IDS]);
+    const visible   = countries.features.filter(f => showIds.has(+f.id));
+    const indiaFeat = visible.filter(f => +f.id === INDIA_ID);
+    const neighFeat = visible.filter(f => NEIGHBOUR_IDS.has(+f.id));
+
+    const projection = d3.geoMercator()
+      .fitExtent([[10, 10], [W - 10, H - 10]], { type:'FeatureCollection', features: visible });
+
+    const path = d3.geoPath().projection(projection);
+
+    // Get India's bounding box in pixel space
+    const indiaBounds = path.bounds(indiaFeat[0]);
+    // indiaBounds[0] = [x0, y0] top-left, indiaBounds[1] = [x1, y1] bottom-right
+
+    const indiaTop   = indiaBounds[0][1]; // topmost y of India
+    const indiaRight = indiaBounds[1][0]; // rightmost x of India
+
+    // Crop top: just above India's northern border
+    const cropTop   = Math.max(0, indiaTop - 38);
+    // Crop right: just past India's eastern border (Myanmar border stays visible a bit)
+    const cropRight = indiaRight + 42;
+
+    const newH = H - cropTop;
+    const newW = cropRight;
+
+    svg.setAttribute('viewBox', `0 ${cropTop} ${newW} ${newH}`);
+
+    // Clip path to enforce the crop
+    const defs = d3.select(svg).append('defs');
+    defs.append('clipPath')
+      .attr('id','mapClip')
+      .append('rect')
+      .attr('x', 0).attr('y', cropTop)
+      .attr('width', newW).attr('height', newH);
+
+    const g = d3.select(svg).append('g').attr('clip-path','url(#mapClip)');
+
+    // Neighbours (behind India)
+    g.selectAll('.neighbour')
+      .data(neighFeat)
+      .enter().append('path')
+      .attr('class','country neighbour')
+      .attr('d', path)
+      .on('mouseenter', function(){ d3.select(this).style('fill','#c84e08'); })
+      .on('mouseleave', function(){ d3.select(this).style('fill',''); });
+
+    // India on top
+    g.selectAll('.india')
+      .data(indiaFeat)
+      .enter().append('path')
+      .attr('class','country india')
+      .attr('d', path)
+      .on('mouseenter', function(){ d3.select(this).style('fill','#c84e08'); })
+      .on('mouseleave', function(){ d3.select(this).style('fill',''); });
+
+    // Markers
+    const mk = g.append('g');
+    places.forEach(p => {
+      const [x, y] = projection([p.lon, p.lat]);
+      const mg = mk.append('g')
+        .attr('class','marker')
+        .attr('id','mk-'+p.id)
+        .on('click', () => toggle(p.id));
+      mg.append('circle').attr('class','ring').attr('cx',x).attr('cy',y).attr('r',10);
+      mg.append('circle').attr('class','dot').attr('cx',x).attr('cy',y).attr('r',6);
+    });
+  })
+  .catch(() => {
+    document.getElementById('loadMsg').textContent = 'Could not load map data.';
+  });
+
+function toggle(id) {
+  if (active) document.getElementById('mk-'+active)?.classList.remove('active');
+  if (active === id) { active = null; return; }
+  active = id;
+  document.getElementById('mk-'+id)?.classList.add('active');
+}
+</script>
+</body>
+</html>

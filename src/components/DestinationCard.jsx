@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const DestinationCard = ({ title, subtitle, iconClass, icon, canvasRef, destinations }) => {
+export const DestinationCard = ({ title, subtitle, iconClass, icon, canvasRef, mapContent, destinations, wideMap = false }) => {
   const rankClasses = ['rank-1', 'rank-2', 'rank-3'];
 
   return (
@@ -12,11 +12,11 @@ export const DestinationCard = ({ title, subtitle, iconClass, icon, canvasRef, d
           <p className="dest-subtitle">{subtitle}</p>
         </div>
       </div>
-      <div className="dest-body">
-        <div className="dest-map-area">
-          <canvas ref={canvasRef} width="280" height="280"></canvas>
+      <div className={`dest-body${wideMap ? ' dest-body--wide' : ''}`}>
+        <div className={`dest-map-area${wideMap ? ' dest-map-area--wide' : ''}`}>
+          {mapContent ?? <canvas ref={canvasRef} width="280" height="280"></canvas>}
         </div>
-        <div className="dest-list">
+        <div className={`dest-list${wideMap ? ' dest-list--wide' : ''}`}>
           <span className="dest-list-label">TOP DESTINATIONS</span>
           {destinations.map((d, i) => (
             <div key={i} className="dest-list-item">

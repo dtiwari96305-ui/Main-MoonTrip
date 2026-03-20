@@ -4,6 +4,8 @@ import { CustomerStats } from '../components/CustomerStats';
 import { CustomersTable, customers as allCustomers } from '../components/CustomersTable';
 import { TableSkeleton } from '../components/PageSkeleton';
 import { ExportDropdown } from '../components/ExportDropdown';
+import { CustomerSidePanel } from '../components/CustomerSidePanel';
+import { profileData } from './CustomerProfile';
 
 const CUSTOMERS_COLUMNS = [
   { header: 'Customer #', key: 'id' },
@@ -21,6 +23,26 @@ export const Customers = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [filteredCustomers, setFilteredCustomers] = useState(allCustomers);
 
+  // Side panel state
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelMode, setPanelMode] = useState('add');
+  const [panelCustomer, setPanelCustomer] = useState(null);
+  const [panelProfileExt, setPanelProfileExt] = useState(null);
+
+  const openAddPanel = () => {
+    setPanelMode('add');
+    setPanelCustomer(null);
+    setPanelProfileExt(null);
+    setPanelOpen(true);
+  };
+
+  const openEditPanel = (customer) => {
+    setPanelMode('edit');
+    setPanelCustomer(customer);
+    setPanelProfileExt(profileData[customer.id] || null);
+    setPanelOpen(true);
+  };
+
   const handleRefresh = () => {
     setSearchQuery('');
     setIsRefreshing(true);
@@ -32,15 +54,20 @@ export const Customers = () => {
 
   return (
     <div id="view-customers" className="fade-in">
-      <Header title="Customers" subtitle="6 total customers" />
+      <Header
+        title="Customers"
+        subtitle="6 total customers"
+        buttonLabel="Add Customer"
+        onNewQuote={openAddPanel}
+      />
 
       <div className="page-search-bar" style={{ marginBottom: 20 }}>
         <div className="search-input-wrap">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input 
-            type="text" 
-            className="search-input" 
-            placeholder="Search by name, email, phone or code..." 
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by name, email, phone or code..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -57,9 +84,25 @@ export const Customers = () => {
       </div>
 
       <CustomerStats />
-      {isRefreshing ? <TableSkeleton rows={5} cols={6} /> : <CustomersTable key={refreshKey} searchQuery={searchQuery} onFilteredChange={setFilteredCustomers} />}
-    </div>
+      {isRefreshing ? (
+        <TableSkeleton rows={5} cols={6} />
+      ) : (
+        <CustomersTable
+          key={refreshKey}
+          searchQuery={searchQuery}
+          onFilteredChange={setFilteredCustomers}
+          onEdit={openEditPanel}
+        />
+      )}
 
+      <CustomerSidePanel
+        isOpen={panelOpen}
+        mode={panelMode}
+        customer={panelCustomer}
+        profileExt={panelProfileExt}
+        onClose={() => setPanelOpen(false)}
+      />
+    </div>
   );
 };
 

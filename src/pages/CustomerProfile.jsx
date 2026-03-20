@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { customers } from '../components/CustomersTable';
 import { openQuoteDetail } from '../utils/quoteNav';
+import { openCreateQuoteWithCustomer } from '../utils/createQuoteNav';
+import { CustomerSidePanel } from '../components/CustomerSidePanel';
+import { RecordPaymentModal } from '../components/RecordPaymentModal';
+import { PaymentDetailModal } from '../components/PaymentDetailModal';
 
 // ─── Demo Modal ────────────────────────────────────────────────────────────────
 const DemoModal = ({ onClose }) => (
@@ -19,7 +23,7 @@ const DemoModal = ({ onClose }) => (
 );
 
 // ─── Extended profile data per customer ───────────────────────────────────────
-const profileData = {
+export const profileData = {
   'WL-C-0001': {
     city: 'Mumbai', state: 'Maharashtra', country: 'India',
     emailOverride: 'rahul.sharma@email.com',
@@ -114,6 +118,9 @@ const StatusPill = ({ status }) => {
 // ─── Main CustomerProfile Component ──────────────────────────────────────────
 export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) => {
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [editPanelOpen, setEditPanelOpen] = useState(false);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [paymentDetailId, setPaymentDetailId] = useState(null);
 
   const customer = customers.find(c => c.id === customerId);
   if (!customer) return null;
@@ -160,15 +167,15 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
               Back
             </button>
-            <button className="cp-action-btn cp-action-outline" onClick={() => setShowDemoModal(true)}>
+            <button className="cp-action-btn cp-action-outline" onClick={() => openCreateQuoteWithCustomer({ id: customer.id, name: customer.name, phone: customer.phone, email }, 'customer-profile')}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Create Quote
             </button>
-            <button className="cp-action-btn cp-action-outline" onClick={() => setShowDemoModal(true)}>
+            <button className="cp-action-btn cp-action-outline" onClick={() => setRecordPaymentOpen(true)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               Add Payment
             </button>
-            <button className="cp-action-btn cp-action-edit" onClick={() => setShowDemoModal(true)}>
+            <button className="cp-action-btn cp-action-edit" onClick={() => setEditPanelOpen(true)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
               Edit
             </button>
@@ -384,7 +391,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
                     return (
                       <tr key={i}>
                         <td className="cp-td-date">{entry.date}</td>
-                        <td><span className="cp-ref-link" onClick={() => setShowDemoModal(true)}>{entry.id}</span></td>
+                        <td><span className="cp-ref-link" onClick={() => setPaymentDetailId(entry.id)}>{entry.id}</span></td>
                         <td className="cp-td-desc">{entry.desc}</td>
                         <td className="cp-td-num">{entry.debit ? `₹${entry.debit.toLocaleString('en-IN')}` : ''}</td>
                         <td className="cp-td-credit">{entry.credit ? `₹${entry.credit.toLocaleString('en-IN')}` : ''}</td>
@@ -499,7 +506,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
               {myPayments.map((p, i) => (
                 <div key={i} className="cp-payment-row">
                   <div className="cp-payment-left">
-                    <span className="cp-ref-link" onClick={() => setShowDemoModal(true)}>{p.id}</span>
+                    <span className="cp-ref-link" onClick={() => setPaymentDetailId(p.id)}>{p.id}</span>
                     <span className={`cp-pay-badge cp-pay-badge-${p.badge.toLowerCase()}`}>{p.badge}</span>
                     <span className="cp-pay-meta">{p.date} · {p.method}</span>
                   </div>
@@ -515,6 +522,27 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
       </div>
 
       {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
+
+      {paymentDetailId && (
+        <PaymentDetailModal
+          paymentId={paymentDetailId}
+          onClose={() => setPaymentDetailId(null)}
+        />
+      )}
+
+      <CustomerSidePanel
+        isOpen={editPanelOpen}
+        mode="edit"
+        customer={customer}
+        profileExt={ext}
+        onClose={() => setEditPanelOpen(false)}
+      />
+
+      <RecordPaymentModal
+        isOpen={recordPaymentOpen}
+        onClose={() => setRecordPaymentOpen(false)}
+        preselectedCustomer={customer}
+      />
     </div>
   );
 };

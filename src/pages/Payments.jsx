@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { InfoBtn } from '../components/InfoBtn';
+import { RecordPaymentModal } from '../components/RecordPaymentModal';
+import { PaymentDetailModal } from '../components/PaymentDetailModal';
 
 const LogsPopup = ({ onClose }) => {
   const popupRef = useRef(null);
@@ -33,11 +35,13 @@ const FunnelIcon = ({ active, onClick }) => (
 );
 
 export const Payments = () => {
-  const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('payments_activeTab') || 'all'); 
+  const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('payments_activeTab') || 'all');
   const [activeStat, setActiveStat] = useState(() => sessionStorage.getItem('payments_activeStat') || 'totalReceived');
   const [customerFilter, setCustomerFilter] = useState('All Customers');
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [paymentDetailId, setPaymentDetailId] = useState(null);
 
   // Search
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
@@ -88,7 +92,7 @@ export const Payments = () => {
             <p className="page-subtitle">5 payments recorded</p>
           </div>
           <div className="dash-header-right">
-            <button className="new-quote-btn">
+            <button className="new-quote-btn" onClick={() => setRecordPaymentOpen(true)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Record Payment
             </button>
@@ -193,7 +197,7 @@ export const Payments = () => {
             <tbody>
               {filteredAllPayments.map(p => (
                 <tr key={p.id}>
-                  <td className="pay-id">{p.id}</td>
+                  <td className="pay-id"><span className="pay-id-link" onClick={() => setPaymentDetailId(p.id)}>{p.id}</span></td>
                   <td className="pay-against">
                     {p.againstType === 'normal' ? p.against : <span className="type-badge type-corporate" style={{ background: 'rgba(102, 126, 234, 0.1)', color: '#667eea' }}>Advance</span>}
                   </td>
@@ -284,7 +288,7 @@ export const Payments = () => {
                (!customerSearch || 'Priya Mehta'.toLowerCase().includes(customerSearch.toLowerCase())) && (
                 <tr>
                   <td className="qt-date">07 Mar 2026</td>
-                  <td className="pay-id">REC-0005</td>
+                  <td className="pay-id"><span className="pay-id-link" onClick={() => setPaymentDetailId('REC-0005')}>REC-0005</span></td>
                   <td className="qt-customer-name">Priya Mehta</td>
                   <td style={{ color: '#48bb78', fontWeight: 500 }}>Advance Deposit (upi)</td>
                   <td className="pay-remarks">Advance deposit — Rajastha...</td>
@@ -304,6 +308,18 @@ export const Payments = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+      <RecordPaymentModal
+        isOpen={recordPaymentOpen}
+        onClose={() => setRecordPaymentOpen(false)}
+      />
+
+      {paymentDetailId && (
+        <PaymentDetailModal
+          paymentId={paymentDetailId}
+          onClose={() => setPaymentDetailId(null)}
+        />
       )}
     </div>
   );

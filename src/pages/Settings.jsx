@@ -178,7 +178,7 @@ export const Settings = () => {
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button className="btn-primary">
+                  <button className="btn-primary" onClick={() => setShowDemoModal(true)}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                     Save Changes
                   </button>
@@ -190,7 +190,7 @@ export const Settings = () => {
           {activeTab === 'company-tab' && (
             <div id="company-tab" className="settings-pane active">
               <div className="profile-header-info">
-                <div className="company-logo-upload">
+                <div className="company-logo-upload" onClick={() => setShowDemoModal(true)} style={{cursor:'pointer'}}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{color:'var(--text-muted)'}}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                   Upload
                 </div>
@@ -213,7 +213,7 @@ export const Settings = () => {
                       <span className="gst-desc">GST is applied to all quotes and invoices</span>
                     </div>
                   </div>
-                  <div className="toggle-switch active">
+                  <div className="toggle-switch active" onClick={() => setShowDemoModal(true)} style={{cursor:'pointer'}}>
                     <div className="toggle-knob"></div>
                   </div>
                 </div>
@@ -236,7 +236,7 @@ export const Settings = () => {
                     <label className="form-label">GSTIN <InfoBtn infoKey="gstin" /></label>
                     <div className="input-with-action">
                       <input type="text" className="form-input uppercase-text" defaultValue="27AABCW1234F1ZP" />
-                      <button type="button" className="btn-verify">
+                      <button type="button" className="btn-verify" onClick={() => setShowDemoModal(true)}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         Verify
                       </button>
@@ -341,7 +341,7 @@ export const Settings = () => {
                 </div>
                 
                 <div className="form-actions" style={{justifyContent: 'flex-end', marginTop: 16}}>
-                  <button className="btn-primary">
+                  <button className="btn-primary" onClick={() => setShowDemoModal(true)}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                     Save Changes
                   </button>
@@ -410,7 +410,7 @@ export const Settings = () => {
                     </div>
                   </div>
                   <div className="nom-card-save">
-                    <button className="nom-card-btn">
+                    <button className="nom-card-btn" onClick={() => setShowDemoModal(true)}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                       Save
                     </button>
@@ -444,7 +444,7 @@ export const Settings = () => {
                     </div>
                   </div>
                   <div className="nom-card-save">
-                    <button className="nom-card-btn">
+                    <button className="nom-card-btn" onClick={() => setShowDemoModal(true)}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                       Save
                     </button>
@@ -475,7 +475,7 @@ export const Settings = () => {
                   <h2 style={{fontSize:'1.15rem', fontWeight:700, color:'var(--text-primary)', marginBottom:4}}>Team Members</h2>
                   <p style={{fontSize:'0.85rem', color:'var(--text-secondary)'}}>0 members</p>
                 </div>
-                <button className="btn-primary" style={{padding: '10px 20px', background: '#ea580c', borderColor: '#ea580c'}}>
+                <button className="btn-primary" style={{padding: '10px 20px', background: '#ea580c', borderColor: '#ea580c'}} onClick={() => setShowDemoModal(true)}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: 6}}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   Add Member
                 </button>
@@ -513,11 +513,11 @@ export const Settings = () => {
                     <p style={{color:'var(--text-secondary)', fontSize:'0.9rem', marginTop:6}}>For large agencies and teams</p>
                     
                     <div className="plan-actions-group">
-                      <button className="plan-action-btn">
+                      <button className="plan-action-btn" onClick={() => setShowDemoModal(true)}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                         Manage Subscription
                       </button>
-                      <button className="plan-action-btn">
+                      <button className="plan-action-btn" onClick={() => setShowDemoModal(true)}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                         Sync
                       </button>
@@ -941,11 +941,11 @@ export const Settings = () => {
                 </div>
               </div>
 
-              {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
             </div>
           )}
         </div>
       </div>
+      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
     </div>
   );
-};;
+};

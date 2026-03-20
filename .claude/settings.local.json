@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -l \"header-user\" \"c:\\\\Users\\\\ACER\\\\OneDrive\\\\Desktop\\\\Moontrip - Main - Copy\\\\src\\\\pages\"\"*.jsx \"c:UsersACEROneDriveDesktopMoontrip - Main - Copysrccomponents\"\"*.jsx)"
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { openBilling } from '../utils/billingNav';
 
 const LogsPopup = ({ onClose }) => {
   const popupRef = useRef(null);
@@ -28,7 +29,7 @@ const LogsPopup = ({ onClose }) => {
   );
 };
 
-export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, children }) => {
+export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, buttonLabel = 'New Quote', children }) => {
   const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState('Last 30 days');
   const [isLogsOpen, setIsLogsOpen] = useState(false);
@@ -86,7 +87,7 @@ export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, ch
             <>
               <button className="new-quote-btn" id="newQuoteBtn" onClick={onNewQuote}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                New Quote
+                {buttonLabel}
               </button>
               <div style={{ position: 'relative' }}>
                 <button 
@@ -98,7 +99,7 @@ export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, ch
                 </button>
                 {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
               </div>
-              <div className="header-user">
+              <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
                 <div className="header-user-avatar">DA</div>
                 <div className="header-user-info">
                   <span className="header-user-name">Demo Admin</span>

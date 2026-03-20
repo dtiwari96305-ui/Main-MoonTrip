@@ -667,6 +667,61 @@
 }
 .cq-back-btn:hover { color: var(--accent); }
 
+/* ── Pre-filled customer banner ── */
+.cq-prefill-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff8f5;
+  border: 1px solid #f0d0bc;
+  border-radius: 10px;
+  padding: 13px 18px;
+}
+
+.cq-prefill-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: #fde8d5;
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.cq-prefill-info { flex: 1; min-width: 0; }
+
+.cq-prefill-name {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cq-prefill-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.cq-prefill-sep { opacity: 0.4; }
+
+.cq-prefill-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #a06040;
+  background: #fde8d5;
+  border-radius: 20px;
+  padding: 4px 11px;
+  flex-shrink: 0;
+  letter-spacing: 0.01em;
+}
+
 /* Upload Zone */
 .cq-upload-zone {
   margin: 0 0 20px;

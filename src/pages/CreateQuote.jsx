@@ -488,7 +488,7 @@ const Step4Pricing = ({ data, onChange }) => {
 };
 
 // ─── Step 5: Review ───────────────────────────────────────────────────────────
-const Step5Review = ({ data }) => {
+const Step5Review = ({ data, isPrefilled, prefilledCustomer }) => {
   const serviceCosts = data.serviceCosts || {};
   const activeServices = SERVICE_LIST.filter(s => (data.services || {})[s.key]);
 
@@ -506,9 +506,12 @@ const Step5Review = ({ data }) => {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
             Customer
           </h4>
-          <div className="cq-review-row"><span>Name</span><span>{data.customerSearch || data.newCustomerName || '—'}</span></div>
-          <div className="cq-review-row"><span>Phone</span><span>{data.newCustomerPhone || '—'}</span></div>
-          <div className="cq-review-row"><span>Email</span><span>{data.newCustomerEmail || '—'}</span></div>
+          {isPrefilled && prefilledCustomer && (
+            <div className="cq-review-row"><span>Customer ID</span><span>{prefilledCustomer.id}</span></div>
+          )}
+          <div className="cq-review-row"><span>Name</span><span>{(isPrefilled && prefilledCustomer?.name) || data.customerSearch || data.newCustomerName || '—'}</span></div>
+          <div className="cq-review-row"><span>Phone</span><span>{(isPrefilled && prefilledCustomer?.phone) || data.newCustomerPhone || '—'}</span></div>
+          <div className="cq-review-row"><span>Email</span><span>{(isPrefilled && prefilledCustomer?.email) || data.newCustomerEmail || '—'}</span></div>
         </div>
 
         <div className="cq-review-card">
@@ -613,26 +616,64 @@ const Step6Itinerary = ({ data, onChange }) => {
   );
 };
 
+// ─── Pre-filled Customer Banner ───────────────────────────────────────────────
+const PrefilledCustomerBanner = ({ customer }) => (
+  <div className="cq-prefill-banner">
+    <div className="cq-prefill-avatar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      </svg>
+    </div>
+    <div className="cq-prefill-info">
+      <span className="cq-prefill-name">{customer.name}</span>
+      <div className="cq-prefill-meta">
+        <span>{customer.id}</span>
+        <span className="cq-prefill-sep">·</span>
+        <span>{customer.phone}</span>
+        {customer.email && <><span className="cq-prefill-sep">·</span><span>{customer.email}</span></>}
+      </div>
+    </div>
+    <div className="cq-prefill-lock-badge">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      Customer locked
+    </div>
+  </div>
+);
+
 // ─── Main CreateQuote Component ───────────────────────────────────────────────
-export const CreateQuote = ({ onViewChange }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+export const CreateQuote = ({ onViewChange, prefilledCustomer }) => {
+  const isPrefilled = Boolean(prefilledCustomer);
+  const firstStep   = isPrefilled ? 2 : 1;
+
+  const [currentStep, setCurrentStep] = useState(firstStep);
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [calcMode, setCalcMode] = useState('agent');
-  const [formData, setFormData] = useState({
-    customerSearch: '',
-    services: {},
-    serviceCosts: {},
-    destType: 'domestic',
-    gstMode: 'pure-agent',
-    tcsMode: 'na',
+  const [formData, setFormData] = useState(() => {
+    const base = { services: {}, serviceCosts: {}, destType: 'domestic', gstMode: 'pure-agent', tcsMode: 'na' };
+    if (prefilledCustomer) {
+      return {
+        ...base,
+        newCustomerName:  prefilledCustomer.name  || '',
+        newCustomerPhone: (prefilledCustomer.phone || '').replace(/^\+\d+\s*/, ''),
+        newCustomerEmail: prefilledCustomer.email || '',
+      };
+    }
+    return { ...base, customerSearch: '' };
   });
   const fileInputRef = useRef(null);
 
   const updateFormData = (patch) => setFormData(prev => ({ ...prev, ...patch }));
 
   const handleBack = () => {
-    if (currentStep > 1) setCurrentStep(s => s - 1);
-    else onViewChange && onViewChange('quotes');
+    if (currentStep > firstStep) {
+      setCurrentStep(s => s - 1);
+    } else if (isPrefilled) {
+      onViewChange && onViewChange('customer-profile');
+    } else {
+      onViewChange && onViewChange('quotes');
+    }
   };
 
   const handleNext = () => {
@@ -646,11 +687,19 @@ export const CreateQuote = ({ onViewChange }) => {
       case 2: return <Step2Trip data={formData} onChange={updateFormData} />;
       case 3: return <Step3Services data={formData} onChange={updateFormData} />;
       case 4: return <Step4Pricing data={formData} onChange={updateFormData} />;
-      case 5: return <Step5Review data={formData} />;
+      case 5: return <Step5Review data={formData} isPrefilled={isPrefilled} prefilledCustomer={prefilledCustomer} />;
       case 6: return <Step6Itinerary data={formData} onChange={updateFormData} />;
       default: return null;
     }
   };
+
+  const backLabel = isPrefilled
+    ? `← ${prefilledCustomer.name} / New Quote`
+    : 'Back to Quotes';
+
+  const backTarget = isPrefilled
+    ? () => onViewChange && onViewChange('customer-profile')
+    : () => onViewChange && onViewChange('quotes');
 
   return (
     <div id="view-create-quote" className="fade-in">
@@ -659,11 +708,11 @@ export const CreateQuote = ({ onViewChange }) => {
       <div className="page-header-strip">
         <div className="dash-header">
           <div className="dash-header-left">
-            <button className="cq-back-btn" onClick={() => onViewChange && onViewChange('quotes')}>
+            <button className="cq-back-btn" onClick={backTarget}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="15 18 9 12 15 6"/>
               </svg>
-              Back to Quotes
+              {backLabel}
             </button>
             <h1 className="page-title" style={{ marginTop: 6 }}>Create Quote</h1>
             <p className="page-subtitle">Build a new travel quotation</p>
@@ -695,7 +744,7 @@ export const CreateQuote = ({ onViewChange }) => {
       <div className="cq-stepper">
         {STEPS.map((step, idx) => (
           <React.Fragment key={step.id}>
-            <div className={`cq-step ${currentStep === step.id ? 'active' : ''} ${currentStep > step.id ? 'completed' : ''}`}>
+            <div className={`cq-step ${currentStep === step.id ? 'active' : ''} ${(currentStep > step.id || (isPrefilled && step.id === 1)) ? 'completed' : ''}`}>
               <div className="cq-step-circle">
                 {currentStep > step.id ? (
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -706,7 +755,7 @@ export const CreateQuote = ({ onViewChange }) => {
               <span className="cq-step-label">{step.label}</span>
             </div>
             {idx < STEPS.length - 1 && (
-              <div className={`cq-step-line ${currentStep > step.id ? 'completed' : ''}`} />
+              <div className={`cq-step-line ${(currentStep > step.id || (isPrefilled && step.id === 1)) ? 'completed' : ''}`} />
             )}
           </React.Fragment>
         ))}
@@ -717,6 +766,7 @@ export const CreateQuote = ({ onViewChange }) => {
 
         {/* Form area */}
         <div className="cq-form-area">
+          {isPrefilled && <PrefilledCustomerBanner customer={prefilledCustomer} />}
           <div className="cq-form-card">
             {renderStep()}
           </div>
