@@ -1,0 +1,80 @@
+=======================================================
+MIGRATION SUGGESTIONS REPORT
+Project: MoonTrip Dashboard
+Date: 2026-03-20
+Status: NOT IMPLEMENTED — Developer review required
+Total Suggestions: 5
+=======================================================
+
+------- [PERFORMANCE] -------
+  [P001]
+    File           : src/components/RecentActivityCard.jsx
+    Line(s)        : 44-59
+    Current Code   : Renders static dummy data inline using map
+    Suggestion     : Move data fetching logic to React Query or a custom hook
+    Why            : Separating logic from presentation provides scalable data handling
+    Priority       : HIGH
+    Effort         : Medium
+    Risk           : Low
+
+------- [ACCESSIBILITY] -------
+  [A001]
+    File           : src/components/Sidebar.jsx
+    Line(s)        : 35-43
+    Current Code   : Sidebar navigation links use href="#" with onClick preventDefault
+    Suggestion     : Use react-router-dom <NavLink> components instead of <a> tags
+    Why            : Improves keyboard navigation, semantic HTML, and built-in active state handling
+    Priority       : HIGH
+    Effort         : Small
+    Risk           : Low
+
+------- [CODE QUALITY] -------
+  [C001]
+    File           : src/components/Header.jsx
+    Line(s)        : 26-47
+    Current Code   : Date filter dropdown uses simple useState toggling without click-outside handler
+    Suggestion     : Implement a `useClickOutside` hook or utilize headless UI components
+    Why            : UX improvement where clicking outside the dropdown will automatically close it
+    Priority       : MEDIUM
+    Effort         : Small
+    Risk           : Low
+
+------- [RESPONSIVE DESIGN] -------
+  [R001]
+    File           : src/components/Layout.jsx
+    Line(s)        : 11
+    Current Code   : Sidebar uses fixed width logic mapped via arbitrary Tailwind values
+    Suggestion     : Implement mobile drawer functionality for smaller breakpoints (hidden by default)
+    Why            : Enhances UX on mobile devices which currently face potential rendering issues due to hardcoded padding
+    Priority       : HIGH
+    Effort         : Medium
+    Risk           : Medium
+
+------- [SECURITY] -------
+  None at the moment.
+
+------- [TAILWIND OPTIMIZATION] -------
+  [T001]
+    File           : All Components
+    Line(s)        : ALL
+    Current Code   : Extensive use of arbitrary values like text-[0.85rem], shadow-[0_4px_12px_rgba(...)]
+    Suggestion     : Extend `tailwind.config.js` theme to define these custom tokens as semantic classes (e.g. text-caption, shadow-card)
+    Why            : Massively cleans up className bloat, improving maintainability and developer velocity
+    Priority       : HIGH
+    Effort         : Medium
+    Risk           : Low
+
+------- [FUTURE FEATURES] -------
+  [F001]
+    Area           : src/components/StatCard.jsx
+    Suggestion     : Include skeleton logic directly via a dedicated generic `<Skeleton />` component
+    Why            : Code deduplication across the whole application when dealing with loading states
+    Priority       : LOW
+    Effort         : Small
+    Risk           : Low
+
+=======================================================
+REMINDER: None of the above were implemented.
+This file is for developer review only.
+All changes require explicit developer approval before execution.
+=======================================================

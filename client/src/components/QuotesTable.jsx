@@ -1,0 +1,156 @@
+import React, { useState } from 'react';
+
+const DemoModal = ({ onClose }) => (
+  <div className="demo-modal-overlay" onClick={onClose}>
+    <div className="demo-modal" onClick={e => e.stopPropagation()}>
+      <div className="demo-modal-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3>Action Restricted</h3>
+      <p>This is a demo account. Changes cannot be made.</p>
+      <button className="demo-modal-btn" onClick={onClose}>OK</button>
+    </div>
+  </div>
+);
+
+const FunnelIcon = ({ active, onClick }) => (
+  <span className={`th-search-btn ${active ? 'active' : ''}`} onClick={onClick}>
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: active ? 1 : 0.4 }}>
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </svg>
+  </span>
+);
+
+const SortIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.4, marginLeft: 4 }}>
+    <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+  </svg>
+);
+
+export const QuotesTable = ({ quotes }) => {
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [activeDropdownId, setActiveDropdownId] = useState(null);
+  
+  // Inline filters
+  const [showCustomerSearch, setShowCustomerSearch] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [showDestSearch, setShowDestSearch] = useState(false);
+  const [destSearch, setDestSearch] = useState('');
+
+  const filteredQuotes = quotes.filter(q => {
+    const matchesCustomer = !customerSearch || q.customerName.toLowerCase().includes(customerSearch.toLowerCase());
+    const matchesDest = !destSearch || q.destName.toLowerCase().includes(destSearch.toLowerCase());
+    return matchesCustomer && matchesDest;
+  });
+
+  const handleStatusClick = (e, qId, status) => {
+    e.stopPropagation();
+    if (status === 'sent' || status === 'draft') {
+      setActiveDropdownId(activeDropdownId === qId ? null : qId);
+    }
+  };
+
+  const handleAction = (e) => {
+    e.stopPropagation();
+    setActiveDropdownId(null);
+    setShowDemoModal(true);
+  };
+
+  return (
+    <>
+      <div className="data-table-card">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>QUOTE #</th>
+              <th className="th-with-search">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  CUSTOMER <FunnelIcon active={showCustomerSearch} onClick={(e) => { e.stopPropagation(); setShowCustomerSearch(!showCustomerSearch); }} />
+                </div>
+                {showCustomerSearch && (
+                  <div className="table-inline-search">
+                    <input 
+                      type="text" className="inline-search-input" placeholder="Search name..." autoFocus
+                      value={customerSearch} onChange={e => setCustomerSearch(e.target.value)}
+                    />
+                  </div>
+                )}
+              </th>
+              <th className="th-with-search">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  DESTINATION <FunnelIcon active={showDestSearch} onClick={(e) => { e.stopPropagation(); setShowDestSearch(!showDestSearch); }} />
+                </div>
+                {showDestSearch && (
+                  <div className="table-inline-search">
+                    <input 
+                      type="text" className="inline-search-input" placeholder="Search dest..." autoFocus
+                      value={destSearch} onChange={e => setDestSearch(e.target.value)}
+                    />
+                  </div>
+                )}
+              </th>
+              <th>AMOUNT <SortIcon /></th>
+              <th>PROFIT <SortIcon /></th>
+              <th>STATUS</th>
+              <th>TRIP DATE <SortIcon /></th>
+              <th>CREATED <SortIcon /></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredQuotes.map((q) => {
+              const actsAsDropdown = q.status === 'sent' || q.status === 'draft';
+              return (
+                <tr key={q.id} data-status={q.status} className="animate-row">
+                  <td><span className="qt-id">{q.id}</span></td>
+                  <td className="qt-customer">
+                    <div>
+                      <span className="qt-customer-name">{q.customerName}</span>
+                      <span className="qt-customer-phone">{q.customerPhone}</span>
+                    </div>
+                  </td>
+                  <td className="qt-destination">
+                    <div>
+                      <span className="qt-dest-name">{q.destName}</span>
+                      <span className="qt-dest-type">{q.destType}</span>
+                    </div>
+                  </td>
+                  <td><span className="qt-amount">{q.amount}</span></td>
+                  <td><span className="qt-profit">{q.profit}</span></td>
+                  <td style={{ position: 'relative' }}>
+                    <div className="status-dropdown-wrapper">
+                      <span 
+                        className={`status-pill status-${q.status} ${actsAsDropdown ? 'status-interactive' : ''}`}
+                        onClick={(e) => handleStatusClick(e, q.id, q.status)}
+                        style={{ cursor: actsAsDropdown ? 'pointer' : 'default' }}
+                      >
+                        {q.status.charAt(0).toUpperCase() + q.status.slice(1)}
+                        {actsAsDropdown && (
+                          <svg className="status-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{marginLeft:3}}><polyline points="6 9 12 15 18 9"/></svg>
+                        )}
+                      </span>
+                      {activeDropdownId === q.id && (
+                        <div className="status-dropdown">
+                          <div className="status-drop-item status-drop-approve" onClick={(e) => handleAction(e)}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Approve
+                          </div>
+                          <div className="status-drop-item status-drop-reject" onClick={(e) => handleAction(e)}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            Reject
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td><span className="qt-date">{q.tripDate}</span></td>
+                  <td><span className="qt-created">{q.createdDate}<br/>{q.createdTime}</span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
+    </>
+  );
+};
