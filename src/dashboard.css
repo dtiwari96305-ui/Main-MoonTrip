@@ -5023,6 +5023,336 @@ tr:hover .dt-actions .action-btn {
 .pdm-save-btn:hover { opacity: 0.9; }
 .pdm-save-btn:active { transform: scale(0.98); }
 
+/* ===========================
+   BILLING PAGE  (.bl-*)
+   =========================== */
+
+/* Body */
+.bl-body {
+  padding: 24px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1200px;
+}
+
+/* Breadcrumb */
+.bl-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.bl-breadcrumb-sep { color: var(--text-muted); font-size: 0.85rem; }
+.bl-breadcrumb-current { color: var(--text-muted); font-size: 0.85rem; }
+
+/* Powered by Dodo button */
+.bl-dodo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.bl-dodo-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+/* Bell with badge */
+.bl-bell-wrap { position: relative; display: flex; align-items: center; }
+.bl-bell-badge {
+  position: absolute;
+  top: -4px; right: -5px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.bl-user-clickable { cursor: pointer; }
+
+/* ── Current Plan Card ── */
+.bl-current-plan-card {
+  background: #fff;
+  border: 1px solid #e8ecf0;
+  border-radius: 14px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.bl-current-left { display: flex; align-items: flex-start; gap: 16px; }
+.bl-plan-icon {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.bl-current-info { display: flex; flex-direction: column; gap: 4px; }
+.bl-current-name-row { display: flex; align-items: center; gap: 10px; }
+.bl-current-plan-name { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+.bl-active-badge {
+  display: flex; align-items: center; gap: 5px;
+  background: #dcfce7; color: #16a34a;
+  font-size: 0.72rem; font-weight: 600;
+  padding: 3px 9px; border-radius: 20px;
+}
+.bl-active-dot { width: 6px; height: 6px; background: #16a34a; border-radius: 50%; }
+.bl-current-tagline { font-size: 0.85rem; color: var(--text-muted); }
+.bl-manage-btn {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 10px;
+  padding: 8px 16px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  width: fit-content;
+}
+.bl-manage-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+.bl-current-price { display: flex; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.bl-current-price-num { font-size: 2rem; font-weight: 800; color: var(--text-primary); letter-spacing: -1px; }
+.bl-current-price-per { font-size: 0.9rem; color: var(--text-muted); padding-bottom: 6px; }
+
+/* ── Usage Grid ── */
+.bl-usage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.bl-usage-card {
+  background: #fff;
+  border: 1px solid #e8ecf0;
+  border-radius: 14px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.bl-usage-left { display: flex; flex-direction: column; gap: 4px; }
+.bl-usage-label { font-size: 0.82rem; color: var(--text-muted); font-weight: 500; }
+.bl-usage-count { display: flex; align-items: baseline; gap: 2px; margin-top: 2px; }
+.bl-usage-num { font-size: 1.7rem; font-weight: 800; color: var(--text-primary); letter-spacing: -1px; }
+.bl-usage-sep { font-size: 1.1rem; color: #cbd5e1; margin: 0 2px; }
+.bl-usage-limit { font-size: 1.1rem; color: #94a3b8; font-weight: 600; }
+.bl-usage-note {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.78rem; font-weight: 600;
+}
+.bl-usage-note-green { color: #16a34a; }
+.bl-progress-wrap { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+.bl-progress-bar {
+  width: 100%; height: 5px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bl-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  border-radius: 99px;
+}
+.bl-progress-label { font-size: 0.75rem; color: var(--text-muted); }
+.bl-usage-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.bl-usage-icon-orange { background: #fff7ed; color: #ea580c; }
+.bl-usage-icon-blue   { background: #eff6ff; color: #2563eb; }
+.bl-usage-icon-purple { background: #f5f3ff; color: #7c3aed; }
+
+/* ── Plans Section ── */
+.bl-plans-section {
+  background: #fff;
+  border: 1px solid #e8ecf0;
+  border-radius: 14px;
+  padding: 24px 28px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.bl-plans-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+.bl-plans-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0 0 3px; }
+.bl-plans-sub { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+
+/* Monthly/Annually toggle */
+.bl-period-toggle {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.bl-period-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.bl-period-btn.bl-period-active {
+  background: #fff;
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  font-weight: 600;
+}
+
+/* Plan cards grid */
+.bl-plan-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.bl-plan-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+.bl-plan-popular {
+  border-color: #eab308;
+  border-width: 2px;
+}
+.bl-plan-current {
+  border-color: #f97316;
+  border-width: 2px;
+}
+.bl-popular-badge {
+  display: flex; align-items: center; gap: 5px;
+  background: #fef3c7; color: #92400e;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 4px 10px; border-radius: 20px;
+  width: fit-content;
+}
+.bl-current-badge {
+  display: flex; align-items: center; gap: 5px;
+  background: #fee2e2; color: #b91c1c;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 4px 10px; border-radius: 20px;
+  width: fit-content;
+}
+.bl-plan-name { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.bl-plan-tagline { font-size: 0.78rem; color: var(--text-muted); margin-top: -4px; }
+.bl-plan-price-row { display: flex; align-items: baseline; gap: 3px; margin-top: 4px; }
+.bl-plan-price { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+.bl-plan-per { font-size: 0.8rem; color: var(--text-muted); }
+.bl-annual-note { font-size: 0.72rem; color: var(--text-muted); margin-top: -6px; }
+.bl-feature-list { display: flex; flex-direction: column; gap: 7px; margin-top: 6px; flex: 1; }
+.bl-feature-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-primary); }
+.bl-feature-excluded { color: #94a3b8; }
+.bl-plan-cta {
+  margin-top: auto;
+  width: 100%;
+  padding: 9px 0;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.bl-plan-cta:hover { background: #f1f5f9; border-color: #94a3b8; }
+.bl-current-plan-label {
+  margin-top: auto;
+  text-align: center;
+  color: #ea580c;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 9px 0;
+}
+
+/* ── Billing History ── */
+.bl-history-card {
+  background: #fff;
+  border: 1px solid #e8ecf0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.bl-history-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.95rem; font-weight: 600; color: var(--text-primary);
+}
+.bl-history-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+.bl-history-empty-title { font-size: 0.92rem; font-weight: 600; color: var(--text-muted); margin: 0 0 4px; }
+.bl-history-empty-sub { font-size: 0.8rem; color: #b0bec5; margin: 0; }
+
+/* ── Support Cards ── */
+.bl-support-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.bl-support-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #e8ecf0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.bl-support-card:hover { background: #f8fafc; border-color: #cbd5e1; }
+.bl-support-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.bl-support-green { background: #22c55e; color: #fff; }
+.bl-support-red   { background: #ef4444; color: #fff; }
+.bl-support-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.bl-support-label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+.bl-support-value { font-size: 0.8rem; color: var(--text-muted); }
+.bl-support-ext { color: #94a3b8; flex-shrink: 0; }
+
 /* Clickable payment ID anywhere in app */
 .pay-id-link {
   color: #667eea; font-weight: 600; cursor: pointer;

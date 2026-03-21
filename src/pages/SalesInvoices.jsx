@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { InfoBtn } from '../components/InfoBtn';
 import { TableSkeleton } from '../components/PageSkeleton';
 import { ExportDropdown } from '../components/ExportDropdown';
+import { openBilling } from '../utils/billingNav';
 
 const INVOICES_COLUMNS = [
   { header: 'Invoice #',   key: 'id' },
-  { header: 'Type',        key: 'type' },
-  { header: 'Amount',      key: 'amount' },
   { header: 'Customer',    key: 'customer' },
-  { header: 'Destination', key: 'destination' },
+  { header: 'Booking Ref', key: 'id' },
+  { header: 'Amount (₹)', key: 'amount' },
   { header: 'Status',      key: 'status' },
   { header: 'Date',        key: 'date' },
 ];
@@ -126,7 +126,7 @@ export const SalesInvoices = () => {
               </button>
               {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
             </div>
-            <div className="header-user">
+            <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">
                 <span className="header-user-name">Demo Admin</span>
@@ -169,8 +169,7 @@ export const SalesInvoices = () => {
         <ExportDropdown
           data={filteredInvoices}
           columns={INVOICES_COLUMNS}
-          sectionName="SalesInvoice"
-          fileBase="SalesInvoice_Export"
+          sectionName="SalesInvoices"
         />
       </div>
 

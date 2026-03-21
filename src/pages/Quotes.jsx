@@ -3,6 +3,17 @@ import { Header } from '../components/Header';
 import { QuotesSearchBar } from '../components/QuotesSearchBar';
 import { QuotesTable } from '../components/QuotesTable';
 import { TableSkeleton } from '../components/PageSkeleton';
+import { ExportDropdown } from '../components/ExportDropdown';
+
+const QUOTES_COLUMNS = [
+  { header: 'Quote #',      key: 'id' },
+  { header: 'Customer',     key: 'customerName' },
+  { header: 'Destination',  key: 'destName' },
+  { header: 'Trip Date',    key: 'tripDate' },
+  { header: 'Amount (₹)',   key: 'amount' },
+  { header: 'Profit (₹)',   key: 'profit' },
+  { header: 'Status',       key: 'status' },
+];
 
 const initialQuotes = [
   { id: 'WL-Q-0001', customerName: 'Rahul Sharma', customerPhone: '+91 99876 54321', destName: 'Bali, Indonesia', destType: 'international', amount: '₹1,40,952', profit: '₹18,000', status: 'converted', tripDate: '15 Apr 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
@@ -52,13 +63,19 @@ export const Quotes = ({ onViewChange }) => {
         onNewQuote={() => onViewChange && onViewChange('create-quote')}
       />
 
-      <QuotesSearchBar 
+      <QuotesSearchBar
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onRefresh={handleRefresh}
-      />
+      >
+        <ExportDropdown
+          data={filteredQuotes}
+          columns={QUOTES_COLUMNS}
+          sectionName="Quotes"
+        />
+      </QuotesSearchBar>
 
       {isRefreshing ? (
         <TableSkeleton rows={5} cols={7} />

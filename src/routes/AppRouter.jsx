@@ -18,6 +18,7 @@ import { registerCustomerNav } from '../utils/customerNav';
 import { registerQuoteNav } from '../utils/quoteNav';
 import { registerCreateQuoteNav } from '../utils/createQuoteNav';
 import { registerBillingNav } from '../utils/billingNav';
+import { registerEditQuoteNav } from '../utils/editQuoteNav';
 import { Billing } from '../pages/Billing';
 
 // Mock routing since original app didn't use URL paths for tabs
@@ -30,6 +31,7 @@ export const AppRouter = () => {
   const [quoteDetailId, setQuoteDetailId] = useState(() => sessionStorage.getItem('quoteDetailId') || null);
   const [quoteFromView, setQuoteFromView] = useState(() => sessionStorage.getItem('quoteFromView') || 'quotes');
   const [createQuoteCustomer, setCreateQuoteCustomer] = useState(null);
+  const [editQuoteData, setEditQuoteData] = useState(null);
   const [billingFromView, setBillingFromView] = useState('dashboard');
   const activeViewRef = useRef(activeView);
 
@@ -64,6 +66,15 @@ export const AppRouter = () => {
     });
   }, []);
 
+  // Register edit-quote navigation handler
+  useEffect(() => {
+    registerEditQuoteNav((formData) => {
+      setCreateQuoteCustomer(null);
+      setEditQuoteData(formData);
+      handleViewChange('create-quote');
+    });
+  }, []);
+
   // Register billing navigation handler
   useEffect(() => {
     registerBillingNav((fromView) => {
@@ -88,9 +99,10 @@ export const AppRouter = () => {
   const handleViewChange = (newView) => {
     if (newView === activeView && !isLoading) return;
 
-    // Clear pre-filled customer when navigating away from create-quote
+    // Clear pre-filled customer / edit data when navigating away from create-quote
     if (activeViewRef.current === 'create-quote' && newView !== 'create-quote') {
       setCreateQuoteCustomer(null);
+      setEditQuoteData(null);
     }
 
     setPendingView(newView);
@@ -116,7 +128,7 @@ export const AppRouter = () => {
               {activeView === 'dashboard' && <Dashboard onViewChange={handleViewChange} />}
               {activeView === 'customers' && <Customers />}
               {activeView === 'quotes' && <Quotes onViewChange={handleViewChange} />}
-              {activeView === 'create-quote' && <CreateQuote onViewChange={handleViewChange} prefilledCustomer={createQuoteCustomer} />}
+              {activeView === 'create-quote' && <CreateQuote onViewChange={handleViewChange} prefilledCustomer={createQuoteCustomer} editQuote={editQuoteData} />}
               {activeView === 'bookings' && <Bookings />}
               {activeView === 'livetrips' && <LiveTrips />}
               {activeView === 'payments' && <Payments />}

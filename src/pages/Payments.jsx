@@ -2,6 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import { InfoBtn } from '../components/InfoBtn';
 import { RecordPaymentModal } from '../components/RecordPaymentModal';
 import { PaymentDetailModal } from '../components/PaymentDetailModal';
+import { openBilling } from '../utils/billingNav';
+import { ExportDropdown } from '../components/ExportDropdown';
+
+const PAYMENTS_COLUMNS = [
+  { header: 'Payment #',  key: 'id' },
+  { header: 'Customer',   key: 'customerName' },
+  { header: 'Method',     key: 'modeLabel' },
+  { header: 'Amount (₹)', key: 'amount' },
+  { header: 'Type',       key: 'againstType' },
+  { header: 'Date',       key: 'date' },
+];
 
 const LogsPopup = ({ onClose }) => {
   const popupRef = useRef(null);
@@ -92,6 +103,11 @@ export const Payments = () => {
             <p className="page-subtitle">5 payments recorded</p>
           </div>
           <div className="dash-header-right">
+            <ExportDropdown
+              data={filteredAllPayments}
+              columns={PAYMENTS_COLUMNS}
+              sectionName="Payments"
+            />
             <button className="new-quote-btn" onClick={() => setRecordPaymentOpen(true)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Record Payment
@@ -102,7 +118,7 @@ export const Payments = () => {
               </button>
               {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
             </div>
-            <div className="header-user">
+            <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">
                 <span className="header-user-name">Demo Admin</span>

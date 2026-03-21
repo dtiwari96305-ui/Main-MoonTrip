@@ -1,21 +1,6 @@
 import React, { useState } from 'react';
-
-// ─── Demo Modal ───────────────────────────────────────────────────────────────
-const DemoModal = ({ onClose }) => (
-  <div className="demo-modal-overlay" onClick={onClose}>
-    <div className="demo-modal" onClick={e => e.stopPropagation()}>
-      <div className="demo-modal-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </div>
-      <h3>Demo Account</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK, Got it</button>
-    </div>
-  </div>
-);
+import { openBilling } from '../utils/billingNav';
+import { useDemoPopup } from '../context/DemoContext';
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 const AcctStatCard = ({ amount, label, iconBg, icon, isActive }) => (
@@ -39,8 +24,8 @@ const EmptyState = ({ icon, title, desc }) => (
 
 // ─── Main Accounts Component ──────────────────────────────────────────────────
 export const Accounts = () => {
+  const triggerDemoPopup = useDemoPopup();
   const [activeTab, setActiveTab] = useState('adjustments');
-  const [showDemoModal, setShowDemoModal] = useState(false);
 
   const tabs = [
     { id: 'markup',      label: 'Markup Entries', count: 0 },
@@ -109,7 +94,7 @@ export const Accounts = () => {
           </div>
           <div className="dash-header-right">
             {/* Convert to Invoice */}
-            <button className="acct-convert-btn" onClick={() => setShowDemoModal(true)}>
+            <button className="acct-convert-btn" onClick={triggerDemoPopup}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
@@ -120,7 +105,7 @@ export const Accounts = () => {
             </button>
 
             {/* Adjust Against Payment */}
-            <button className="acct-adjust-btn" onClick={() => setShowDemoModal(true)}>
+            <button className="acct-adjust-btn" onClick={triggerDemoPopup}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <polyline points="19 12 12 19 5 12"/>
@@ -130,7 +115,7 @@ export const Accounts = () => {
             </button>
 
             {/* Document icon button */}
-            <button className="icon-btn" onClick={() => setShowDemoModal(true)} title="Export">
+            <button className="icon-btn" onClick={triggerDemoPopup} title="Export">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
@@ -138,7 +123,7 @@ export const Accounts = () => {
             </button>
 
             {/* User avatar */}
-            <div className="header-user">
+            <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">
                 <span className="header-user-name">Demo Admin</span>
@@ -207,7 +192,6 @@ export const Accounts = () => {
         {renderTabContent()}
       </div>
 
-      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
     </div>
   );
 };

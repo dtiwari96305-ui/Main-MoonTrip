@@ -79,7 +79,6 @@ export const Customers = () => {
           data={filteredCustomers}
           columns={CUSTOMERS_COLUMNS}
           sectionName="Customers"
-          fileBase="Customers_Export"
         />
       </div>
 

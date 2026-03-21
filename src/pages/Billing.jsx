@@ -1,21 +1,6 @@
 import React, { useState } from 'react';
 import { openBilling } from '../utils/billingNav';
-
-// ─── Demo Modal ────────────────────────────────────────────────────────────────
-const DemoModal = ({ onClose }) => (
-  <div className="demo-modal-overlay" onClick={onClose}>
-    <div className="demo-modal" onClick={e => e.stopPropagation()}>
-      <div className="demo-modal-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
-      </div>
-      <h3>Demo Account</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK, Got it</button>
-    </div>
-  </div>
-);
+import { useDemoPopup } from '../context/DemoContext';
 
 // ─── Plan data ─────────────────────────────────────────────────────────────────
 const plans = [
@@ -114,8 +99,8 @@ const XIcon = () => (
 
 // ─── Main Billing Component ───────────────────────────────────────────────────
 export const Billing = ({ fromView, onBack }) => {
+  const triggerDemoPopup = useDemoPopup();
   const [billingPeriod, setBillingPeriod] = useState('monthly');
-  const [showDemoModal, setShowDemoModal] = useState(false);
 
   const fmtPrice = (n) => n.toLocaleString('en-IN');
 
@@ -139,7 +124,7 @@ export const Billing = ({ fromView, onBack }) => {
           </div>
           <div className="dash-header-right">
             {/* Powered by Dodo */}
-            <button className="bl-dodo-btn" onClick={() => setShowDemoModal(true)}>
+            <button className="bl-dodo-btn" onClick={triggerDemoPopup}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
               </svg>
@@ -147,7 +132,7 @@ export const Billing = ({ fromView, onBack }) => {
             </button>
             {/* Bell with badge */}
             <div className="bl-bell-wrap">
-              <button className="icon-btn" onClick={() => setShowDemoModal(true)}>
+              <button className="icon-btn" onClick={triggerDemoPopup}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
@@ -155,7 +140,7 @@ export const Billing = ({ fromView, onBack }) => {
               <span className="bl-bell-badge">2</span>
             </div>
             {/* User block */}
-            <div className="header-user bl-user-clickable" onClick={() => setShowDemoModal(true)}>
+            <div className="header-user bl-user-clickable" onClick={triggerDemoPopup}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">
                 <span className="header-user-name">Demo Admin</span>
@@ -185,7 +170,7 @@ export const Billing = ({ fromView, onBack }) => {
                 </span>
               </div>
               <span className="bl-current-tagline">For large agencies &amp; enterprises</span>
-              <button className="bl-manage-btn" onClick={() => setShowDemoModal(true)}>
+              <button className="bl-manage-btn" onClick={triggerDemoPopup}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
                 </svg>
@@ -341,7 +326,7 @@ export const Billing = ({ fromView, onBack }) => {
                 {plan.isCurrent ? (
                   <div className="bl-current-plan-label">Your current plan</div>
                 ) : (
-                  <button className="bl-plan-cta" onClick={() => setShowDemoModal(true)}>
+                  <button className="bl-plan-cta" onClick={triggerDemoPopup}>
                     {plan.cta}
                   </button>
                 )}
@@ -369,7 +354,7 @@ export const Billing = ({ fromView, onBack }) => {
 
         {/* ── Support Cards ── */}
         <div className="bl-support-grid">
-          <button className="bl-support-card" onClick={() => setShowDemoModal(true)}>
+          <button className="bl-support-card" onClick={triggerDemoPopup}>
             <div className="bl-support-icon bl-support-green">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -384,7 +369,7 @@ export const Billing = ({ fromView, onBack }) => {
             </svg>
           </button>
 
-          <button className="bl-support-card" onClick={() => setShowDemoModal(true)}>
+          <button className="bl-support-card" onClick={triggerDemoPopup}>
             <div className="bl-support-icon bl-support-red">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
@@ -402,7 +387,6 @@ export const Billing = ({ fromView, onBack }) => {
 
       </div>
 
-      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
     </div>
   );
 };

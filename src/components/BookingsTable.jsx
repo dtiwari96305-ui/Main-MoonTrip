@@ -1,19 +1,7 @@
 import React, { useState } from 'react';
 import { customers } from './CustomersTable';
 import { openCustomerProfile } from '../utils/customerNav';
-
-const DemoModal = ({ onClose }) => (
-  <div className="demo-modal-overlay" onClick={onClose}>
-    <div className="demo-modal" onClick={e => e.stopPropagation()}>
-      <div className="demo-modal-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      </div>
-      <h3>Action Restricted</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK</button>
-    </div>
-  </div>
-);
+import { useDemoPopup } from '../context/DemoContext';
 
 const FunnelIcon = ({ active, onClick }) => (
   <span className={`th-search-btn ${active ? 'active' : ''}`} onClick={onClick}>
@@ -30,7 +18,7 @@ const SortIcon = () => (
 );
 
 export const BookingsTable = ({ bookings }) => {
-  const [showDemoModal, setShowDemoModal] = useState(false);
+  const triggerDemoPopup = useDemoPopup();
   const [activeDropdownId, setActiveDropdownId] = useState(null);
   
   // Inline filters
@@ -55,7 +43,7 @@ export const BookingsTable = ({ bookings }) => {
   const handleAction = (e) => {
     e.stopPropagation();
     setActiveDropdownId(null);
-    setShowDemoModal(true);
+    triggerDemoPopup();
   };
 
   return (
@@ -168,7 +156,6 @@ export const BookingsTable = ({ bookings }) => {
           </tbody>
         </table>
       </div>
-      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
     </>
   );
 };

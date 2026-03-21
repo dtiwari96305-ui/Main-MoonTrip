@@ -1,20 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { InfoBtn } from '../components/InfoBtn';
-
-const DemoModal = ({ onClose }) => (
-  <div className="demo-modal-overlay" onClick={onClose}>
-    <div className="demo-modal" onClick={e => e.stopPropagation()}>
-      <div className="demo-modal-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </div>
-      <h3>Demo Account</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK, Got it</button>
-    </div>
-  </div>
-);
+import { openBilling } from '../utils/billingNav';
+import { useDemoPopup } from '../context/DemoContext';
 
 const LogsPopup = ({ onClose }) => {
   const popupRef = useRef(null);
@@ -40,11 +27,11 @@ const LogsPopup = ({ onClose }) => {
 };
 
 export const Settings = () => {
+  const triggerDemoPopup = useDemoPopup();
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('settings_activeTab') || 'profile-tab');
   const [pdfTheme, setPdfTheme] = useState('classic');
   const [isAnnual, setIsAnnual] = useState(true);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
-  const [showDemoModal, setShowDemoModal] = useState(false);
   // Itinerary tab state
   const [headerMode, setHeaderMode] = useState('design');
   const [footerMode, setFooterMode] = useState('design');
@@ -89,7 +76,7 @@ export const Settings = () => {
               </button>
               {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
             </div>
-            <div className="header-user">
+            <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">
                 <span className="header-user-name">Demo Admin</span>
@@ -178,7 +165,7 @@ export const Settings = () => {
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button className="btn-primary" onClick={() => setShowDemoModal(true)}>
+                  <button className="btn-primary" onClick={triggerDemoPopup}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                     Save Changes
                   </button>
@@ -190,7 +177,7 @@ export const Settings = () => {
           {activeTab === 'company-tab' && (
             <div id="company-tab" className="settings-pane active">
               <div className="profile-header-info">
-                <div className="company-logo-upload" onClick={() => setShowDemoModal(true)} style={{cursor:'pointer'}}>
+                <div className="company-logo-upload" onClick={triggerDemoPopup} style={{cursor:'pointer'}}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{color:'var(--text-muted)'}}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                   Upload
                 </div>
@@ -213,7 +200,7 @@ export const Settings = () => {
                       <span className="gst-desc">GST is applied to all quotes and invoices</span>
                     </div>
                   </div>
-                  <div className="toggle-switch active" onClick={() => setShowDemoModal(true)} style={{cursor:'pointer'}}>
+                  <div className="toggle-switch active" onClick={triggerDemoPopup} style={{cursor:'pointer'}}>
                     <div className="toggle-knob"></div>
                   </div>
                 </div>
@@ -236,7 +223,7 @@ export const Settings = () => {
                     <label className="form-label">GSTIN <InfoBtn infoKey="gstin" /></label>
                     <div className="input-with-action">
                       <input type="text" className="form-input uppercase-text" defaultValue="27AABCW1234F1ZP" />
-                      <button type="button" className="btn-verify" onClick={() => setShowDemoModal(true)}>
+                      <button type="button" className="btn-verify" onClick={triggerDemoPopup}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         Verify
                       </button>
@@ -341,7 +328,7 @@ export const Settings = () => {
                 </div>
                 
                 <div className="form-actions" style={{justifyContent: 'flex-end', marginTop: 16}}>
-                  <button className="btn-primary" onClick={() => setShowDemoModal(true)}>
+                  <button className="btn-primary" onClick={triggerDemoPopup}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                     Save Changes
                   </button>
@@ -410,7 +397,7 @@ export const Settings = () => {
                     </div>
                   </div>
                   <div className="nom-card-save">
-                    <button className="nom-card-btn" onClick={() => setShowDemoModal(true)}>
+                    <button className="nom-card-btn" onClick={triggerDemoPopup}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                       Save
                     </button>
@@ -444,7 +431,7 @@ export const Settings = () => {
                     </div>
                   </div>
                   <div className="nom-card-save">
-                    <button className="nom-card-btn" onClick={() => setShowDemoModal(true)}>
+                    <button className="nom-card-btn" onClick={triggerDemoPopup}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                       Save
                     </button>
@@ -475,7 +462,7 @@ export const Settings = () => {
                   <h2 style={{fontSize:'1.15rem', fontWeight:700, color:'var(--text-primary)', marginBottom:4}}>Team Members</h2>
                   <p style={{fontSize:'0.85rem', color:'var(--text-secondary)'}}>0 members</p>
                 </div>
-                <button className="btn-primary" style={{padding: '10px 20px', background: '#ea580c', borderColor: '#ea580c'}} onClick={() => setShowDemoModal(true)}>
+                <button className="btn-primary" style={{padding: '10px 20px', background: '#ea580c', borderColor: '#ea580c'}} onClick={triggerDemoPopup}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: 6}}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   Add Member
                 </button>
@@ -513,11 +500,11 @@ export const Settings = () => {
                     <p style={{color:'var(--text-secondary)', fontSize:'0.9rem', marginTop:6}}>For large agencies and teams</p>
                     
                     <div className="plan-actions-group">
-                      <button className="plan-action-btn" onClick={() => setShowDemoModal(true)}>
+                      <button className="plan-action-btn" onClick={triggerDemoPopup}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                         Manage Subscription
                       </button>
-                      <button className="plan-action-btn" onClick={() => setShowDemoModal(true)}>
+                      <button className="plan-action-btn" onClick={triggerDemoPopup}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                         Sync
                       </button>
@@ -611,7 +598,7 @@ export const Settings = () => {
                       <li className="pc-feature exc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reports & analytics</li>
                     </ul>
                     <div className="pc-action">
-                      <button className="pc-btn outline">
+                      <button className="pc-btn outline" onClick={triggerDemoPopup}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/></svg> Downgrade
                       </button>
                     </div>
@@ -630,7 +617,7 @@ export const Settings = () => {
                       <li className="pc-feature inc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 user</li>
                     </ul>
                     <div className="pc-action">
-                      <button className="pc-btn outline">
+                      <button className="pc-btn outline" onClick={triggerDemoPopup}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/></svg> Downgrade
                       </button>
                     </div>
@@ -715,7 +702,7 @@ export const Settings = () => {
                       </svg>
                       <p>No prefix pages yet</p>
                     </div>
-                    <button className="itin-add-page-btn" onClick={() => setShowDemoModal(true)}>
+                    <button className="itin-add-page-btn" onClick={triggerDemoPopup}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                       Add page
                     </button>
@@ -741,7 +728,7 @@ export const Settings = () => {
                       </svg>
                       <p>No suffix pages yet</p>
                     </div>
-                    <button className="itin-add-page-btn" onClick={() => setShowDemoModal(true)}>
+                    <button className="itin-add-page-btn" onClick={triggerDemoPopup}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                       Add page
                     </button>
@@ -763,7 +750,7 @@ export const Settings = () => {
                       <p className="itin-card-subtitle">Applied to all new itineraries — can be overridden per itinerary</p>
                     </div>
                   </div>
-                  <button className="itin-save-btn" onClick={() => setShowDemoModal(true)}>
+                  <button className="itin-save-btn" onClick={triggerDemoPopup}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                       <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
@@ -784,11 +771,11 @@ export const Settings = () => {
                   {headerExpanded && (
                     <div className="itin-section-body">
                       <div className="itin-mode-toggle">
-                        <button className={`itin-mode-btn ${headerMode==='design' ? 'itin-mode-active' : ''}`} onClick={() => setHeaderMode('design')}>
+                        <button className={`itin-mode-btn ${headerMode==='design' ? 'itin-mode-active' : ''}`} onClick={triggerDemoPopup}>
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                           Design
                         </button>
-                        <button className={`itin-mode-btn ${headerMode==='image' ? 'itin-mode-active' : ''}`} onClick={() => setHeaderMode('image')}>
+                        <button className={`itin-mode-btn ${headerMode==='image' ? 'itin-mode-active' : ''}`} onClick={triggerDemoPopup}>
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                           Image
                         </button>
@@ -797,7 +784,7 @@ export const Settings = () => {
                       {headerMode === 'design' && (
                         <>
                           <div className="itin-checkbox-row">
-                            <input type="checkbox" id="itin-show-logo" checked={showCompanyLogo} onChange={e => setShowCompanyLogo(e.target.checked)} />
+                            <input type="checkbox" id="itin-show-logo" checked={showCompanyLogo} onChange={triggerDemoPopup} />
                             <label htmlFor="itin-show-logo">Show company logo</label>
                           </div>
 
@@ -805,7 +792,7 @@ export const Settings = () => {
                             <label className="form-label">Logo position</label>
                             <div className="itin-btn-group">
                               {[{v:'left',label:'Left'},{v:'center',label:'Center'},{v:'right',label:'Right'}].map(opt => (
-                                <button key={opt.v} className={`itin-group-btn ${logoPosition===opt.v ? 'itin-group-btn-active' : ''}`} onClick={() => setLogoPosition(opt.v)}>
+                                <button key={opt.v} className={`itin-group-btn ${logoPosition===opt.v ? 'itin-group-btn-active' : ''}`} onClick={triggerDemoPopup}>
                                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     {opt.v==='left'   && <><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></>}
                                     {opt.v==='center' && <><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></>}
@@ -820,8 +807,8 @@ export const Settings = () => {
                           <div className="form-group" style={{marginTop:16}}>
                             <label className="form-label">Layout</label>
                             <div className="itin-btn-group itin-btn-group-2col">
-                              <button className={`itin-group-btn ${headerLayout==='sidebyside' ? 'itin-group-btn-active' : ''}`} onClick={() => setHeaderLayout('sidebyside')}>Side by side</button>
-                              <button className={`itin-group-btn ${headerLayout==='stacked' ? 'itin-group-btn-active' : ''}`} onClick={() => setHeaderLayout('stacked')}>Stacked</button>
+                              <button className={`itin-group-btn ${headerLayout==='sidebyside' ? 'itin-group-btn-active' : ''}`} onClick={triggerDemoPopup}>Side by side</button>
+                              <button className={`itin-group-btn ${headerLayout==='stacked' ? 'itin-group-btn-active' : ''}`} onClick={triggerDemoPopup}>Stacked</button>
                             </div>
                           </div>
 
@@ -858,7 +845,7 @@ export const Settings = () => {
                       )}
 
                       {headerMode === 'image' && (
-                        <div className="itin-image-upload" onClick={() => setShowDemoModal(true)}>
+                        <div className="itin-image-upload" onClick={triggerDemoPopup}>
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                           <p>Click to upload header image</p>
                           <span>PNG, JPG or SVG — recommended 1200×120px</span>
@@ -880,11 +867,11 @@ export const Settings = () => {
                   {footerExpanded && (
                     <div className="itin-section-body">
                       <div className="itin-mode-toggle">
-                        <button className={`itin-mode-btn ${footerMode==='design' ? 'itin-mode-active' : ''}`} onClick={() => setFooterMode('design')}>
+                        <button className={`itin-mode-btn ${footerMode==='design' ? 'itin-mode-active' : ''}`} onClick={triggerDemoPopup}>
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                           Design
                         </button>
-                        <button className={`itin-mode-btn ${footerMode==='image' ? 'itin-mode-active' : ''}`} onClick={() => setFooterMode('image')}>
+                        <button className={`itin-mode-btn ${footerMode==='image' ? 'itin-mode-active' : ''}`} onClick={triggerDemoPopup}>
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                           Image
                         </button>
@@ -930,7 +917,7 @@ export const Settings = () => {
                       )}
 
                       {footerMode === 'image' && (
-                        <div className="itin-image-upload" onClick={() => setShowDemoModal(true)}>
+                        <div className="itin-image-upload" onClick={triggerDemoPopup}>
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                           <p>Click to upload footer image</p>
                           <span>PNG, JPG or SVG — recommended 1200×80px</span>
@@ -945,7 +932,6 @@ export const Settings = () => {
           )}
         </div>
       </div>
-      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
     </div>
   );
 };

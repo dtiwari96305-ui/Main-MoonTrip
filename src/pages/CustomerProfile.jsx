@@ -2,25 +2,12 @@ import React, { useState } from 'react';
 import { customers } from '../components/CustomersTable';
 import { openQuoteDetail } from '../utils/quoteNav';
 import { openCreateQuoteWithCustomer } from '../utils/createQuoteNav';
+import { openBilling } from '../utils/billingNav';
+import { generateLedgerPdf } from '../utils/generateLedgerPdf';
 import { CustomerSidePanel } from '../components/CustomerSidePanel';
 import { RecordPaymentModal } from '../components/RecordPaymentModal';
 import { PaymentDetailModal } from '../components/PaymentDetailModal';
-
-// ─── Demo Modal ────────────────────────────────────────────────────────────────
-const DemoModal = ({ onClose }) => (
-  <div className="demo-modal-overlay" onClick={onClose}>
-    <div className="demo-modal" onClick={e => e.stopPropagation()}>
-      <div className="demo-modal-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </div>
-      <h3>Demo Account</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK, Got it</button>
-    </div>
-  </div>
-);
+import { useDemoPopup } from '../context/DemoContext';
 
 // ─── Extended profile data per customer ───────────────────────────────────────
 export const profileData = {
@@ -117,7 +104,7 @@ const StatusPill = ({ status }) => {
 
 // ─── Main CustomerProfile Component ──────────────────────────────────────────
 export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) => {
-  const [showDemoModal, setShowDemoModal] = useState(false);
+  const triggerDemoPopup = useDemoPopup();
   const [editPanelOpen, setEditPanelOpen] = useState(false);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [paymentDetailId, setPaymentDetailId] = useState(null);
@@ -179,10 +166,10 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
               Edit
             </button>
-            <button className="icon-btn" onClick={() => setShowDemoModal(true)} title="Export">
+            <button className="icon-btn" onClick={triggerDemoPopup} title="Export">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </button>
-            <div className="header-user">
+            <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">
                 <span className="header-user-name">Demo Admin</span>
@@ -203,7 +190,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
               <div className="cp-hero-name-row">
                 <span className="cp-hero-name">{customer.name}</span>
                 <span className="cp-type-badge cp-type-individual">{customer.type}</span>
-                <button className="cp-ledger-btn" onClick={() => setShowDemoModal(true)}>
+                <button className="cp-ledger-btn" onClick={() => generateLedgerPdf({ customer, ext, myLedger })}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   Ledger
                 </button>
@@ -362,11 +349,11 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
               CUSTOMER LEDGER ({myLedger.length})
             </div>
             <div style={{display:'flex', gap:8}}>
-              <button className="cp-tbl-btn" onClick={() => setShowDemoModal(true)}>
+              <button className="cp-tbl-btn" onClick={() => generateLedgerPdf({ customer, ext, myLedger })}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 PDF
               </button>
-              <button className="cp-tbl-btn" onClick={() => setShowDemoModal(true)}>
+              <button className="cp-tbl-btn" onClick={triggerDemoPopup}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                 Share
               </button>
@@ -521,7 +508,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
 
       </div>
 
-      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
+
 
       {paymentDetailId && (
         <PaymentDetailModal

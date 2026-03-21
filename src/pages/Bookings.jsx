@@ -8,12 +8,9 @@ const BOOKINGS_COLUMNS = [
   { header: 'Booking #',   key: 'id' },
   { header: 'Customer',    key: 'customerName' },
   { header: 'Destination', key: 'destination' },
-  { header: 'Total',       key: 'amount' },
-  { header: 'Profit',      key: 'profit' },
-  { header: 'Payment',     key: 'paymentText' },
-  { header: 'Remaining',   key: 'remaining' },
-  { header: 'Status',      key: 'status' },
   { header: 'Date',        key: 'date' },
+  { header: 'Total (₹)',   key: 'amount' },
+  { header: 'Status',      key: 'status' },
 ];
 
 const initialBookings = [
@@ -95,7 +92,7 @@ export const Bookings = () => {
           data={filteredBookings}
           columns={BOOKINGS_COLUMNS}
           sectionName="Bookings"
-          fileBase="Bookings_Export"
+
         />
       </div>
 

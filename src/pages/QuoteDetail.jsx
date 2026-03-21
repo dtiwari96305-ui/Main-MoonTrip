@@ -1,22 +1,10 @@
 import React, { useState } from 'react';
 import { customers } from '../components/CustomersTable';
 import { openCustomerProfile } from '../utils/customerNav';
-
-// ─── Demo Modal ────────────────────────────────────────────────────────────────
-const DemoModal = ({ onClose }) => (
-  <div className="demo-modal-overlay" onClick={onClose}>
-    <div className="demo-modal" onClick={e => e.stopPropagation()}>
-      <div className="demo-modal-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </div>
-      <h3>Demo Account</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK, Got it</button>
-    </div>
-  </div>
-);
+import { openBilling } from '../utils/billingNav';
+import { openEditQuote } from '../utils/editQuoteNav';
+import { useDemoPopup } from '../context/DemoContext';
+import { generateCustomerPDF, generateAgentPDF } from '../utils/generateQuotePdf';
 
 // ─── Service Icons ──────────────────────────────────────────────────────────
 const HotelIcon = () => (
@@ -410,15 +398,61 @@ const ItinItem = ({ item }) => {
 };
 
 // ─── Main QuoteDetail Component ───────────────────────────────────────────────
+// ─── Build edit formData from quoteDetailData ─────────────────────────────────
+const SERVICE_TYPE_MAP = { hotel: 'hotel', transport: 'cabTransport', activity: 'activities', admission: 'admission', visa: 'visa', insurance: 'insurance', meals: 'fooding', flight: 'flight', train: 'train', bus: 'bus' };
+const parseAmt = (s) => parseInt((s || '0').replace(/[₹,]/g, ''), 10) || 0;
+const parseIndianDate = (str) => {
+  if (!str || str === 'N/A') return '';
+  const months = { Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12' };
+  const parts = str.split(' ');
+  if (parts.length !== 3) return '';
+  return `${parts[2]}-${months[parts[1]] || '01'}-${parts[0].padStart(2,'0')}`;
+};
+const buildEditFormData = (detail, quoteId) => {
+  const destType = (detail.destType || 'domestic').toLowerCase();
+  const paxNum = parseInt(detail.travelers || '1') || 1;
+  const services = {};
+  const serviceCosts = {};
+  (detail.services || []).forEach(svc => {
+    const key = SERVICE_TYPE_MAP[svc.type] || svc.type;
+    services[key] = true;
+    const cost = parseAmt(svc.cost);
+    if (cost) serviceCosts[key] = String(cost);
+  });
+  const depDate = parseIndianDate(detail.departure !== 'N/A' ? detail.departure : detail.tripDate);
+  const retDate = parseIndianDate(detail.returnDate !== 'N/A' ? detail.returnDate : '');
+  return {
+    _editQuoteId: quoteId,
+    newCustomerName: detail.customerName || '',
+    newCustomerPhone: (detail.customerPhone || '').replace(/^\+91\s*/, ''),
+    newCustomerEmail: detail.customerEmail || '',
+    destType,
+    country: destType === 'international' ? '' : '',
+    state: destType === 'domestic' ? '' : '',
+    placeOfTravel: detail.destination || '',
+    departureDate: depDate,
+    returnDate: retDate,
+    adults: paxNum, children: 0, infants: 0,
+    travelerDetails: Array.from({ length: paxNum }, () => ({ name: '', passportId: '' })),
+    services, serviceCosts,
+    costOfServices: String(parseAmt(detail.fin?.costOfServices)),
+    hiddenMarkup: String(parseAmt(detail.fin?.hiddenMarkup)),
+    processingCharge: String(parseAmt(detail.fin?.processingCharge)),
+    gstMode: detail.fin?.billingModel === 'pure_agent' ? 'pure-agent' : 'principal',
+    tcsMode: 'na',
+  };
+};
+
 export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
-  const [showDemoModal, setShowDemoModal] = useState(false);
-  const demo = () => setShowDemoModal(true);
+  const demo = useDemoPopup();
 
   const detail = quoteDetailData[quoteId];
   if (!detail) return null;
 
   const customer = customers.find(c => c.name === detail.customerName);
   const fin = detail.fin;
+
+  const handleEditQuote = () => openEditQuote(buildEditFormData(detail, quoteId));
 
   const statusColors = {
     draft:     'status-draft',
@@ -458,7 +492,7 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
             <button className="icon-btn" onClick={demo} title="Export">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </button>
-            <div className="header-user">
+            <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">
                 <span className="header-user-name">Demo Admin</span>
@@ -501,15 +535,15 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
               Reject
             </button>
-            <button className="qd-btn qd-btn-edit" onClick={demo}>
+            <button className="qd-btn qd-btn-edit" onClick={handleEditQuote}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
               Edit Quote
             </button>
-            <button className="qd-btn qd-btn-pdf" onClick={demo}>
+            <button className="qd-btn qd-btn-pdf" onClick={() => generateAgentPDF(quoteId, detail, quoteStatus)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Agent PDF
             </button>
-            <button className="qd-btn qd-btn-pdf" onClick={demo}>
+            <button className="qd-btn qd-btn-pdf" onClick={() => generateCustomerPDF(quoteId, detail)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Customer PDF
             </button>
@@ -783,7 +817,6 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
 
       </div>
 
-      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
     </div>
   );
 };

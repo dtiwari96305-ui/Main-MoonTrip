@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { customers } from './CustomersTable';
+import { useDemoPopup } from '../context/DemoContext';
 
 // Pending bookings per customer (partial / unpaid only)
 const pendingBookings = {
@@ -9,22 +10,6 @@ const pendingBookings = {
   ],
 };
 
-// ─── Demo Modal ───────────────────────────────────────────────────────────────
-const DemoModal = ({ onClose }) => (
-  <div className="demo-modal-overlay" onClick={onClose}>
-    <div className="demo-modal" onClick={e => e.stopPropagation()}>
-      <div className="demo-modal-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </div>
-      <h3>Demo Account</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK, Got it</button>
-    </div>
-  </div>
-);
 
 // ─── Mode option icons ─────────────────────────────────────────────────────
 const ModeIcon = ({ mode }) => {
@@ -48,10 +33,10 @@ const ModeIcon = ({ mode }) => {
 
 // ─── Main Component ────────────────────────────────────────────────────────
 export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null }) => {
+  const triggerDemoPopup = useDemoPopup();
   const [step, setStep] = useState('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [showDemoModal, setShowDemoModal] = useState(false);
 
   // Form fields
   const [amount, setAmount] = useState('');
@@ -90,7 +75,6 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
     setReference('');
     setBankName('');
     setNotes('');
-    setShowDemoModal(false);
   }, [isOpen, preselectedCustomer]);
 
   // Auto-focus search input
@@ -102,7 +86,6 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
   }, [isOpen, step]);
 
   const handleClose = () => {
-    setShowDemoModal(false);
     onClose();
   };
 
@@ -384,7 +367,7 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
         {/* ── Footer (form step only) ── */}
         {step === 'form' && (
           <div className="rp-footer">
-            <button className="rp-record-btn" onClick={() => setShowDemoModal(true)}>
+            <button className="rp-record-btn" onClick={triggerDemoPopup}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               Record Payment
             </button>
@@ -393,7 +376,6 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
         )}
       </div>
 
-      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
     </>
   );
 

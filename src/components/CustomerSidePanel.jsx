@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
+import { useDemoPopup } from '../context/DemoContext';
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -12,22 +13,6 @@ const INDIAN_STATES = [
   'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
 ];
 
-// Shared demo modal (same style as existing)
-const DemoModal = ({ onClose }) => (
-  <div className="demo-modal-overlay" onClick={onClose}>
-    <div className="demo-modal" onClick={e => e.stopPropagation()}>
-      <div className="demo-modal-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </div>
-      <h3>Demo Account</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK, Got it</button>
-    </div>
-  </div>
-);
 
 const InfoIcon = ({ title }) => (
   <span className="sp-info-icon" title={title}>
@@ -46,7 +31,7 @@ function parsePhoneNumber(raw) {
 }
 
 export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose }) => {
-  const [showDemoModal, setShowDemoModal] = useState(false);
+  const triggerDemoPopup = useDemoPopup();
 
   // Form state
   const [fullName, setFullName] = useState('');
@@ -128,7 +113,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose 
 
   const handleSave = (e) => {
     e.preventDefault();
-    setShowDemoModal(true);
+    triggerDemoPopup();
   };
 
   const panelContent = (
@@ -484,8 +469,6 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose 
         </div>
       </div>
 
-      {/* Demo modal also portalled to body so it's never clipped */}
-      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
     </>
   );
 

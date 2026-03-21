@@ -3,7 +3,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
-const BRAND = [244, 125, 91]; // #F47D5B
+const COMPANY_NAME    = 'WANDERLUST TRAVELS';
+const COMPANY_ADDRESS = '301, Trade Center, BKC';
+const BRAND           = [244, 125, 91]; // #F47D5B
 
 const fileDateStamp = () => {
   const d = new Date();
@@ -11,14 +13,10 @@ const fileDateStamp = () => {
   return `${d.getDate()}${months[d.getMonth()]}${d.getFullYear()}`;
 };
 
-const displayDateTime = () => {
+const displayDate = () => {
   const d = new Date();
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const h = d.getHours(), m = d.getMinutes();
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const hh = ((h % 12) || 12).toString().padStart(2, '0');
-  const mm = m.toString().padStart(2, '0');
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${hh}:${mm} ${ampm}`;
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 };
 
 /**
@@ -26,17 +24,20 @@ const displayDateTime = () => {
  * @param {Object[]} data        - Filtered/visible rows from the parent section
  * @param {Object[]} columns     - [{ header: string, key: string }, ...]
  * @param {string}   sectionName - e.g. "Bookings"
- * @param {string}   fileBase    - e.g. "Bookings_Export"
+ * @param {string}   companyName - defaults to WANDERLUST TRAVELS
  */
-export const ExportDropdown = ({ data, columns, sectionName, fileBase }) => {
+export const ExportDropdown = ({
+  data,
+  columns,
+  sectionName,
+  companyName = COMPANY_NAME,
+}) => {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
 
-  // Always keep a ref to the latest data — guards against stale closures
+  // Always read from ref to avoid stale closures
   const dataRef = useRef(data);
-  useEffect(() => {
-    dataRef.current = data;
-  }, [data]);
+  useEffect(() => { dataRef.current = data; }, [data]);
 
   // Close on outside click
   useEffect(() => {
@@ -47,17 +48,20 @@ export const ExportDropdown = ({ data, columns, sectionName, fileBase }) => {
     return () => document.removeEventListener('mousedown', onOutside);
   }, []);
 
-  const fileName = (ext) => `${fileBase}_${fileDateStamp()}.${ext}`;
+  const fileName    = (ext) => `${sectionName}-Export-${fileDateStamp()}.${ext}`;
+  const sectionTitle = `${sectionName.toUpperCase()} EXPORT`;
 
-  // Shared guard — always read from the ref so we get the freshest snapshot
-  const getRows = () => {
-    const rows = dataRef.current;
-    console.log(`[Export – ${sectionName}] data snapshot (${rows?.length ?? 0} rows):`, rows);
-    if (rows?.length > 0) console.log(`[Export – ${sectionName}] sample row keys:`, Object.keys(rows[0]));
-    return rows;
-  };
+  const getRows = () => dataRef.current;
 
-  // ─── PDF ────────────────────────────────────────────────────────────────────
+  const flattenRow = (row) =>
+    columns.map((c) => {
+      const val = row[c.key];
+      if (val === null || val === undefined) return '';
+      if (typeof val === 'object') return JSON.stringify(val);
+      return String(val);
+    });
+
+  // ─── PDF ──────────────────────────────────────────────────────────────────
   const exportPDF = () => {
     setOpen(false);
     const rows = getRows();
@@ -66,56 +70,80 @@ export const ExportDropdown = ({ data, columns, sectionName, fileBase }) => {
       return;
     }
 
-    const doc = new jsPDF({ orientation: 'landscape' });
+    const doc   = new jsPDF({ orientation: 'landscape' });
     const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
+    const dateStr    = displayDate();
+    const countLabel = `${rows.length} ${sectionName.toLowerCase()}`;
 
-    // Report header
+    // ── Header block ──
+    // Company name — top left, bold dark
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.setTextColor(...BRAND);
-    doc.text(`${sectionName} Report`, 14, 16);
+    doc.setFontSize(15);
+    doc.setTextColor(30, 41, 59);
+    doc.text(companyName, 14, 18);
+
+    // Generated info — top right, muted
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Generated on: ${displayDateTime()}`, 14, 23);
+    doc.text(`Generated on ${dateStr}  |  ${countLabel}`, pageW - 14, 18, { align: 'right' });
 
-    // Build head + body from column map — flatten all values to plain strings
-    const head = [columns.map((c) => c.header)];
-    const body = rows.map((row) =>
-      columns.map((c) => {
-        const val = row[c.key];
-        // Flatten: stringify anything non-primitive
-        if (val === null || val === undefined) return '';
-        if (typeof val === 'object') return JSON.stringify(val);
-        return String(val);
-      })
-    );
+    // Section title — centered, bold
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(30, 41, 59);
+    doc.text(sectionTitle, pageW / 2, 29, { align: 'center' });
 
+    // Divider line
+    doc.setDrawColor(220, 226, 236);
+    doc.setLineWidth(0.4);
+    doc.line(14, 33, pageW - 14, 33);
+
+    // ── Table ──
     autoTable(doc, {
-      startY: 30,
-      head,
-      body,
-      headStyles: { fillColor: BRAND, textColor: [255,255,255], fontStyle: 'bold', fontSize: 9, cellPadding: 5 },
-      bodyStyles: { fontSize: 8.5, textColor: [30,41,59], cellPadding: 4 },
-      alternateRowStyles: { fillColor: [248,250,252] },
+      startY: 38,
+      head:   [columns.map((c) => c.header)],
+      body:   rows.map(flattenRow),
+      headStyles: {
+        fillColor:  BRAND,
+        textColor:  [255, 255, 255],
+        fontStyle:  'bold',
+        fontSize:   9,
+        cellPadding: 5,
+      },
+      bodyStyles: {
+        fontSize:    8.5,
+        textColor:   [30, 41, 59],
+        cellPadding: 4,
+      },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
       styles: { font: 'helvetica', overflow: 'linebreak' },
       margin: { left: 14, right: 14 },
     });
 
-    // Page footers — written after table so total page count is final
+    // ── Footer (every page) ──
     const totalPages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
+      doc.setFontSize(7.5);
       doc.setTextColor(148, 163, 184);
-      doc.text(`Page ${i} of ${totalPages}`, pageW / 2, doc.internal.pageSize.height - 8, { align: 'center' });
+      // Address — bottom left
+      doc.text(COMPANY_ADDRESS, 14, pageH - 8);
+      // Date + page number — bottom right
+      doc.text(
+        `Generated on ${dateStr}   |   Page ${i} of ${totalPages}`,
+        pageW - 14,
+        pageH - 8,
+        { align: 'right' },
+      );
     }
 
     doc.save(fileName('pdf'));
   };
 
-  // ─── Excel ──────────────────────────────────────────────────────────────────
+  // ─── Excel ────────────────────────────────────────────────────────────────
   const exportExcel = () => {
     setOpen(false);
     const rows = getRows();
@@ -124,30 +152,29 @@ export const ExportDropdown = ({ data, columns, sectionName, fileBase }) => {
       return;
     }
 
-    const headers = columns.map((c) => c.header);
+    const headers  = columns.map((c) => c.header);
+    const dataRows = rows.map(flattenRow);
+    const colCount = headers.length;
+    const dateStr  = displayDate();
 
-    // Flatten each row to an array of plain strings in column order
-    const dataRows = rows.map((row) =>
-      columns.map((c) => {
-        const val = row[c.key];
-        if (val === null || val === undefined) return '';
-        if (typeof val === 'object') return JSON.stringify(val);
-        return String(val);
-      })
-    );
-
+    // 4-row header block + column header row + data
     const wsData = [
-      [`${sectionName} Report`],           // row 1 — title
-      [`Generated on: ${displayDateTime()}`], // row 2 — date
-      [],                                    // row 3 — spacer
-      headers,                               // row 4 — column headers
-      ...dataRows,                           // row 5+ — data
+      [companyName],                                                                    // row 1
+      [sectionTitle],                                                                   // row 2
+      [`Generated on: ${dateStr}  |  ${rows.length} ${sectionName.toLowerCase()}`],    // row 3
+      [],                                                                               // row 4 — spacer
+      headers,                                                                          // row 5
+      ...dataRows,                                                                      // row 6+
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    // Merge title across all columns
-    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }];
+    // Merge header rows across all columns
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: colCount - 1 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: colCount - 1 } },
+    ];
 
     // Auto column widths
     ws['!cols'] = headers.map((h, i) => {
@@ -155,12 +182,39 @@ export const ExportDropdown = ({ data, columns, sectionName, fileBase }) => {
       return { wch: Math.min(maxLen + 4, 45) };
     });
 
+    // Cell styles (SheetJS CE — best-effort; styles render in LibreOffice / Excel 2016+)
+    const styleCell = (addr, style) => {
+      if (ws[addr]) ws[addr].s = style;
+    };
+
+    styleCell(XLSX.utils.encode_cell({ r: 0, c: 0 }), {
+      font: { bold: true, sz: 14 },
+    });
+    styleCell(XLSX.utils.encode_cell({ r: 1, c: 0 }), {
+      font: { bold: true, sz: 12 },
+    });
+    styleCell(XLSX.utils.encode_cell({ r: 2, c: 0 }), {
+      font: { color: { rgb: '64748B' }, sz: 9 },
+    });
+
+    // Column header row (row index 4) — bold white text, brand-primary fill
+    headers.forEach((_, i) => {
+      const addr = XLSX.utils.encode_cell({ r: 4, c: i });
+      if (ws[addr]) {
+        ws[addr].s = {
+          font:      { bold: true, color: { rgb: 'FFFFFF' } },
+          fill:      { fgColor: { rgb: 'F47D5B' } },
+          alignment: { horizontal: 'center' },
+        };
+      }
+    });
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, sectionName);
     XLSX.writeFile(wb, fileName('xlsx'));
   };
 
-  // ─── Render ─────────────────────────────────────────────────────────────────
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div style={{ position: 'relative' }} ref={wrapperRef}>
       <button className="import-btn" onClick={() => setOpen((o) => !o)}>

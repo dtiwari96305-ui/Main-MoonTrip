@@ -2,22 +2,8 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { jsPDF } from 'jspdf';
 import { getPaymentById } from '../data/paymentsData';
+import { useDemoPopup } from '../context/DemoContext';
 
-// ─── Demo Modal ────────────────────────────────────────────────────────────────
-const DemoModal = ({ onClose }) => (
-  <div className="demo-modal-overlay" onClick={onClose}>
-    <div className="demo-modal" onClick={e => e.stopPropagation()}>
-      <div className="demo-modal-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
-      </div>
-      <h3>Demo Account</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK, Got it</button>
-    </div>
-  </div>
-);
 
 // ─── Mode Icon Map ─────────────────────────────────────────────────────────────
 const ModeIcon = ({ modeType, size = 22 }) => {
@@ -122,9 +108,9 @@ const downloadPDF = (payment) => {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export const PaymentDetailModal = ({ paymentId, onClose }) => {
+  const triggerDemoPopup = useDemoPopup();
   const [isVisible, setIsVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [showDemoModal, setShowDemoModal] = useState(false);
 
   const payment = getPaymentById(paymentId);
 
@@ -259,7 +245,7 @@ export const PaymentDetailModal = ({ paymentId, onClose }) => {
                 </svg>
                 Edit
               </button>
-              <button className="pdm-action-btn pdm-btn-share" onClick={() => setShowDemoModal(true)}>
+              <button className="pdm-action-btn pdm-btn-share" onClick={triggerDemoPopup}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
                   <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
@@ -356,7 +342,7 @@ export const PaymentDetailModal = ({ paymentId, onClose }) => {
               <button className="pdm-cancel-btn" onClick={() => setIsEditMode(false)}>
                 Cancel
               </button>
-              <button className="pdm-save-btn" onClick={() => setShowDemoModal(true)}>
+              <button className="pdm-save-btn" onClick={triggerDemoPopup}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
@@ -367,7 +353,6 @@ export const PaymentDetailModal = ({ paymentId, onClose }) => {
         )}
       </div>
 
-      {showDemoModal && <DemoModal onClose={() => setShowDemoModal(false)} />}
     </>
   );
 

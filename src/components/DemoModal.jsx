@@ -10,8 +10,8 @@ export const DemoModal = ({ onClose }) => (
         </svg>
       </div>
       <h3>Demo Account</h3>
-      <p>This is a demo account. Changes cannot be made.</p>
-      <button className="demo-modal-btn" onClick={onClose}>OK, Got it</button>
+      <p>You are viewing a demo account. Changes cannot be made.</p>
+      <button className="demo-modal-btn" onClick={onClose}>Got it</button>
     </div>
   </div>
 );
