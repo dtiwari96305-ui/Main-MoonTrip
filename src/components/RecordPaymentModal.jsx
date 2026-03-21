@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { customers } from './CustomersTable';
 import { useDemoPopup } from '../context/DemoContext';
+import { InfoBtn } from './InfoBtn';
 
 // Pending bookings per customer (partial / unpaid only)
 const pendingBookings = {
@@ -243,9 +244,7 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
                 <div className="rp-allocate-header">
                   <span className="rp-field-label" style={{ marginBottom: 0 }}>
                     ALLOCATE PAYMENT
-                    <span className="rp-info-icon" title="Allocate this payment against a booking or save as advance">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </span>
+                    <InfoBtn infoKey="rp_allocate" />
                   </span>
                   {amount && <span className="rp-fully-allocated">Fully Allocated</span>}
                 </div>
@@ -285,9 +284,7 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
                     <span className="rp-adv-title">Advance Payment</span>
                     <span className="rp-adv-sub">
                       Will be saved as customer advance balance
-                      <span className="rp-info-icon" style={{ marginLeft: 4 }} title="Stored as advance and can be applied to future bookings">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                      </span>
+                      <InfoBtn infoKey="rp_advance_balance" />
                     </span>
                   </div>
                   {amount && <span className="rp-adv-amount">₹{Number(amount).toLocaleString('en-IN')}</span>}
@@ -298,9 +295,7 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
               <div className="rp-field">
                 <label className="rp-field-label">
                   MODE <span className="rp-required">*</span>
-                  <span className="rp-info-icon" title="Payment method used">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                  </span>
+                  <InfoBtn infoKey="rp_mode" />
                 </label>
                 <div className="rp-mode-select-wrap">
                   <ModeIcon mode={mode} />
@@ -326,9 +321,7 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
                   <label className="rp-field-label">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
                     REFERENCE
-                    <span className="rp-info-icon" title="Transaction reference number">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </span>
+                    <InfoBtn infoKey="rp_reference" />
                   </label>
                   <input type="text" className="rp-input" placeholder={refPlaceholder} value={reference} onChange={e => setReference(e.target.value)} />
                 </div>

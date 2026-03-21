@@ -28,7 +28,7 @@ const infoPopupText = {
   terms: 'This text appears at the bottom of Tax Invoice PDFs sent to customers.',
   pdf_theme: 'Choose the visual style for all customer-facing PDFs — quotes, invoices, and receipts.',
 
-  // SETTINGS - NOMENCLATURE 
+  // SETTINGS - NOMENCLATURE
   nom_prefix_booking: 'Text that appears before the number. For example, prefix INV with number 5 produces INV-5.',
   nom_number_booking: 'The sequence number for your next document. Setting this lower than existing documents may cause duplicate conflicts.',
   nom_suffix_booking: 'Text that appears after the number. Commonly used for financial year codes, e.g. FY26 produces INV-5-FY26.',
@@ -36,6 +36,42 @@ const infoPopupText = {
   nom_number_quote: 'The sequence number for your next document. Setting this lower than existing documents may cause duplicate conflicts.',
   nom_suffix_quote: 'Text that appears after the number. Commonly used for financial year codes, e.g. FY26 produces INV-5-FY26.',
   nom_payment: 'Payment receipt numbers are auto-assigned in sequential order and cannot be customized.',
+
+  // BOOKING DETAILS
+  bd_actual_agent_view: 'Internal view including hidden markup. Not visible to the customer.',
+  bd_tcs: 'Tax Collected at Source is mandated for international tour packages. The collected amount is deposited with the government.',
+
+  // QUOTE DETAILS
+  qd_actual_agent_view: 'Internal view including hidden markup. Not visible to the customer.',
+  qd_cost_of_services: 'Sum of all service costs entered.',
+  qd_your_profit: 'Hidden markup + processing charge (excl GST). GST on hidden markup is handled at the memorandum account level.',
+  qd_tcs: 'Tax Collected at Source is mandated for international tour packages. The collected amount is deposited with the government.',
+  qd_input_mode: 'Whether you entered the total price (margin was auto-calculated) or set the margin (total was auto-calculated).',
+
+  // CREATE QUOTE — STEP 2
+  cq_dest_type: 'Affects tax calculations. International packages over ₹7 lakh are subject to TCS @5%.',
+  cq_state_of_travel: 'Used to determine the Place of Supply for GST, which decides whether CGST+SGST or IGST applies on the invoice.',
+  cq_tcs_banner: 'TCS (Tax Collected at Source) is mandated by the Indian government for international tour packages exceeding ₹7 lakh per person.',
+
+  // CREATE QUOTE — STEP 4
+  cq_billing_model: 'Determines how GST is calculated on your invoice. Choose based on your business registration type and preference.',
+  cq_bm_pure_agent: 'You act as a facilitator. GST is charged only on your service fee/margin, not on the full trip cost.',
+  cq_bm_principal_18: 'You bill the customer for the full trip amount. GST @18% applies on the entire invoice value.',
+  cq_bm_principal_5: 'For package tours. GST @5% on the full amount. You cannot claim Input Tax Credit (ITC) on your purchases.',
+  cq_bm_principal_pass: 'GST @18% on the full value, but you can claim back GST paid on inputs like hotels and transport (ITC available).',
+  cq_place_of_supply: 'State where services are supplied. Determines SGST/CGST (same state) or IGST (different state). Select International for foreign clients (no GST).',
+  cq_pricing_mode: 'Choose whether to start with the customer\'s price and let the system calculate your margin, or enter your desired margin and let the system compute the final price.',
+  cq_total_margin: 'Your profit on this trip, calculated as the difference between what you charge the customer and what the trip costs you.',
+  cq_total_quote: 'The final price the customer pays. Includes your margin, applicable GST, and TCS (required for international packages over ₹7 lakh).',
+  cq_commission: 'Incentives or referral fees paid to you by hotels, airlines, or tour operators. Tracked separately and added on top of your margin in total profit.',
+  cq_dpc_inclusive: 'The processing charge amount already contains GST.',
+  cq_dpc_exclusive: 'GST will be added on top of this processing charge.',
+
+  // RECORD PAYMENT
+  rp_allocate: 'Distribute this payment across one or more bookings. Any unallocated remainder is saved as advance balance.',
+  rp_mode: 'How the customer made the payment. This is shown on the payment receipt.',
+  rp_advance_balance: 'The unallocated portion of this payment will be saved as advance balance for this customer, usable against future bookings.',
+  rp_reference: 'UTR (Unique Transaction Reference) number from the bank or payment app. Useful for reconciliation.',
 };
 
 export const InfoBtn = ({ infoKey }) => {

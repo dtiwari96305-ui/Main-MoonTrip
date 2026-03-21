@@ -29,7 +29,7 @@ const LogsPopup = ({ onClose }) => {
   );
 };
 
-export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, buttonLabel = 'New Quote', children }) => {
+export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, buttonLabel = 'New Quote', showNewQuote = true, children }) => {
   const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState('Last 30 days');
   const [isLogsOpen, setIsLogsOpen] = useState(false);
@@ -85,10 +85,12 @@ export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, bu
 
           {!children && (
             <>
-              <button className="new-quote-btn" id="newQuoteBtn" onClick={onNewQuote}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                {buttonLabel}
-              </button>
+              {showNewQuote && (
+                <button className="new-quote-btn" id="newQuoteBtn" onClick={onNewQuote}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  {buttonLabel}
+                </button>
+              )}
               <div style={{ position: 'relative' }}>
                 <button 
                   className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} 

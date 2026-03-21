@@ -339,7 +339,7 @@ export const Settings = () => {
                   PDF Theme <InfoBtn infoKey="pdf_theme" />
                 </div>
                 <div className="pdf-theme-grid">
-                  <div className="pdf-theme-card active">
+                  <div className={`pdf-theme-card${pdfTheme === 'classic' ? ' active' : ''}`} onClick={() => setPdfTheme('classic')} style={{ cursor: 'pointer' }}>
                     <div className="pdf-theme-preview classic-preview">
                       <div className="pt-header"></div>
                       <div className="pt-title"></div>
@@ -348,7 +348,7 @@ export const Settings = () => {
                     </div>
                     <div className="pdf-theme-label">Classic</div>
                   </div>
-                  <div className="pdf-theme-card">
+                  <div className={`pdf-theme-card${pdfTheme === 'elegant' ? ' active' : ''}`} onClick={() => setPdfTheme('elegant')} style={{ cursor: 'pointer' }}>
                     <div className="pdf-theme-preview elegant-preview">
                       <div className="pt-header"></div>
                       <div className="pt-title"></div>

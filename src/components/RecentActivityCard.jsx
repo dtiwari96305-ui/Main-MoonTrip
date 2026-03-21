@@ -2,6 +2,7 @@ import React from 'react';
 import { customers } from './CustomersTable';
 import { openCustomerProfile } from '../utils/customerNav';
 import { openQuoteDetail } from '../utils/quoteNav';
+import { openBookingDetail } from '../utils/bookingNav';
 
 const activities = [
   { id: 'WL-Q-0001', type: 'quotes', amount: '₹1,40,952', status: 'converted', statusLabel: 'Converted', date: '09 Mar 2026', customer: 'Rahul Sharma', colorClass: 'ai-purple' },
@@ -33,7 +34,7 @@ export const RecentActivityCard = () => {
             </div>
             <div className="activity-details">
               <div className="activity-top-row">
-                <span className="activity-ref cp-name-link" onClick={() => item.type === 'quotes' ? openQuoteDetail(item.id, 'dashboard') : null}>{item.id}</span>
+                <span className="activity-ref cp-name-link" onClick={() => item.type === 'quotes' ? openQuoteDetail(item.id, 'dashboard') : openBookingDetail(item.id, 'dashboard')}>{item.id}</span>
                 <span className="activity-amount">{item.amount}</span>
               </div>
               <div className="activity-bottom-row">

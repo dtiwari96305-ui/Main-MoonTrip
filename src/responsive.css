@@ -1,0 +1,850 @@
+/* ============================================================
+   MOONTRIP — GLOBAL RESPONSIVE STYLESHEET
+   Breakpoints:
+     Mobile  : 320px – 767px   (max-width: 767px)
+     Tablet  : 768px – 1024px  (max-width: 1024px)
+     Desktop : 1025px+         (untouched — zero regression)
+
+   FUTURE-PROOF RULE:
+     Every new component/section/table/modal/form/panel/card
+     must follow these patterns by default. This file serves
+     as the single source of truth for responsive behavior.
+============================================================ */
+
+/* ============================================================
+   SIDEBAR OVERLAY & CLOSE BUTTON — base (all sizes)
+============================================================ */
+
+/* Dark overlay that dims the content when sidebar is open */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 300ms ease-in-out, visibility 300ms ease-in-out;
+}
+.sidebar-overlay.sidebar-overlay-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+}
+
+/* Sidebar close (✕) button — hidden on desktop */
+.sidebar-close-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+  margin-bottom: 16px;
+  margin-left: auto;
+}
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* Mobile/Tablet top navigation bar — hidden on desktop */
+.mobile-topbar {
+  display: none;
+}
+
+/* ============================================================
+   DESKTOP GUARD (1025px+) — enforce zero regression
+============================================================ */
+@media (min-width: 1025px) {
+  .sidebar-overlay { display: none !important; }
+  .mobile-topbar   { display: none !important; }
+  .sidebar-close-btn { display: none !important; }
+}
+
+/* ============================================================
+   TABLET + MOBILE (≤ 1024px) — sidebar hidden, hamburger shown
+============================================================ */
+@media (max-width: 1024px) {
+
+  /* ── Root variable reset ── */
+  :root {
+    --sidebar-width: 270px; /* Keep real sidebar width for when it slides in */
+  }
+
+  /* ── Sidebar: hidden by default, slides in from left ── */
+  .sidebar {
+    transform: translateX(-100%) !important;
+    transition: transform 300ms ease-in-out !important;
+    width: 270px !important;
+    z-index: 100 !important;
+  }
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  /* Show sidebar close button */
+  .sidebar-close-btn {
+    display: flex;
+  }
+
+  /* ── Demo banner: fixed full width on tablet/mobile ── */
+  .demo-banner {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+  }
+
+  /* ── Main content: full width, no sidebar margin ── */
+  .main-content {
+    margin-left: 0 !important;
+    padding: 0 20px 32px !important;
+  }
+
+  /* ── Mobile topbar: fixed below demo banner ── */
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    position: fixed;
+    top: 36px; /* sit just below the 36px demo banner */
+    left: 0;
+    right: 0;
+    z-index: 95;
+    padding: 0 20px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  /* ── Main content: extra top padding for fixed topbar ── */
+  .main-content {
+    padding-top: 56px !important; /* reserve space for fixed mobile-topbar */
+  }
+
+  /* ── Page header strip: reset negative margins for tablet ── */
+  .page-header-strip {
+    margin: 0 -20px 20px -20px !important;
+    padding: 16px 20px 0 !important;
+  }
+  .settings-header-strip {
+    margin: 0 -20px 20px -20px !important;
+    padding: 16px 20px !important;
+  }
+
+  /* ── Dashboard ── */
+  .stat-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .dashboard-body {
+    grid-template-columns: 1fr !important;
+  }
+  .destinations-row {
+    grid-template-columns: 1fr !important;
+  }
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── Tables: horizontal scroll wrapper ── */
+  .data-table-card {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Filter tabs: scroll if overflow ── */
+  .filter-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    padding-bottom: 2px;
+  }
+
+  /* ── Side panel: 70% width on tablet ── */
+  .sp-panel {
+    width: 70vw !important;
+  }
+
+  /* ── Record payment modal ── */
+  .rp-modal {
+    width: 80vw !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: 90vh !important;
+  }
+
+  /* ── Demo / payment detail modals ── */
+  .demo-modal {
+    width: 80vw !important;
+    max-width: 400px !important;
+  }
+  .payment-detail-modal,
+  .pd-modal,
+  [class*="modal"]:not(.demo-modal):not(.rp-modal) {
+    width: 80vw !important;
+    max-width: calc(100vw - 40px) !important;
+  }
+
+  /* ── Customer stats ── */
+  .customer-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── Payment stats ── */
+  .payment-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── Accounts stats ── */
+  .acct-stat-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── Billing usage grid ── */
+  .billing-usage-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── Pricing grid ── */
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── Billing support grid ── */
+  .bl-support-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Page title slightly smaller ── */
+  .page-title {
+    font-size: 1.75rem !important;
+  }
+
+  /* ── Form rows reduce to 1-col ── */
+  .form-row-3 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* ============================================================
+   MOBILE TOPBAR COMPONENTS
+============================================================ */
+.mobile-hamburger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+.mobile-hamburger:hover {
+  background: #f1f5f9;
+}
+.mobile-hamburger:active {
+  background: #e2e8f0;
+}
+
+.mobile-topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+.mobile-topbar-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.mobile-topbar-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  flex-shrink: 0;
+}
+/* On tablet, show avatar with user info */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .mobile-topbar-logo {
+    justify-content: flex-start;
+    flex: 0 0 auto;
+  }
+  .mobile-topbar-avatar {
+    width: auto;
+    gap: 8px;
+  }
+}
+
+/* ============================================================
+   MOBILE (≤ 767px) — single-column, full-width everything
+============================================================ */
+@media (max-width: 767px) {
+
+  /* ── Main content padding ── */
+  .main-content {
+    padding: 56px 16px 24px !important; /* 56px top = space for fixed topbar */
+  }
+
+  /* ── Mobile topbar: narrower side padding ── */
+  .mobile-topbar {
+    padding: 0 16px !important;
+  }
+
+  /* ── Page header strip ── */
+  .page-header-strip {
+    margin: 0 -16px 16px -16px !important;
+    padding: 14px 16px 0 !important;
+  }
+  .settings-header-strip {
+    margin: 0 -16px 16px -16px !important;
+    padding: 14px 16px !important;
+  }
+
+  /* ── Page title ── */
+  .page-title {
+    font-size: 1.4rem !important;
+    letter-spacing: -0.01em !important;
+  }
+  .page-subtitle {
+    font-size: 0.9rem !important;
+    margin-top: 6px !important;
+  }
+
+  /* ── Dash header: stack vertically ── */
+  .dash-header {
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+  .dash-header-right {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  /* ── Stat cards: single column ── */
+  .stat-cards {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* ── Dashboard body: single column ── */
+  .dashboard-body {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* ── Top destinations ── */
+  .destinations-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Quick actions: single column ── */
+  .quick-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── New quote/action button: full width ── */
+  .new-quote-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* ── Charts: scale down ── */
+  .chart-body {
+    height: 180px !important;
+  }
+  .chart-y-axis {
+    height: 180px !important;
+    width: 32px !important;
+  }
+  .chart-header {
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+  }
+  .chart-header-right {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+  }
+  .chart-x-axis {
+    font-size: 0.65rem !important;
+    overflow: hidden !important;
+  }
+  .chart-area canvas {
+    max-width: 100% !important;
+  }
+
+  /* ── Revenue chart card ── */
+  .revenue-chart-card {
+    overflow: hidden !important;
+  }
+
+  /* ── Side panel: full screen ── */
+  .sp-panel {
+    width: 100vw !important;
+    border-radius: 0 !important;
+  }
+  .sp-row-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .sp-row-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Record payment modal: 95% width ── */
+  .rp-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+  }
+  .rp-footer {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .rp-footer .rp-record-btn,
+  .rp-footer .rp-cancel-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+  }
+  .rp-row-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Demo modal: 95% width ── */
+  .demo-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 24px 20px !important;
+  }
+  .demo-modal-btn {
+    padding: 14px !important;
+    font-size: 0.97rem !important;
+    min-height: 44px !important;
+  }
+
+  /* ── Payment detail / any modal overlay ── */
+  .pd-modal,
+  .payment-detail-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+  }
+
+  /* ── Filter tabs: scroll on overflow ── */
+  .filter-tabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px !important;
+    scrollbar-width: none !important;
+  }
+  .filter-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* ── Search bars: full width ── */
+  .page-search-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .search-bar-input,
+  .quotes-search-input,
+  .team-search-bar {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* ── Table card: horizontal scroll ── */
+  .data-table-card {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* ── Customer stats: single column ── */
+  .customer-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Payment stats: single column ── */
+  .payment-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Accounts stat row ── */
+  .acct-stat-row {
+    grid-template-columns: 1fr !important;
+  }
+  .acct-tab-bar {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    padding: 8px 12px !important;
+    gap: 4px !important;
+  }
+
+  /* ── Billing usage grid ── */
+  .billing-usage-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Pricing grid ── */
+  .pricing-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Billing support grid ── */
+  .bl-support-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Form rows: single column ── */
+  .form-row-2,
+  .form-row-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .form-group.half-width {
+    max-width: 100% !important;
+    padding-right: 0 !important;
+  }
+
+  /* ── Settings pane ── */
+  .settings-pane {
+    padding: 20px 16px !important;
+  }
+  .settings-wrap-container {
+    padding: 0 !important;
+  }
+  .settings-nav {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    scrollbar-width: none !important;
+  }
+  .settings-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+  .settings-tab {
+    flex-shrink: 0 !important;
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* ── Profile header: stack on mobile ── */
+  .profile-header-info {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  /* ── Create Quote form steps ── */
+  .cq-step-bar {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
+  }
+  .cq-step-bar::-webkit-scrollbar {
+    display: none !important;
+  }
+  .cq-step-label {
+    display: none !important; /* Show step number only on mobile */
+  }
+
+  /* ── Quote detail / booking detail header buttons ── */
+  .detail-header-actions,
+  .qd-header-actions,
+  .bd-header-actions {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .detail-header-actions > *,
+  .qd-header-actions > *,
+  .bd-header-actions > * {
+    flex: 1 1 auto !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  /* ── Top destinations card body ── */
+  .dest-body {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Demo banner: trim text on very small screens ── */
+  .demo-banner {
+    font-size: 0.72rem !important;
+    padding: 0 12px !important;
+  }
+  .demo-banner-left span.banner-detail-text {
+    display: none !important;
+  }
+
+  /* ── Stat card value size ── */
+  .stat-value {
+    font-size: 1.5rem !important;
+  }
+
+  /* ── Recent activity card ── */
+  .activity-list {
+    max-height: none !important;
+  }
+
+  /* ── Touch targets: all buttons/links ≥ 44×44px ── */
+  .nav-item {
+    min-height: 44px !important;
+    padding: 12px 18px !important;
+  }
+  .action-btn {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+  .icon-btn {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  .new-quote-btn,
+  .acct-convert-btn,
+  .acct-adjust-btn,
+  .sp-save-btn,
+  .sp-cancel-btn,
+  .rp-record-btn,
+  .rp-cancel-btn,
+  .pc-btn,
+  .plan-action-btn {
+    min-height: 44px !important;
+  }
+  .sign-out-btn {
+    min-height: 44px !important;
+  }
+  .date-filter {
+    min-height: 44px !important;
+    padding: 10px 14px !important;
+  }
+  .filter-tab,
+  .acct-tab,
+  .settings-tab {
+    min-height: 44px !important;
+  }
+
+  /* ── Header user block: hide text on mobile, show avatar only ── */
+  .header-user-info {
+    display: none !important;
+  }
+  .header-user {
+    padding-left: 0 !important;
+    border-left: none !important;
+    margin-left: 0 !important;
+  }
+
+  /* ── Prevent any horizontal body scroll ── */
+  body {
+    overflow-x: hidden !important;
+  }
+
+  /* ── Images and charts: never overflow ── */
+  img, canvas, svg {
+    max-width: 100%;
+  }
+
+  /* ── Minimum font size: 13px ── */
+  * {
+    min-font-size: 13px;
+  }
+
+  /* ── Top customers card ── */
+  .top-customers-table {
+    width: 100% !important;
+  }
+
+  /* ── Financial summary ── */
+  .fs-grid,
+  .financial-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Map containers ── */
+  .world-map-container,
+  .india-map-container,
+  [class*="map-container"] {
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* ── Stat cards: compact on mobile ── */
+  .stat-card {
+    padding: 16px !important;
+  }
+  .stat-icon-box {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* ── Quick action cards ── */
+  .quick-action-card {
+    padding: 14px 16px !important;
+  }
+
+  /* ── Payments page: stat cards ── */
+  .pstat-card {
+    padding: 14px 16px !important;
+  }
+  .pstat-value {
+    font-size: 1.1rem !important;
+  }
+
+  /* ── General card padding reduction ── */
+  .recent-activity-card,
+  .financial-summary-card,
+  .revenue-chart-card {
+    padding: 16px !important;
+  }
+
+  /* ── Booking Detail: 2-col grid → 1 col ── */
+  .bd-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Booking Detail: hero card stacks ── */
+  .bd-hero-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .bd-hero-actions {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+  .bd-action-btn {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+  }
+}
+
+/* ============================================================
+   FUTURE-PROOF: BASE RULES FOR ALL NEW COMPONENTS
+   (These rules apply at all sizes — new components inherit them)
+============================================================ */
+
+/* New tables must always scroll horizontally on smaller screens */
+@media (max-width: 1024px) {
+  .data-table-wrapper,
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* New modals: desktop fixed, tablet 80%, mobile 95% */
+@media (max-width: 1024px) {
+  .modal-container {
+    width: 80vw !important;
+    max-height: 90vh !important;
+  }
+}
+@media (max-width: 767px) {
+  .modal-container {
+    width: 95vw !important;
+    max-height: 90vh !important;
+  }
+  .modal-container .modal-footer,
+  .modal-container .footer-actions {
+    flex-direction: column !important;
+  }
+  .modal-container .modal-footer button,
+  .modal-container .footer-actions button {
+    width: 100% !important;
+    min-height: 44px !important;
+  }
+}
+
+/* New side panels: desktop fixed, tablet 70%, mobile 100% */
+@media (max-width: 1024px) {
+  .side-panel-container {
+    width: 70vw !important;
+  }
+}
+@media (max-width: 767px) {
+  .side-panel-container {
+    width: 100vw !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* New card grids: multi-col desktop, 2-col tablet, 1-col mobile */
+@media (max-width: 1024px) {
+  .responsive-card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 767px) {
+  .responsive-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* New forms: multi-col desktop, 1-col mobile */
+@media (max-width: 767px) {
+  .responsive-form-row {
+    grid-template-columns: 1fr !important;
+  }
+  .responsive-form-row .form-field {
+    width: 100% !important;
+  }
+}
+
+/* New charts: always responsive container */
+.responsive-chart-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+.responsive-chart-container canvas,
+.responsive-chart-container svg {
+  max-width: 100% !important;
+}
+
+/* Global: no horizontal scroll on body */
+html {
+  overflow-x: hidden;
+}
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Global: all images and media responsive */
+img,
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
+}

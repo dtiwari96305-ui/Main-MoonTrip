@@ -29,7 +29,7 @@ export const LiveTrips = () => {
 
   return (
     <div id="view-livetrips" className="fade-in">
-      <Header title="Live Trips" subtitle="0 active trips" />
+      <Header title="Live Trips" subtitle="0 active trips" showNewQuote={false} />
 
       <div className="page-search-bar" style={{ marginBottom: 16 }}>
         <div className="search-input-wrap" style={{ flex: 1, maxWidth: '100%' }}>

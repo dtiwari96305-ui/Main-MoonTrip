@@ -19,7 +19,11 @@ import { registerQuoteNav } from '../utils/quoteNav';
 import { registerCreateQuoteNav } from '../utils/createQuoteNav';
 import { registerBillingNav } from '../utils/billingNav';
 import { registerEditQuoteNav } from '../utils/editQuoteNav';
+import { registerBookingNav } from '../utils/bookingNav';
+import { registerDesignerNav } from '../utils/designerNav';
 import { Billing } from '../pages/Billing';
+import { BookingDetail } from '../pages/BookingDetail';
+import { QuoteDesigner } from '../pages/QuoteDesigner';
 
 // Mock routing since original app didn't use URL paths for tabs
 export const AppRouter = () => {
@@ -33,6 +37,11 @@ export const AppRouter = () => {
   const [createQuoteCustomer, setCreateQuoteCustomer] = useState(null);
   const [editQuoteData, setEditQuoteData] = useState(null);
   const [billingFromView, setBillingFromView] = useState('dashboard');
+  const [bookingDetailId, setBookingDetailId] = useState(() => sessionStorage.getItem('bookingDetailId') || null);
+  const [bookingFromView, setBookingFromView] = useState(() => sessionStorage.getItem('bookingFromView') || 'bookings');
+  const [designerQuoteId, setDesignerQuoteId] = useState(null);
+  const [designerQuoteData, setDesignerQuoteData] = useState(null);
+  const [designerFromView, setDesignerFromView] = useState('create-quote');
   const activeViewRef = useRef(activeView);
 
   useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
@@ -84,6 +93,29 @@ export const AppRouter = () => {
     });
   }, []);
 
+  // Register global booking navigation handler
+  useEffect(() => {
+    registerBookingNav((bookingId, fromView) => {
+      const fv = fromView || activeViewRef.current;
+      setBookingDetailId(bookingId);
+      setBookingFromView(fv);
+      sessionStorage.setItem('bookingDetailId', bookingId);
+      sessionStorage.setItem('bookingFromView', fv);
+      handleViewChange('booking-detail');
+    });
+  }, []);
+
+  // Register designer navigation handler
+  useEffect(() => {
+    registerDesignerNav((quoteId, quoteData, fromView) => {
+      const fv = fromView || activeViewRef.current;
+      setDesignerQuoteId(quoteId);
+      setDesignerQuoteData(quoteData);
+      setDesignerFromView(fv);
+      handleViewChange('quote-designer');
+    });
+  }, []);
+
   // Register global quote navigation handler
   useEffect(() => {
     registerQuoteNav((quoteId, fromView) => {
@@ -130,6 +162,14 @@ export const AppRouter = () => {
               {activeView === 'quotes' && <Quotes onViewChange={handleViewChange} />}
               {activeView === 'create-quote' && <CreateQuote onViewChange={handleViewChange} prefilledCustomer={createQuoteCustomer} editQuote={editQuoteData} />}
               {activeView === 'bookings' && <Bookings />}
+              {activeView === 'booking-detail' && (
+                <BookingDetail
+                  bookingId={bookingDetailId}
+                  fromView={bookingFromView}
+                  onBack={() => handleViewChange(bookingFromView || 'bookings')}
+                  onViewChange={handleViewChange}
+                />
+              )}
               {activeView === 'livetrips' && <LiveTrips />}
               {activeView === 'payments' && <Payments />}
               {activeView === 'invoices' && <SalesInvoices />}
@@ -155,6 +195,14 @@ export const AppRouter = () => {
                   fromView={quoteFromView}
                   onBack={() => handleViewChange(quoteFromView || 'quotes')}
                   onViewChange={handleViewChange}
+                />
+              )}
+              {activeView === 'quote-designer' && (
+                <QuoteDesigner
+                  quoteId={designerQuoteId}
+                  quoteData={designerQuoteData}
+                  fromView={designerFromView}
+                  onBack={() => handleViewChange(designerFromView || 'create-quote')}
                 />
               )}
             </>

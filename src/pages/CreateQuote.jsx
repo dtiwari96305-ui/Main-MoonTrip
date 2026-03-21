@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { openBilling } from '../utils/billingNav';
+import { openDesigner } from '../utils/designerNav';
 import { useDemoPopup } from '../context/DemoContext';
+import { InfoBtn } from '../components/InfoBtn';
 
 const STEPS = [
   { id: 1, label: 'Customer' },
@@ -361,9 +363,7 @@ const Step2Trip = ({ data, onChange }) => {
       <div className="cq-field-group">
         <label>
           Destination Type
-          <span className="cq-info-icon" title="Choose domestic (within India) or international">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          </span>
+          <InfoBtn infoKey="cq_dest_type" />
         </label>
         <div className="cq-dest-toggle">
           <button
@@ -390,7 +390,7 @@ const Step2Trip = ({ data, onChange }) => {
         <div className="cq-tcs-banner">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2" style={{ flexShrink: 0 }}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <span>TCS @5% will be applied for international packages (2+ services)</span>
-          <span className="cq-info-icon" style={{ marginLeft: 4 }} title="TCS applies per Income Tax rules for overseas tours"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+          <InfoBtn infoKey="cq_tcs_banner" />
         </div>
       )}
 
@@ -413,7 +413,7 @@ const Step2Trip = ({ data, onChange }) => {
         <div className="cq-field-group">
           <label>
             State of Travel
-            <span className="cq-info-icon" title="The primary state you are travelling to"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+            <InfoBtn infoKey="cq_state_of_travel" />
           </label>
           <div className="cq-select-wrap">
             <select value={data.state || ''} onChange={e => onChange({ state: e.target.value })}>
@@ -644,10 +644,10 @@ const Step3Services = ({ data, onChange }) => {
 
 // ─── Step 4: Pricing ──────────────────────────────────────────────────────────
 const BILLING_MODELS = [
-  { key: 'pure-agent',      label: 'Pure Agent (GST @18% on margin only)',             tip: 'You act as a pure agent — GST charged only on your margin/fee, not the full package value.' },
-  { key: 'principal-18',    label: 'Principal (GST @18% on full value)',                tip: 'You are the principal supplier — GST @18% charged on the full tour package value.' },
-  { key: 'principal-5',     label: 'Principal (GST @5% on total, No ITC)',              tip: 'Flat 5% GST on total value with no Input Tax Credit available.' },
-  { key: 'principal-pass',  label: 'Principal Pass-through (GST @18% on full, ITC available)', tip: 'GST @18% on full value, ITC can be claimed on input services.' },
+  { key: 'pure-agent',      label: 'Pure Agent (GST @18% on margin only)',             infoKey: 'cq_bm_pure_agent' },
+  { key: 'principal-18',    label: 'Principal (GST @18% on full value)',                infoKey: 'cq_bm_principal_18' },
+  { key: 'principal-5',     label: 'Principal (GST @5% on total, No ITC)',              infoKey: 'cq_bm_principal_5' },
+  { key: 'principal-pass',  label: 'Principal Pass-through (GST @18% on full, ITC available)', infoKey: 'cq_bm_principal_pass' },
 ];
 
 const PLACE_OF_SUPPLY_LIST = [
@@ -687,7 +687,7 @@ const Step4Pricing = ({ data, onChange }) => {
 
       {/* ── Billing Model ── */}
       <div className="cq-p4-section-label">
-        Billing Model <InfoIcon tip="Choose how GST is applied to this quote" />
+        Billing Model <InfoBtn infoKey="cq_billing_model" />
       </div>
       <div className="cq-billing-model-group">
         {BILLING_MODELS.map(bm => (
@@ -701,14 +701,14 @@ const Step4Pricing = ({ data, onChange }) => {
               {billingModel === bm.key && <span className="cq-bm-radio-dot" />}
             </span>
             <span className="cq-bm-label">{bm.label}</span>
-            <InfoIcon tip={bm.tip} />
+            <InfoBtn infoKey={bm.infoKey} />
           </button>
         ))}
       </div>
 
       {/* ── Place of Supply ── */}
       <div className="cq-p4-section-label" style={{ marginTop: 22 }}>
-        Place of Supply <InfoIcon tip="The state where the service is supplied/consumed. Determines IGST/CGST/SGST applicability." />
+        Place of Supply <InfoBtn infoKey="cq_place_of_supply" />
       </div>
       <div className="cq-select-wrap" style={{ marginTop: 6 }}>
         <select
@@ -726,7 +726,7 @@ const Step4Pricing = ({ data, onChange }) => {
 
       {/* ── Pricing Mode toggle ── */}
       <div className="cq-p4-section-label" style={{ marginTop: 22 }}>
-        How do you want to set pricing? <InfoIcon tip="Choose whether to enter the total quote price and back-calculate margin, or set margin directly." />
+        How do you want to set pricing? <InfoBtn infoKey="cq_pricing_mode" />
       </div>
       <div className="cq-pricing-mode-toggle">
         <button
@@ -749,7 +749,7 @@ const Step4Pricing = ({ data, onChange }) => {
       {pricingMode === 'total-quote' && (
         <>
           <div className="cq-p4-section-label" style={{ marginTop: 20 }}>
-            Total Quote Amount (incl. GST + TCS) <InfoIcon tip="The total amount the customer will pay, inclusive of all taxes." />
+            Total Quote Amount (incl. GST + TCS) <InfoBtn infoKey="cq_total_quote" />
           </div>
           <input
             type="number"
@@ -765,7 +765,7 @@ const Step4Pricing = ({ data, onChange }) => {
       {pricingMode === 'set-margin' && (
         <>
           <div className="cq-p4-section-label" style={{ marginTop: 20 }}>
-            Total Margin Amount (₹) <InfoIcon tip="Your total margin. Per-service margins from Step 3 are summed automatically; enter here to override." />
+            Total Margin Amount (₹) <InfoBtn infoKey="cq_total_margin" />
           </div>
           <input
             type="number"
@@ -780,7 +780,7 @@ const Step4Pricing = ({ data, onChange }) => {
 
       {/* ── Commission Earned ── */}
       <div className="cq-p4-section-label" style={{ marginTop: 20 }}>
-        Commission Earned (from vendors) <InfoIcon tip="Any commission received from vendors. Tracked separately and added to profit." />
+        Commission Earned (from vendors) <InfoBtn infoKey="cq_commission" />
       </div>
       <input
         type="number"
@@ -805,14 +805,14 @@ const Step4Pricing = ({ data, onChange }) => {
             type="button"
             className={`cq-dpc-btn${dpcDisplay === 'inclusive' ? ' cq-dpc-btn-active' : ''}`}
             onClick={() => setField('dpcDisplay', 'inclusive')}
-          >Inclusive of GST</button>
+          >Inclusive of GST <InfoBtn infoKey="cq_dpc_inclusive" /></button>
           <button
             type="button"
             className={`cq-dpc-btn${dpcDisplay === 'exclusive' ? ' cq-dpc-btn-active' : ''}`}
             onClick={() => setField('dpcDisplay', 'exclusive')}
           >
             Exclusive of GST
-            <InfoIcon tip="Processing charge shown to customer excludes GST amount" />
+            <InfoBtn infoKey="cq_dpc_exclusive" />
           </button>
         </div>
         <input
@@ -970,7 +970,7 @@ const todayStr = () => new Date().toLocaleDateString('en-IN', { day: 'numeric', 
 const DEFAULT_PMT  = '25% advance on confirmation · 75% balance 7 days before travel';
 const DEFAULT_CANC = '≥ 30 days: Nil · 16–29 days: 25% · 8–15 days: 50% · 0–7 days: 100%';
 
-const Step6Itinerary = ({ data, onChange, editMode }) => {
+const Step6Itinerary = ({ data, onChange, editMode, onOpenDesigner }) => {
   const openDemo    = useDemoPopup();
   const mode        = data.itMode  || 'simple';
   const view        = data.itView  || 'agent';
@@ -1257,7 +1257,7 @@ const Step6Itinerary = ({ data, onChange, editMode }) => {
           </div>
           <h3 className="cq-it-designed-title">Using Design Itinerary Builder</h3>
           <p className="cq-it-designed-desc">This quote uses the design itinerary builder with custom templates, images, and rich formatting.</p>
-          <button type="button" className="cq-it-open-designer" onClick={openDemo}>
+          <button type="button" className="cq-it-open-designer" onClick={onOpenDesigner || openDemo}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             Open Design Editor
           </button>
@@ -1371,7 +1371,7 @@ const PrefilledCustomerBanner = ({ customer }) => (
 export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
   const editMode    = Boolean(editQuote);
   const isPrefilled = Boolean(prefilledCustomer) && !editMode;
-  const firstStep   = isPrefilled ? 2 : 1;
+  const firstStep   = editMode ? (editQuote._startStep || 1) : isPrefilled ? 2 : 1;
 
   const triggerDemoPopup = useDemoPopup();
   const [currentStep, setCurrentStep] = useState(firstStep);
@@ -1399,7 +1399,7 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
     if (currentStep > firstStep) {
       setCurrentStep(s => s - 1);
     } else if (editMode) {
-      onViewChange && onViewChange('quote-detail');
+      onViewChange && onViewChange(editQuote._fromView || 'quote-detail');
     } else if (isPrefilled) {
       onViewChange && onViewChange('customer-profile');
     } else {
@@ -1408,8 +1408,12 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
   };
 
   const handleNext = () => {
-    if (currentStep < 6) setCurrentStep(s => s + 1);
-    else triggerDemoPopup();
+    if (currentStep < 6) {
+      setCurrentStep(s => s + 1);
+    } else {
+      const qId = editMode ? (formData._editQuoteId || 'WL-Q-0001') : 'WL-Q-0001';
+      openDesigner(qId, formData, 'create-quote');
+    }
   };
 
   const renderStep = () => {
@@ -1419,19 +1423,22 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
       case 3: return <Step3Services data={formData} onChange={updateFormData} />;
       case 4: return <Step4Pricing data={formData} onChange={updateFormData} />;
       case 5: return <Step5Review data={formData} onChange={updateFormData} editMode={editMode} isPrefilled={isPrefilled} prefilledCustomer={prefilledCustomer} />;
-      case 6: return <Step6Itinerary data={formData} onChange={updateFormData} editMode={editMode} />;
+      case 6: return <Step6Itinerary data={formData} onChange={updateFormData} editMode={editMode} onOpenDesigner={() => { const qId = editMode ? (formData._editQuoteId || 'WL-Q-0001') : 'WL-Q-0001'; openDesigner(qId, formData, 'create-quote'); }} />;
       default: return null;
     }
   };
 
+  const fromQuotes = editMode && editQuote._fromView === 'quotes';
   const backLabel = editMode
-    ? '← Back to Quote'
+    ? (fromQuotes
+        ? `Quotes / ${editQuote._editQuoteId || ''} / Edit Quote`
+        : '← Back to Quote')
     : isPrefilled
       ? `← ${prefilledCustomer.name} / New Quote`
       : 'Back to Quotes';
 
   const backTarget = editMode
-    ? () => onViewChange && onViewChange('quote-detail')
+    ? () => onViewChange && onViewChange(editQuote._fromView || 'quote-detail')
     : isPrefilled
       ? () => onViewChange && onViewChange('customer-profile')
       : () => onViewChange && onViewChange('quotes');
@@ -1465,7 +1472,7 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
       </div>
 
       {/* ── Upload Vendor Quote ── */}
-      <div className="cq-upload-zone" onClick={() => fileInputRef.current && fileInputRef.current.click()}>
+      <div className="cq-upload-zone" onClick={triggerDemoPopup}>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
           <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
@@ -1517,10 +1524,9 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
             <button className="cq-next-btn" onClick={handleNext}>
               {currentStep === 6 ? (
                 <>
-                  {editMode ? 'Update Quote' : 'Save Quote'}
+                  {editMode ? 'Update Quote & Open Designer' : 'Save Quote & Open Designer'}
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                    <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
                   </svg>
                 </>
               ) : (

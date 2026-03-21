@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { customers } from '../components/CustomersTable';
 import { openQuoteDetail } from '../utils/quoteNav';
+import { openBookingDetail } from '../utils/bookingNav';
 import { openCreateQuoteWithCustomer } from '../utils/createQuoteNav';
 import { openBilling } from '../utils/billingNav';
 import { generateLedgerPdf } from '../utils/generateLedgerPdf';
@@ -416,7 +417,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
                 <tbody>
                   {myBookings.map(b => (
                     <tr key={b.id}>
-                      <td><span className="qt-id">{b.id}</span></td>
+                      <td><span className="qt-id cp-name-link" onClick={() => openBookingDetail(b.id, 'customer-profile')}>{b.id}</span></td>
                       <td>
                         <span className="bk-destination">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{color:'#94a3b8',flexShrink:0}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>

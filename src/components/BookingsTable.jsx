@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { customers } from './CustomersTable';
 import { openCustomerProfile } from '../utils/customerNav';
+import { openBookingDetail } from '../utils/bookingNav';
 import { useDemoPopup } from '../context/DemoContext';
 
 const FunnelIcon = ({ active, onClick }) => (
@@ -92,7 +93,7 @@ export const BookingsTable = ({ bookings }) => {
               const actsAsDropdown = b.status === 'confirmed' || b.status === 'completed';
               return (
                 <tr key={b.id} data-status={b.status} className="animate-row">
-                  <td><span className="qt-id">{b.id}</span></td>
+                  <td><span className="qt-id cp-name-link" onClick={() => openBookingDetail(b.id, 'bookings')}>{b.id}</span></td>
                   <td><span className="qt-customer-name cp-name-link" onClick={() => { const c = customers.find(x => x.name === b.customerName); if (c) openCustomerProfile(c.id, 'bookings'); }}>{b.customerName}</span></td>
                   <td>
                     <span className="bk-destination">

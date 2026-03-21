@@ -46,6 +46,17 @@
   animation: fadeIn 0.6s ease-out forwards;
 }
 
+@keyframes dashSectionIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dash-section-anim {
+  opacity: 0;
+  position: relative;
+  animation: dashSectionIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 /* ===========================
    SKELETON LOADERS
    =========================== */
@@ -451,13 +462,13 @@ button {
 =========================== */
 .dash-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .page-title {
-  font-size: 2.2rem;
+  font-size: 1.85rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.1;
@@ -465,9 +476,9 @@ button {
 }
 
 .page-subtitle {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .dash-header-left {
@@ -3838,33 +3849,7 @@ button {
 }
 
 @media (max-width: 1024px) {
-  .sidebar {
-    width: 200px;
-  }
-
-  :root {
-    --sidebar-width: 200px;
-  }
-
-  .main-content {
-    padding: 24px 20px 32px;
-  }
-
-  .stat-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .dashboard-body {
-    grid-template-columns: 1fr;
-  }
-
-  .destinations-row {
-    grid-template-columns: 1fr;
-  }
-
-  .quick-actions {
-    grid-template-columns: 1fr;
-  }
+  /* Sidebar hiding + main-content full-width now handled in responsive.css */
 
   .customer-stats {
     grid-template-columns: 1fr 1fr 1fr;
@@ -3883,10 +3868,6 @@ button {
   }
 
   .usage-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .pricing-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }

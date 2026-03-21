@@ -58,7 +58,7 @@ export const Bookings = () => {
 
   return (
     <div id="view-bookings" className="fade-in">
-      <Header title="Bookings" subtitle={`${filteredBookings.length} total bookings`} />
+      <Header title="Bookings" subtitle={`${filteredBookings.length} total bookings`} showNewQuote={false} />
 
       <div className="page-search-bar">
         <div className="search-input-wrap" style={{flex: 1, maxWidth: '100%'}}>
@@ -100,6 +100,32 @@ export const Bookings = () => {
         <TableSkeleton rows={3} cols={9} />
       ) : filteredBookings.length > 0 ? (
         <BookingsTable key={refreshKey} bookings={filteredBookings} />
+      ) : activeFilter === 'cancelled' ? (
+        <div className="data-table-card">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>BOOKING #</th>
+                <th>CUSTOMER</th>
+                <th>DESTINATION</th>
+                <th>TOTAL <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{opacity:0.4,marginLeft:4}}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></th>
+                <th>PROFIT</th>
+                <th>PAYMENT</th>
+                <th>REMAINING <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{opacity:0.4,marginLeft:4}}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></th>
+                <th>STATUS</th>
+                <th>DATE <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{opacity:0.4,marginLeft:4}}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div className="empty-state-card" style={{borderTop:'none',boxShadow:'none'}}>
+            <div className="empty-icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </div>
+            <h3 className="empty-state-title">No cancelled bookings</h3>
+            <p className="empty-state-desc">Cancelled bookings will appear here.</p>
+          </div>
+        </div>
       ) : (
         <div className="empty-state-card">
           <div className="empty-icon-wrap">

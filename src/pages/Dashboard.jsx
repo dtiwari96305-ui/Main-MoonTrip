@@ -58,11 +58,11 @@ export const Dashboard = ({ onViewChange }) => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      drawRevenueChart(revCanvasRef.current, revTooltipRef.current, revMonths);
+      drawRevenueChart(revCanvasRef.current, revTooltipRef.current, revMonths, true);
       drawBookingsChart(bookCanvasRef.current, bookTooltipRef.current, bookMonths);
     }, 100);
     const handleResize = () => {
-      drawRevenueChart(revCanvasRef.current, revTooltipRef.current, revMonths);
+      drawRevenueChart(revCanvasRef.current, revTooltipRef.current, revMonths, false);
       drawBookingsChart(bookCanvasRef.current, bookTooltipRef.current, bookMonths);
     };
     window.addEventListener('resize', handleResize);
@@ -75,14 +75,16 @@ export const Dashboard = ({ onViewChange }) => {
   return (
     <div id="view-dashboard" className="fade-in">
       
-      <Header
-        title="Dashboard"
-        subtitle="Welcome back! Here's your business overview."
-        showDateFilter={true}
-        onNewQuote={() => onViewChange && onViewChange('create-quote')}
-      />
+      <div className="dash-section-anim" style={{ animationDelay: '0ms', zIndex: 10 }}>
+        <Header
+          title="Dashboard"
+          subtitle="Welcome back! Here's your business overview."
+          showDateFilter={true}
+          onNewQuote={() => onViewChange && onViewChange('create-quote')}
+        />
+      </div>
 
-      <div className="stat-cards">
+      <div className="stat-cards dash-section-anim" style={{ animationDelay: '100ms', zIndex: 9 }}>
         <StatCard 
           label="Total Quotes" value={5} change="100.0% vs prev" colorVariant="orange"
           onClick={() => onViewChange && onViewChange('quotes')}
@@ -105,7 +107,7 @@ export const Dashboard = ({ onViewChange }) => {
         />
       </div>
 
-      <div className="dashboard-body">
+      <div className="dashboard-body dash-section-anim" style={{ animationDelay: '200ms', zIndex: 8 }}>
         <div className="revenue-chart-card">
           <div className="chart-header">
             <div className="chart-header-left">
@@ -137,7 +139,7 @@ export const Dashboard = ({ onViewChange }) => {
         <RecentActivityCard />
       </div>
 
-      <div className="dashboard-body" style={{ marginTop: '20px' }}>
+      <div className="dashboard-body dash-section-anim" style={{ marginTop: '20px', animationDelay: '300ms', zIndex: 7 }}>
         <div className="revenue-chart-card">
           <div className="chart-header">
             <div className="chart-header-left">
@@ -164,9 +166,15 @@ export const Dashboard = ({ onViewChange }) => {
         <FinancialSummaryCard />
       </div>
 
-      <TopDestinations />
-      <TopCustomersCard />
-      <QuickActions onViewChange={onViewChange} />
+      <div className="dash-section-anim" style={{ animationDelay: '400ms' }}>
+        <TopDestinations />
+      </div>
+      <div className="dash-section-anim" style={{ animationDelay: '500ms' }}>
+        <TopCustomersCard />
+      </div>
+      <div className="dash-section-anim" style={{ animationDelay: '600ms' }}>
+        <QuickActions onViewChange={onViewChange} />
+      </div>
     </div>
   );
 };

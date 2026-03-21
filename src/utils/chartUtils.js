@@ -29,7 +29,7 @@ export function getBookingsChartData(months) {
   return { labels, data };
 }
 
-export function drawRevenueChart(canvas, tooltipEl, months = 6) {
+export function drawRevenueChart(canvas, tooltipEl, months = 6, animate = false) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
@@ -48,17 +48,28 @@ export function drawRevenueChart(canvas, tooltipEl, months = 6) {
 
   const { labels, revenueData, profitData, revValues, profValues } = getRevenueChartData(months);
   const maxVal = Math.max(...revenueData, 1) * 1.1;
+  const baseline = padding.top + chartH;
 
-  function dataToPoints(data) {
+  function dataToPoints(data, progress = 1) {
     return data.map((val, i) => {
       const x = padding.left + (chartW / (data.length - 1)) * i;
-      const y = padding.top + chartH - (val / maxVal) * chartH;
+      const targetY = padding.top + chartH - (val / maxVal) * chartH;
+      const y = baseline - (baseline - targetY) * progress;
       return { x, y };
     });
   }
 
-  const revPoints = dataToPoints(revenueData);
-  const profPoints = dataToPoints(profitData);
+  function drawGridLines() {
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+      const y = padding.top + (chartH / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(W - padding.right, y);
+      ctx.stroke();
+    }
+  }
 
   function drawSmoothLine(points, color, fillColor) {
     if (points.length < 2) return;
@@ -75,10 +86,10 @@ export function drawRevenueChart(canvas, tooltipEl, months = 6) {
     ctx.lineWidth = 3;
     ctx.stroke();
     if (fillColor) {
-      ctx.lineTo(points[points.length - 1].x, padding.top + chartH);
-      ctx.lineTo(points[0].x, padding.top + chartH);
+      ctx.lineTo(points[points.length - 1].x, baseline);
+      ctx.lineTo(points[0].x, baseline);
       ctx.closePath();
-      const grad = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+      const grad = ctx.createLinearGradient(0, padding.top, 0, baseline);
       grad.addColorStop(0, fillColor);
       grad.addColorStop(1, 'rgba(244, 125, 91, 0)');
       ctx.fillStyle = grad;
@@ -86,54 +97,84 @@ export function drawRevenueChart(canvas, tooltipEl, months = 6) {
     }
   }
 
-  ctx.clearRect(0, 0, W, H);
-  ctx.strokeStyle = '#f1f5f9';
-  ctx.lineWidth = 1;
-  for (let i = 0; i < 5; i++) {
-    const y = padding.top + (chartH / 4) * i;
-    ctx.beginPath();
-    ctx.moveTo(padding.left, y);
-    ctx.lineTo(W - padding.right, y);
-    ctx.stroke();
+  function drawDots(points) {
+    points.forEach(pt => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#F47D5B';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
   }
 
-  drawSmoothLine(profPoints, '#10b981', null);
-  drawSmoothLine(revPoints, '#F47D5B', 'rgba(244, 125, 91, 0.1)');
+  function renderFrame(progress) {
+    const revPoints = dataToPoints(revenueData, progress);
+    const profPoints = dataToPoints(profitData, progress);
+    ctx.clearRect(0, 0, W, H);
+    drawGridLines();
+    drawSmoothLine(profPoints, '#10b981', null);
+    drawSmoothLine(revPoints, '#F47D5B', 'rgba(244, 125, 91, 0.1)');
+    if (progress === 1) drawDots(revPoints);
+    return revPoints;
+  }
 
-  revPoints.forEach(pt => {
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#F47D5B';
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  });
+  // Cancel any previous animation
+  if (canvas._animFrame) cancelAnimationFrame(canvas._animFrame);
 
-  // Tooltip
-  const handleMouseMove = (e) => {
-    if (!tooltipEl) return;
-    const mouseX = e.offsetX;
-    let closestIdx = 0;
-    let minDiff = Infinity;
-    revPoints.forEach((pt, i) => {
-      const diff = Math.abs(mouseX - pt.x);
-      if (diff < minDiff) { minDiff = diff; closestIdx = i; }
-    });
-    const pt = revPoints[closestIdx];
-    const threshold = (chartW / labels.length) / 2 + 10;
-    if (minDiff < threshold) {
-      tooltipEl.innerHTML = `<span class="tooltip-date">${labels[closestIdx]}</span><div class="tooltip-row"><span class="tooltip-label">Revenue :</span><span class="tooltip-revenue">${revValues[closestIdx]}</span></div><div class="tooltip-row"><span class="tooltip-label">Profit :</span><span class="tooltip-profit">${profValues[closestIdx]}</span></div>`;
-      tooltipEl.classList.add('active');
-      tooltipEl.style.left = `${pt.x}px`;
-      tooltipEl.style.top = `${pt.y - 12}px`;
-      tooltipEl.style.transform = `translate(-50%, -100%)`;
-    } else { tooltipEl.classList.remove('active'); }
-  };
-  if (canvas._lastMoveHandler) canvas.removeEventListener('mousemove', canvas._lastMoveHandler);
-  canvas.addEventListener('mousemove', handleMouseMove);
-  canvas._lastMoveHandler = handleMouseMove;
-  canvas.addEventListener('mouseleave', () => { if (tooltipEl) tooltipEl.classList.remove('active'); });
+  let finalRevPoints;
+
+  if (animate) {
+    const duration = 1000;
+    // Draw flat baseline immediately so there's no flash of final state
+    renderFrame(0);
+    let startTime = null;
+    function step(now) {
+      if (!startTime) startTime = now;
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      finalRevPoints = renderFrame(eased);
+      if (progress < 1) {
+        canvas._animFrame = requestAnimationFrame(step);
+      } else {
+        renderFrame(1);
+        attachTooltip();
+      }
+    }
+    canvas._animFrame = requestAnimationFrame(step);
+  } else {
+    finalRevPoints = renderFrame(1);
+    attachTooltip();
+  }
+
+  function attachTooltip() {
+    const revPoints = dataToPoints(revenueData, 1);
+    const handleMouseMove = (e) => {
+      if (!tooltipEl) return;
+      const mouseX = e.offsetX;
+      let closestIdx = 0;
+      let minDiff = Infinity;
+      revPoints.forEach((pt, i) => {
+        const diff = Math.abs(mouseX - pt.x);
+        if (diff < minDiff) { minDiff = diff; closestIdx = i; }
+      });
+      const pt = revPoints[closestIdx];
+      const threshold = (chartW / labels.length) / 2 + 10;
+      if (minDiff < threshold) {
+        tooltipEl.innerHTML = `<span class="tooltip-date">${labels[closestIdx]}</span><div class="tooltip-row"><span class="tooltip-label">Revenue :</span><span class="tooltip-revenue">${revValues[closestIdx]}</span></div><div class="tooltip-row"><span class="tooltip-label">Profit :</span><span class="tooltip-profit">${profValues[closestIdx]}</span></div>`;
+        tooltipEl.classList.add('active');
+        tooltipEl.style.left = `${pt.x}px`;
+        tooltipEl.style.top = `${pt.y - 12}px`;
+        tooltipEl.style.transform = `translate(-50%, -100%)`;
+      } else { tooltipEl.classList.remove('active'); }
+    };
+    if (canvas._lastMoveHandler) canvas.removeEventListener('mousemove', canvas._lastMoveHandler);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas._lastMoveHandler = handleMouseMove;
+    canvas.addEventListener('mouseleave', () => { if (tooltipEl) tooltipEl.classList.remove('active'); });
+  }
 
   return labels;
 }

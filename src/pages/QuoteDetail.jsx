@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { customers } from '../components/CustomersTable';
 import { openCustomerProfile } from '../utils/customerNav';
 import { openBilling } from '../utils/billingNav';
 import { openEditQuote } from '../utils/editQuoteNav';
+import { openDesigner } from '../utils/designerNav';
 import { useDemoPopup } from '../context/DemoContext';
 import { generateCustomerPDF, generateAgentPDF } from '../utils/generateQuotePdf';
+import { InfoBtn } from '../components/InfoBtn';
 
 // ─── Service Icons ──────────────────────────────────────────────────────────
 const HotelIcon = () => (
@@ -38,7 +40,7 @@ const SERVICE_CFG = {
 };
 
 // ─── Full Quote Detail Data ────────────────────────────────────────────────────
-const quoteDetailData = {
+export const quoteDetailData = {
   'WL-Q-0001': {
     customerName: 'Rahul Sharma', customerId: 'WL-C-0001',
     customerPhone: '+91 99876 54321', customerEmail: 'rahul.sharma@email.com',
@@ -408,7 +410,7 @@ const parseIndianDate = (str) => {
   if (parts.length !== 3) return '';
   return `${parts[2]}-${months[parts[1]] || '01'}-${parts[0].padStart(2,'0')}`;
 };
-const buildEditFormData = (detail, quoteId) => {
+export const buildEditFormData = (detail, quoteId, extra = {}) => {
   const destType = (detail.destType || 'domestic').toLowerCase();
   const paxNum = parseInt(detail.travelers || '1') || 1;
   const services = {};
@@ -421,30 +423,68 @@ const buildEditFormData = (detail, quoteId) => {
   });
   const depDate = parseIndianDate(detail.departure !== 'N/A' ? detail.departure : detail.tripDate);
   const retDate = parseIndianDate(detail.returnDate !== 'N/A' ? detail.returnDate : '');
+  // Convert detail.itinerary → Step 6 itDays format
+  const itDays = (detail.itinerary || []).map(d => {
+    const actItems = d.items.filter(it => it.type === 'activity' || it.type === 'admission');
+    const hotelItem = d.items.find(it => it.type === 'hotel');
+    return {
+      title: `Day ${d.day}`,
+      highlight: d.items[0]?.name || '',
+      date: d.date || '',
+      activities: actItems.length > 0 ? actItems.map(it => it.name) : [''],
+      hotel: hotelItem?.name || '',
+      meals: hotelItem?.meals || '',
+    };
+  });
+  if (itDays.length === 0) itDays.push({ title: '', highlight: '', date: '', activities: [''], hotel: '', meals: '' });
   return {
     _editQuoteId: quoteId,
     newCustomerName: detail.customerName || '',
     newCustomerPhone: (detail.customerPhone || '').replace(/^\+91\s*/, ''),
     newCustomerEmail: detail.customerEmail || '',
     destType,
-    country: destType === 'international' ? '' : '',
-    state: destType === 'domestic' ? '' : '',
+    country: '',
+    state: '',
     placeOfTravel: detail.destination || '',
+    destination: detail.destination || '',
     departureDate: depDate,
     returnDate: retDate,
+    startDate: depDate,
+    endDate: retDate,
     adults: paxNum, children: 0, infants: 0,
+    numTravelers: paxNum,
+    duration: detail.duration || '',
     travelerDetails: Array.from({ length: paxNum }, () => ({ name: '', passportId: '' })),
     services, serviceCosts,
     costOfServices: String(parseAmt(detail.fin?.costOfServices)),
     hiddenMarkup: String(parseAmt(detail.fin?.hiddenMarkup)),
     processingCharge: String(parseAmt(detail.fin?.processingCharge)),
+    totalQuoteAmount: String(parseAmt(detail.fin?.totalPayable)),
     gstMode: detail.fin?.billingModel === 'pure_agent' ? 'pure-agent' : 'principal',
     tcsMode: 'na',
+    inclusions: detail.inclusions || [],
+    exclusions: detail.exclusions || [],
+    itDays,
+    ...extra,
   };
 };
 
 export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
   const demo = useDemoPopup();
+  const [itinView, setItinView] = useState('simple');
+  const [showItinDrop, setShowItinDrop] = useState(false);
+  const itinDropRef = useRef(null);
+
+  useEffect(() => {
+    if (!showItinDrop) return;
+    const handler = (e) => {
+      if (itinDropRef.current && !itinDropRef.current.contains(e.target)) {
+        setShowItinDrop(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showItinDrop]);
 
   const detail = quoteDetailData[quoteId];
   if (!detail) return null;
@@ -453,6 +493,11 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
   const fin = detail.fin;
 
   const handleEditQuote = () => openEditQuote(buildEditFormData(detail, quoteId));
+  const handleOpenDesigner = () => openDesigner(quoteId, buildEditFormData(detail, quoteId), 'quote-detail');
+  const handleSimpleItinerary = () => {
+    setShowItinDrop(false);
+    openEditQuote(buildEditFormData(detail, quoteId, { _startStep: 6, _fromView: 'quote-detail' }));
+  };
 
   const statusColors = {
     draft:     'status-draft',
@@ -551,14 +596,36 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
               Cost breakdown
             </button>
-            <div className="qd-btn-itin-group">
-              <button className="qd-btn qd-btn-itin" onClick={demo}>
+            <div className="qd-btn-itin-group" ref={itinDropRef} style={{ position: 'relative' }}>
+              <button className="qd-btn qd-btn-itin" onClick={() => setShowItinDrop(v => !v)}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                 Itinerary
               </button>
-              <button className="qd-btn qd-btn-itin qd-btn-itin-caret" onClick={demo}>
+              <button className="qd-btn qd-btn-itin qd-btn-itin-caret" onClick={() => setShowItinDrop(v => !v)}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
+              {showItinDrop && (
+                <div className="qd-itin-action-drop">
+                  <button className="qd-itin-action-item" onClick={handleSimpleItinerary}>
+                    <span className="qd-itin-action-icon">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </span>
+                    <span className="qd-itin-action-text">
+                      <span className="qd-itin-action-label">Simple Itinerary</span>
+                      <span className="qd-itin-action-sub">Edit quote at Step 6</span>
+                    </span>
+                  </button>
+                  <button className="qd-itin-action-item" onClick={() => { setShowItinDrop(false); handleOpenDesigner(); }}>
+                    <span className="qd-itin-action-icon qd-itin-action-icon-design">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                    </span>
+                    <span className="qd-itin-action-text">
+                      <span className="qd-itin-action-label">Design Itinerary</span>
+                      <span className="qd-itin-action-sub">Open Design Builder</span>
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
             <button className="qd-btn qd-btn-share" onClick={demo}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -678,13 +745,11 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
             {/* Agent View */}
             <div className="qd-fin-agent-label">
               ACTUAL (AGENT VIEW)
-              <span className="info-btn" title="Agent view shows full cost breakdown">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              </span>
+              <InfoBtn infoKey="qd_actual_agent_view" />
             </div>
             <div className="qd-fin-rows">
               <div className="qd-fin-row">
-                <span>Cost of Services <span className="info-btn" title=""><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></span>
+                <span>Cost of Services <InfoBtn infoKey="qd_cost_of_services" /></span>
                 <span>{fin.costOfServices}</span>
               </div>
               <div className="qd-fin-row">
@@ -717,7 +782,7 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
             {/* Profit Box */}
             <div className="qd-profit-box">
               <div className="qd-profit-header">
-                <span>Your Profit <span className="info-btn" title=""><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></span>
+                <span>Your Profit <InfoBtn infoKey="qd_your_profit" /></span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
               </div>
               <div className="qd-fin-row" style={{paddingLeft:0, paddingRight:0}}>
@@ -749,7 +814,7 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
               </div>
               <div className="qd-fin-divider" />
               <div className="qd-fin-meta">
-                <span className="qd-fin-meta-label">Input Mode <span className="info-btn" title=""><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></span>
+                <span className="qd-fin-meta-label">Input Mode <InfoBtn infoKey="qd_input_mode" /></span>
                 <span className="qd-fin-meta-val">{fin.inputMode}</span>
               </div>
               <div className="qd-fin-meta">
@@ -767,25 +832,64 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
         {/* ── Itinerary ── */}
         {detail.itinerary && detail.itinerary.length > 0 && (
           <div className="qd-card">
-            <div className="qd-card-title" style={{color:'var(--accent)'}}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-              ITINERARY
+            <div className="qd-itin-card-header">
+              <div className="qd-card-title" style={{color:'var(--accent)'}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                ITINERARY
+              </div>
+              <div className="qd-itin-toggle">
+                <button
+                  className={`qd-itin-toggle-btn${itinView === 'simple' ? ' active' : ''}`}
+                  onClick={() => setItinView('simple')}
+                >Simple</button>
+                <button
+                  className={`qd-itin-toggle-btn${itinView === 'designed' ? ' active' : ''}`}
+                  onClick={() => setItinView('designed')}
+                >Designed</button>
+              </div>
             </div>
-            <div className="qd-itin-list">
-              {detail.itinerary.map((dayGroup, di) => (
-                <div key={di} className="qd-day-group">
-                  <div className="qd-day-header">
-                    <div className="qd-day-badge">{dayGroup.day}</div>
-                    <span className="qd-day-date">{dayGroup.date.toUpperCase()}</span>
+
+            {itinView === 'simple' ? (
+              <div className="qd-itin-list">
+                {detail.itinerary.map((dayGroup, di) => (
+                  <div key={di} className="qd-day-group">
+                    <div className="qd-day-header">
+                      <div className="qd-day-badge">{dayGroup.day}</div>
+                      <span className="qd-day-date">{dayGroup.date.toUpperCase()}</span>
+                    </div>
+                    <div className="qd-day-items">
+                      {dayGroup.items.map((item, ii) => (
+                        <ItinItem key={ii} item={item} />
+                      ))}
+                    </div>
                   </div>
-                  <div className="qd-day-items">
-                    {dayGroup.items.map((item, ii) => (
-                      <ItinItem key={ii} item={item} />
-                    ))}
-                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="qd-designed-panel">
+                <div className="qd-designed-icon">
+                  <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5">
+                    <circle cx="13.5" cy="6.5" r=".5" fill="var(--accent)"/>
+                    <circle cx="17.5" cy="10.5" r=".5" fill="var(--accent)"/>
+                    <circle cx="8.5" cy="7.5" r=".5" fill="var(--accent)"/>
+                    <circle cx="6.5" cy="12.5" r=".5" fill="var(--accent)"/>
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+                  </svg>
                 </div>
-              ))}
-            </div>
+                <div className="qd-designed-heading">Using Itinerary Design Builder</div>
+                <div className="qd-designed-sub">This itinerary is configured to use the visual design builder. Open the editor to customize layouts, templates, and styling.</div>
+                <button className="qd-designed-open-btn" onClick={handleOpenDesigner}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>
+                    <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+                    <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+                    <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+                  </svg>
+                  Open Design Editor
+                </button>
+              </div>
+            )}
           </div>
         )}
 
