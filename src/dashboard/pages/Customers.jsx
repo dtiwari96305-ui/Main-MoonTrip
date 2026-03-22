@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Header } from '../../shared/components/Header';
+import { RealHeader as Header } from '../components/RealHeader';
 import { CustomerStats } from '../../shared/components/CustomerStats';
 import { CustomersTable } from '../../shared/components/CustomersTable';
 import { CustomerSidePanel } from '../../shared/components/CustomerSidePanel';

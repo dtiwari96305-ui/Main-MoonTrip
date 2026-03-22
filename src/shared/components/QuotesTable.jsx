@@ -47,10 +47,19 @@ export const QuotesTable = ({ quotes, customers = [], quoteDetailData = {}, buil
     return () => document.removeEventListener('mousedown', handler);
   }, [activeItinId]);
 
+  // Close status dropdown on outside click
+  useEffect(() => {
+    if (!activeDropdownId) return;
+    const handler = () => setActiveDropdownId(null);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [activeDropdownId]);
+
   const handleStatusClick = (e, qId, status) => {
     e.stopPropagation();
     setActiveItinId(null);
-    if (status === 'sent' || status === 'draft') {
+    const interactive = status === 'sent' || status === 'draft' || status === 'approved' || status === 'rejected';
+    if (interactive) {
       setActiveDropdownId(activeDropdownId === qId ? null : qId);
     }
   };
@@ -131,7 +140,7 @@ export const QuotesTable = ({ quotes, customers = [], quoteDetailData = {}, buil
           </thead>
           <tbody>
             {filteredQuotes.map((q) => {
-              const actsAsDropdown = q.status === 'sent' || q.status === 'draft';
+              const actsAsDropdown = q.status === 'sent' || q.status === 'draft' || q.status === 'approved' || q.status === 'rejected';
               return (
                 <tr key={q.id} data-status={q.status} className="animate-row">
                   <td><span className="qt-id cp-name-link" onClick={() => openQuoteDetail(q.id, 'quotes')}>{q.id}</span></td>
@@ -163,14 +172,39 @@ export const QuotesTable = ({ quotes, customers = [], quoteDetailData = {}, buil
                       </span>
                       {activeDropdownId === q.id && (
                         <div className="status-dropdown">
-                          <div className="status-drop-item status-drop-approve" onClick={(e) => handleAction(e, 'approve', q.id)}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                            Approve
-                          </div>
-                          <div className="status-drop-item status-drop-reject" onClick={(e) => handleAction(e, 'reject', q.id)}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            Reject
-                          </div>
+                          {/* Draft / Sent → Approve + Reject */}
+                          {(q.status === 'draft' || q.status === 'sent') && (<>
+                            <div className="status-drop-item status-drop-approve" onClick={(e) => handleAction(e, 'approve', q.id)}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                              Approve
+                            </div>
+                            <div className="status-drop-item status-drop-reject" onClick={(e) => handleAction(e, 'reject', q.id)}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              Reject
+                            </div>
+                          </>)}
+                          {/* Approved → Back to Sent + Reject + Convert */}
+                          {q.status === 'approved' && (<>
+                            <div className="status-drop-item status-drop-back-sent" onClick={(e) => handleAction(e, 'back-to-sent', q.id)}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+                              Back to Sent
+                            </div>
+                            <div className="status-drop-item status-drop-reject" onClick={(e) => handleAction(e, 'reject', q.id)}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              Reject
+                            </div>
+                            <div className="status-drop-item status-drop-convert" onClick={(e) => handleAction(e, 'convert', q.id)}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                              Convert to Booking
+                            </div>
+                          </>)}
+                          {/* Rejected → Reopen as Draft */}
+                          {q.status === 'rejected' && (
+                            <div className="status-drop-item status-drop-reopen" onClick={(e) => handleAction(e, 'reopen', q.id)}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                              Reopen as Draft
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

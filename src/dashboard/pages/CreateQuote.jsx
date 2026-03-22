@@ -46,9 +46,15 @@ const SERVICE_LIST = [
 ];
 
 const COUNTRY_CODES = [
-  { code: 'IN', dial: '+91' }, { code: 'US', dial: '+1' }, { code: 'GB', dial: '+44' },
-  { code: 'AE', dial: '+971' }, { code: 'SG', dial: '+65' }, { code: 'AU', dial: '+61' },
-  { code: 'CA', dial: '+1' }, { code: 'DE', dial: '+49' }, { code: 'FR', dial: '+33' },
+  { code: 'IN', dial: '+91',  name: 'India' },
+  { code: 'US', dial: '+1',   name: 'United States' },
+  { code: 'GB', dial: '+44',  name: 'United Kingdom' },
+  { code: 'AE', dial: '+971', name: 'UAE' },
+  { code: 'SG', dial: '+65',  name: 'Singapore' },
+  { code: 'AU', dial: '+61',  name: 'Australia' },
+  { code: 'CA', dial: '+1',   name: 'Canada' },
+  { code: 'DE', dial: '+49',  name: 'Germany' },
+  { code: 'FR', dial: '+33',  name: 'France' },
 ];
 
 const INDIAN_STATES = [
@@ -99,6 +105,116 @@ const fmtDate6 = d => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeri
 const todayStr = () => new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 const DEFAULT_PMT  = '25% advance on confirmation · 75% balance 7 days before travel';
 const DEFAULT_CANC = '≥ 30 days: Nil · 16–29 days: 25% · 8–15 days: 50% · 0–7 days: 100%';
+
+// ─── CountryCodeDropdown ──────────────────────────────────────────────────────
+const CountryCodeDropdown = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  const selected = COUNTRY_CODES.find(c => c.code === value) || COUNTRY_CODES[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div style={{ position: 'relative', flexShrink: 0 }} ref={wrapRef}>
+      <button type="button" className="cq-cc-trigger" onClick={() => setOpen(v => !v)}>
+        <span>{selected.code}</span>
+        <span className="cq-cc-dial">{selected.dial}</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="cc-dropdown-menu">
+          {COUNTRY_CODES.map(c => (
+            <div
+              key={c.code + c.dial}
+              className={`cc-menu-item ${c.code === value ? 'cc-selected' : ''}`}
+              onClick={() => { onChange(c.code); setOpen(false); }}
+            >
+              <span className="cc-item-abbrev">{c.code}</span>
+              <span className="cc-item-dial">{c.dial}</span>
+              <span className="cc-item-name">{c.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── SearchableDropdown ───────────────────────────────────────────────────────
+const SearchableDropdown = ({ value, onChange, options, placeholder }) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const wrapRef = useRef(null);
+  const filtered = options.filter(s => s.toLowerCase().includes(search.toLowerCase()));
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false); setSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="sd-field-wrap" ref={wrapRef}>
+      <button
+        type="button"
+        className={`sd-field-trigger ${open ? 'sd-open' : ''}`}
+        onClick={() => setOpen(v => !v)}
+      >
+        {value
+          ? <span className="sd-field-value">{value}</span>
+          : <span className="sd-field-placeholder">{placeholder || 'Select...'}</span>
+        }
+        <svg className="sd-field-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="sd-field-dropdown">
+          <div className="sd-search-row">
+            <svg className="sd-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              className="sd-search-box"
+              type="text"
+              placeholder="Search..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="sd-items-list">
+            {filtered.length > 0 ? filtered.map(s => (
+              <div
+                key={s}
+                className={`sd-item ${s === value ? 'sd-item-selected' : ''}`}
+                onClick={() => { onChange(s); setOpen(false); setSearch(''); }}
+              >
+                {s}
+              </div>
+            )) : (
+              <div className="sd-no-results">No results</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ─── Toast component ─────────────────────────────────────────────────────────
 const Toast = ({ message, visible }) => (
@@ -374,15 +490,7 @@ const Step1Customer = ({ data, onChange, customers, onCreateCustomer }) => {
             <div className="cq-field-group">
               <label>Phone <span className="cq-required">*</span></label>
               <div className="cq-phone-row" style={errors.phone ? { borderColor: '#ef4444' } : {}}>
-                <select
-                  className="cq-phone-code"
-                  value={countryCode}
-                  onChange={e => setCountryCode(e.target.value)}
-                >
-                  {COUNTRY_CODES.map(c => (
-                    <option key={c.code + c.dial} value={c.code}>{c.code} {c.dial}</option>
-                  ))}
-                </select>
+                <CountryCodeDropdown value={countryCode} onChange={setCountryCode} />
                 <input
                   type="tel"
                   className="cq-phone-number"
@@ -564,22 +672,22 @@ const Step2Trip = ({ data, onChange }) => {
           <div className="cq-date-split">
             <div className="cq-date-half">
               <span className="cq-date-sub-label">DEPARTURE</span>
-              <input type="date" className="cq-date-input" style={{ border: '1.5px solid var(--border-color)', borderRadius: 7, padding: '7px 10px' }} value={data.departureDate || ''} onChange={e => onChange({ departureDate: e.target.value })} />
+              <input type="date" className="cq-date-input" value={data.departureDate || ''} onChange={e => onChange({ departureDate: e.target.value })} />
             </div>
             <div className="cq-date-sep" />
             <div className="cq-date-half">
               <span className="cq-date-sub-label">RETURN</span>
-              <input type="date" className="cq-date-input" style={{ border: '1.5px solid var(--border-color)', borderRadius: 7, padding: '7px 10px' }} value={data.returnDate || ''} onChange={e => onChange({ returnDate: e.target.value })} />
+              <input type="date" className="cq-date-input" value={data.returnDate || ''} onChange={e => onChange({ returnDate: e.target.value })} />
             </div>
           </div>
           {depDate && retDate && retDate >= depDate && (
             <div className="rcq-duration-boxes">
               <div className="rcq-dur-box rcq-dur-night">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <span role="img" aria-label="moon">🌙</span>
                 <span>{nights}</span> Night{nights !== 1 ? 's' : ''}
               </div>
               <div className="rcq-dur-box rcq-dur-day">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <span role="img" aria-label="sun">☀️</span>
                 <span>{days}</span> Day{days !== 1 ? 's' : ''}
               </div>
             </div>
@@ -787,12 +895,13 @@ const Step4Pricing = ({ data, onChange }) => {
       {/* Place of Supply */}
       <div className="rcq-card-group">
         <div className="cq-p4-section-label">Place of Supply <InfoBtn infoKey="cq_place_of_supply" /></div>
-        <div className="cq-select-wrap" style={{ marginTop: 6 }}>
-          <select value={placeOfSupply} onChange={e => setField('placeOfSupply', e.target.value)}>
-            <option value="">Select state...</option>
-            {PLACE_OF_SUPPLY_LIST.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <svg className="cq-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+        <div style={{ marginTop: 6 }}>
+          <SearchableDropdown
+            value={placeOfSupply}
+            onChange={v => setField('placeOfSupply', v)}
+            options={PLACE_OF_SUPPLY_LIST}
+            placeholder="Select state..."
+          />
         </div>
         {placeOfSupply && <span className="cq-gst-badge">IGST (18%)</span>}
       </div>

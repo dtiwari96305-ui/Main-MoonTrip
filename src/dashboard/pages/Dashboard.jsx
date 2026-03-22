@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Header } from '../../shared/components/Header';
+import { RealHeader as Header } from '../components/RealHeader';
 import { StatCard } from '../../shared/components/StatCard';
 import { DestinationCard } from '../../shared/components/DestinationCard';
 import { useData } from '../context/DataContext';

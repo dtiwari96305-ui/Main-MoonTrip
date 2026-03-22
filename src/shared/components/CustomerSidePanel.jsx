@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 
 const INDIAN_STATES = [
@@ -12,7 +12,271 @@ const INDIAN_STATES = [
   'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
 ];
 
+const COUNTRY_CODES = [
+  { code: 'IN', dial: '+91',  name: 'India' },
+  { code: 'US', dial: '+1',   name: 'United States' },
+  { code: 'GB', dial: '+44',  name: 'United Kingdom' },
+  { code: 'AE', dial: '+971', name: 'UAE' },
+  { code: 'SG', dial: '+65',  name: 'Singapore' },
+  { code: 'AU', dial: '+61',  name: 'Australia' },
+  { code: 'CA', dial: '+1',   name: 'Canada' },
+  { code: 'DE', dial: '+49',  name: 'Germany' },
+  { code: 'FR', dial: '+33',  name: 'France' },
+  { code: 'JP', dial: '+81',  name: 'Japan' },
+  { code: 'NZ', dial: '+64',  name: 'New Zealand' },
+  { code: 'ZA', dial: '+27',  name: 'South Africa' },
+];
 
+const MONTH_NAMES = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December',
+];
+
+// ─── CountryCodeDropdown ──────────────────────────────────────────────────────
+const CountryCodeDropdown = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  const selected = COUNTRY_CODES.find(c => c.code === value) || COUNTRY_CODES[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div style={{ position: 'relative', flexShrink: 0 }} ref={wrapRef}>
+      <button
+        type="button"
+        className="cc-select-trigger"
+        onClick={() => setOpen(v => !v)}
+      >
+        <span>{selected.code}</span>
+        <span className="cc-dial-text">{selected.dial}</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="cc-dropdown-menu">
+          {COUNTRY_CODES.map(c => (
+            <div
+              key={c.code + c.dial}
+              className={`cc-menu-item ${c.code === value ? 'cc-selected' : ''}`}
+              onClick={() => { onChange(c.code); setOpen(false); }}
+            >
+              <span className="cc-item-abbrev">{c.code}</span>
+              <span className="cc-item-dial">{c.dial}</span>
+              <span className="cc-item-name">{c.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── StateDropdown ────────────────────────────────────────────────────────────
+const StateDropdown = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const wrapRef = useRef(null);
+  const filtered = INDIAN_STATES.filter(s =>
+    s.toLowerCase().includes(search.toLowerCase())
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false);
+        setSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="sd-field-wrap" ref={wrapRef}>
+      <button
+        type="button"
+        className={`sd-field-trigger ${open ? 'sd-open' : ''}`}
+        onClick={() => setOpen(v => !v)}
+      >
+        {value
+          ? <span className="sd-field-value">{value}</span>
+          : <span className="sd-field-placeholder">Select State</span>
+        }
+        <svg className="sd-field-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="sd-field-dropdown">
+          <div className="sd-search-row">
+            <svg className="sd-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              className="sd-search-box"
+              type="text"
+              placeholder="Search states..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="sd-items-list">
+            {filtered.length > 0 ? filtered.map(s => (
+              <div
+                key={s}
+                className={`sd-item ${s === value ? 'sd-item-selected' : ''}`}
+                onClick={() => { onChange(s); setOpen(false); setSearch(''); }}
+              >
+                {s}
+              </div>
+            )) : (
+              <div className="sd-no-results">No results</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── CalendarPicker ───────────────────────────────────────────────────────────
+const CalendarPicker = ({ value, onChange, placeholder }) => {
+  const [open, setOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(() =>
+    value ? new Date(value + 'T00:00:00') : new Date()
+  );
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const today = new Date();
+  const selDate = value ? new Date(value + 'T00:00:00') : null;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  const days = [];
+  for (let i = firstDay - 1; i >= 0; i--) days.push({ d: daysInPrev - i, curr: false });
+  for (let d = 1; d <= daysInMonth; d++) days.push({ d, curr: true });
+  while (days.length % 7 !== 0) days.push({ d: days.length - firstDay - daysInMonth + 1, curr: false });
+
+  const isToday = (cell) =>
+    cell.curr &&
+    cell.d === today.getDate() &&
+    month === today.getMonth() &&
+    year === today.getFullYear();
+
+  const isSelected = (cell) =>
+    cell.curr && selDate &&
+    cell.d === selDate.getDate() &&
+    month === selDate.getMonth() &&
+    year === selDate.getFullYear();
+
+  const handleDay = (cell) => {
+    if (!cell.curr) return;
+    const s = `${year}-${String(month + 1).padStart(2, '0')}-${String(cell.d).padStart(2, '0')}`;
+    onChange(s);
+    setOpen(false);
+  };
+
+  const displayValue = selDate
+    ? selDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '';
+
+  const toggle = () => {
+    if (value) setViewDate(new Date(value + 'T00:00:00'));
+    setOpen(v => !v);
+  };
+
+  return (
+    <div className="cal-field-wrap" ref={wrapRef}>
+      <button
+        type="button"
+        className={`cal-field-trigger ${open ? 'cal-open' : ''}`}
+        onClick={toggle}
+      >
+        <svg className="cal-field-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span className={`cal-field-text ${!displayValue ? 'cal-field-placeholder' : ''}`}>
+          {displayValue || placeholder || 'Select date'}
+        </span>
+      </button>
+      {open && (
+        <div className="cal-field-popup">
+          <div className="cal-popup-header">
+            <button
+              type="button"
+              className="cal-popup-nav"
+              onClick={() => setViewDate(new Date(year, month - 1, 1))}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <span className="cal-popup-month">{MONTH_NAMES[month]} {year}</span>
+            <button
+              type="button"
+              className="cal-popup-nav"
+              onClick={() => setViewDate(new Date(year, month + 1, 1))}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+          <div className="cal-popup-weekdays">
+            {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
+              <span key={d} className="cal-popup-wday">{d}</span>
+            ))}
+          </div>
+          <div className="cal-popup-grid">
+            {days.map((cell, i) => (
+              <button
+                key={i}
+                type="button"
+                className={[
+                  'cal-popup-day',
+                  !cell.curr ? 'cal-day-other' : '',
+                  isToday(cell) ? 'cal-day-now' : '',
+                  isSelected(cell) ? 'cal-day-sel' : '',
+                ].filter(Boolean).join(' ')}
+                onClick={() => handleDay(cell)}
+              >
+                {cell.d}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── InfoIcon ─────────────────────────────────────────────────────────────────
 const InfoIcon = ({ title }) => (
   <span className="sp-info-icon" title={title}>
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -34,7 +298,9 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
   // Form state
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneCC, setPhoneCC] = useState('IN');
   const [altPhone, setAltPhone] = useState('');
+  const [altPhoneCC, setAltPhoneCC] = useState('IN');
   const [email, setEmail] = useState('');
   const [dob, setDob] = useState('');
   const [address, setAddress] = useState('');
@@ -90,7 +356,9 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
       // Add mode — clear everything
       setFullName('');
       setPhone('');
+      setPhoneCC('IN');
       setAltPhone('');
+      setAltPhoneCC('IN');
       setEmail('');
       setDob('');
       setAddress('');
@@ -123,10 +391,10 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
 
   const panelContent = (
     <>
-      {/* Dim overlay — visual backdrop only, pointer-events: none so background stays scrollable */}
+      {/* Dim overlay */}
       <div className={`sp-overlay${isOpen ? ' sp-overlay-visible' : ''}`} />
 
-      {/* Transparent click-capture layer — closes panel when clicking outside, only shown when open */}
+      {/* Click-capture layer */}
       {isOpen && <div className="sp-click-overlay" onClick={onClose} />}
 
       {/* Slide-in panel */}
@@ -182,12 +450,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
                     Phone <span className="sp-required">*</span>
                   </label>
                   <div className="sp-phone-wrap">
-                    <div className="sp-cc-box">
-                      <span>IN +91</span>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <polyline points="6 9 12 15 18 9"/>
-                      </svg>
-                    </div>
+                    <CountryCodeDropdown value={phoneCC} onChange={setPhoneCC} />
                     <input
                       type="tel"
                       className="sp-phone-num"
@@ -206,12 +469,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
                     Alternate Phone
                   </label>
                   <div className="sp-phone-wrap">
-                    <div className="sp-cc-box">
-                      <span>IN +91</span>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <polyline points="6 9 12 15 18 9"/>
-                      </svg>
-                    </div>
+                    <CountryCodeDropdown value={altPhoneCC} onChange={setAltPhoneCC} />
                     <input
                       type="tel"
                       className="sp-phone-num"
@@ -244,11 +502,10 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
               {/* Date of Birth */}
               <div className="sp-field">
                 <label className="sp-label">Date of Birth</label>
-                <input
-                  type="date"
-                  className="sp-input sp-date-input"
+                <CalendarPicker
                   value={dob}
-                  onChange={e => setDob(e.target.value)}
+                  onChange={setDob}
+                  placeholder="Select date of birth"
                 />
               </div>
             </div>
@@ -288,19 +545,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
                 </div>
                 <div className="sp-field">
                   <label className="sp-label">State <span className="sp-required">*</span></label>
-                  <div className="sp-select-wrap">
-                    <select
-                      className="sp-input sp-select"
-                      value={state}
-                      onChange={e => setState(e.target.value)}
-                    >
-                      <option value="">Select State</option>
-                      {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    <svg className="sp-select-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                  </div>
+                  <StateDropdown value={state} onChange={setState} />
                 </div>
                 <div className="sp-field">
                   <label className="sp-label">Pincode</label>
@@ -421,11 +666,10 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
                 </div>
                 <div className="sp-field">
                   <label className="sp-label">Passport Expiry</label>
-                  <input
-                    type="date"
-                    className="sp-input sp-date-input"
+                  <CalendarPicker
                     value={passportExpiry}
-                    onChange={e => setPassportExpiry(e.target.value)}
+                    onChange={setPassportExpiry}
+                    placeholder="Select expiry date"
                   />
                 </div>
               </div>
@@ -477,9 +721,6 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
     </>
   );
 
-  // Portal to document.body so the panel is never inside a CSS transform
-  // stacking context (main-content has transform:translateY(0) from its
-  // fadeIn animation, which breaks position:fixed containment)
   return ReactDOM.createPortal(panelContent, document.body);
 };
 

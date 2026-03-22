@@ -1,0 +1,1259 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   SHARED INPUT STYLES — Global for both Demo & Real Dashboard
+   Four input types: Dropdowns, Date Pickers, Country Code Phone, Toggle Tabs
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── PART 1: Custom Dropdown / Select ──────────────────────────────────────── */
+
+/* Custom dropdown container */
+.ui-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+/* Dropdown trigger button */
+.ui-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: var(--font);
+  outline: none;
+  text-align: left;
+  gap: 8px;
+}
+.ui-dropdown-trigger:hover {
+  border-color: rgba(22, 163, 74, 0.5);
+}
+.ui-dropdown-trigger:focus,
+.ui-dropdown.open .ui-dropdown-trigger {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.ui-dropdown-trigger .ui-dd-placeholder {
+  color: #9ca3af;
+}
+.ui-dropdown-trigger .ui-dd-value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Custom chevron */
+.ui-dd-chevron {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #16A34A;
+  transition: transform 0.15s ease;
+}
+.ui-dropdown.open .ui-dd-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown list */
+.ui-dropdown-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  margin-top: 4px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e5e7eb;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+}
+.ui-dropdown.open .ui-dropdown-list {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+/* Open upward when near bottom */
+.ui-dropdown.open-up .ui-dropdown-list {
+  bottom: calc(100% + 4px);
+  top: auto;
+  margin-top: 0;
+  transform: translateY(4px);
+}
+.ui-dropdown.open-up.open .ui-dropdown-list {
+  transform: translateY(0);
+}
+
+/* Custom scrollbar for dropdown */
+.ui-dropdown-list::-webkit-scrollbar {
+  width: 5px;
+}
+.ui-dropdown-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ui-dropdown-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+.ui-dropdown-list::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Dropdown option */
+.ui-dropdown-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #374151;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.ui-dropdown-option:hover {
+  background: #f0fdf4;
+  color: #16A34A;
+}
+.ui-dropdown-option.selected {
+  background: #f0fdf4;
+  color: #16A34A;
+  font-weight: 600;
+}
+.ui-dropdown-option .ui-dd-check {
+  display: none;
+  width: 16px;
+  height: 16px;
+  color: #16A34A;
+  flex-shrink: 0;
+}
+.ui-dropdown-option.selected .ui-dd-check {
+  display: block;
+}
+
+/* Search input inside dropdown */
+.ui-dropdown-search {
+  position: sticky;
+  top: 0;
+  padding: 8px;
+  background: #fff;
+  z-index: 1;
+}
+.ui-dropdown-search input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #111827;
+  outline: none;
+  font-family: var(--font);
+  transition: border-color 0.15s;
+}
+.ui-dropdown-search input:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.08);
+}
+.ui-dropdown-search input::placeholder {
+  color: #9ca3af;
+}
+
+/* ── Overrides for existing native selects to match new style ── */
+
+/* Side panel selects */
+.sp-select-wrap {
+  position: relative;
+}
+.sp-select-wrap .sp-select {
+  width: 100%;
+  padding: 12px 36px 12px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: var(--font);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.sp-select-wrap .sp-select:hover {
+  border-color: rgba(22, 163, 74, 0.5);
+}
+.sp-select-wrap .sp-select:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.sp-select-wrap .sp-select option[value=""] {
+  color: #9ca3af;
+}
+.sp-select-chevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #16A34A;
+}
+
+/* CreateQuote selects */
+.cq-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.cq-select-wrap select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #ffffff;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  padding: 12px 40px 12px 16px;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: var(--font);
+  outline: none;
+}
+.cq-select-wrap select:hover {
+  border-color: rgba(22, 163, 74, 0.5);
+}
+.cq-select-wrap select:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.cq-select-wrap select option[value=""] {
+  color: #9ca3af;
+}
+.cq-select-chevron {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  color: #16A34A;
+}
+
+/* Record Payment mode select */
+.rp-mode-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  gap: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #fff;
+}
+.rp-mode-select-wrap:hover {
+  border-color: rgba(22, 163, 74, 0.5);
+}
+.rp-mode-select-wrap:focus-within {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.rp-mode-select-wrap > svg:first-child {
+  color: #64748b;
+  flex-shrink: 0;
+}
+.rp-mode-select {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #111827;
+  font-family: var(--font);
+  font-weight: 500;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.rp-select-chevron {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  color: #16A34A;
+}
+
+/* Currency select inside cost block */
+.cq-currency-select {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+  padding: 0 2px;
+  font-family: var(--font);
+}
+
+
+/* ─── PART 2: Date Picker / Calendar Input ──────────────────────────────────── */
+
+/* Base date input improvements */
+.sp-input.sp-date-input,
+.rp-input[type="date"],
+input[type="date"].cq-date-input {
+  font-size: 14px;
+  color: #111827;
+}
+
+/* Side panel date input */
+.sp-input.sp-date-input {
+  padding: 12px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+}
+.sp-input.sp-date-input:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.sp-input.sp-date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(107deg) brightness(94%) contrast(80%);
+  opacity: 0.7;
+}
+.sp-input.sp-date-input:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* Record Payment date input */
+.rp-input[type="date"] {
+  padding: 12px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+}
+.rp-input[type="date"]:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.rp-input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(107deg) brightness(94%) contrast(80%);
+  opacity: 0.7;
+}
+.rp-input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* CreateQuote travel date section */
+.cq-date-split {
+  display: flex;
+  align-items: stretch;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ffffff;
+  margin-top: 6px;
+}
+.cq-date-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  gap: 6px;
+}
+.cq-date-half:focus-within {
+  background: #f0fdf4;
+}
+.cq-date-sep {
+  width: 1px;
+  background: #d1d5db;
+  flex-shrink: 0;
+}
+.cq-date-sub-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+.cq-date-input {
+  border: none !important;
+  outline: none !important;
+  background: transparent;
+  font-size: 14px;
+  color: #111827;
+  padding: 0;
+  width: 100%;
+  cursor: pointer;
+  font-family: var(--font);
+}
+.cq-date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(107deg) brightness(94%) contrast(80%);
+  opacity: 0.7;
+}
+.cq-date-input:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* Duration boxes (Nights / Days) */
+.rcq-duration-boxes {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.rcq-dur-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.rcq-dur-box span {
+  font-weight: 700;
+  font-size: 16px;
+}
+.rcq-dur-night {
+  background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+  color: #5b21b6;
+}
+.rcq-dur-night svg {
+  color: #7c3aed;
+}
+.rcq-dur-day {
+  background: linear-gradient(135deg, #fef3c7, #fef9c3);
+  color: #92400e;
+}
+.rcq-dur-day svg {
+  color: #d97706;
+}
+
+
+/* ─── PART 3: Country Code Phone Input ──────────────────────────────────────── */
+
+/* Side panel phone */
+.sp-phone-wrap {
+  display: flex;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  overflow: visible;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #ffffff;
+  position: relative;
+}
+.sp-phone-wrap:hover {
+  border-color: rgba(22, 163, 74, 0.5);
+}
+.sp-phone-wrap:focus-within {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.sp-cc-box {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 12px;
+  background: #f9fafb;
+  border-right: 1px solid #d1d5db;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  min-width: 90px;
+  transition: background 0.15s;
+}
+.sp-cc-box:hover {
+  background: #f0fdf4;
+}
+.sp-cc-box svg {
+  color: #16A34A;
+  flex-shrink: 0;
+}
+.sp-phone-num {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #111827;
+  background: transparent;
+  font-family: var(--font);
+  min-width: 0;
+}
+.sp-phone-num::placeholder {
+  color: #9ca3af;
+}
+
+/* CreateQuote phone row */
+.cq-phone-row {
+  display: flex;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  overflow: visible;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #ffffff;
+  position: relative;
+}
+.cq-phone-row:hover {
+  border-color: rgba(22, 163, 74, 0.5);
+}
+.cq-phone-row:focus-within {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.cq-phone-code {
+  padding: 12px 12px 12px 16px;
+  border: none;
+  border-right: 1px solid #d1d5db;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  background: #f9fafb;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font);
+  min-width: 110px;
+  max-width: 130px;
+  flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.cq-phone-number {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  font-family: var(--font);
+}
+.cq-phone-number::placeholder {
+  color: #9ca3af;
+}
+
+/* Responsive override for CQ phone row */
+#view-create-quote .cq-field-group .cq-phone-row {
+  display: flex;
+  flex-direction: row;
+}
+#view-create-quote .cq-field-group .cq-phone-row .cq-phone-code {
+  min-width: 110px;
+  max-width: 130px;
+}
+#view-create-quote .cq-field-group .cq-phone-row .cq-phone-number {
+  flex: 1;
+}
+
+
+/* ─── PART 4: Switch Tab / Toggle Selector ──────────────────────────────────── */
+
+/* Destination type toggle (Domestic / International) */
+.cq-dest-toggle {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  overflow: hidden;
+  width: fit-content;
+  margin-top: 6px;
+  background: #f9fafb;
+  padding: 4px;
+}
+.cq-dest-opt {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 8px;
+  font-family: var(--font);
+}
+.cq-dest-opt:first-child {
+  border-right: none;
+}
+.cq-dest-opt:hover {
+  background: #f0fdf4;
+  color: #16A34A;
+}
+.cq-dest-opt svg {
+  transition: color 0.15s;
+}
+.cq-dest-opt-active {
+  background: #ffffff !important;
+  color: #16A34A !important;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.cq-dest-opt-active svg {
+  color: #16A34A;
+}
+
+/* Pricing mode toggle (Total Quote / Set Margin) */
+.cq-pricing-mode-toggle {
+  display: flex;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f9fafb;
+  padding: 4px;
+  gap: 4px;
+}
+.cq-pricing-mode-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  text-align: center;
+  font-family: var(--font);
+}
+.cq-pricing-mode-btn:hover {
+  background: #f0fdf4;
+  color: #16A34A;
+}
+.cq-pm-active {
+  background: #ffffff;
+  color: #16A34A;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* DPC toggle (Inclusive / Exclusive of GST) */
+.cq-dpc-toggle {
+  display: flex;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f0f7ff;
+  margin-bottom: 0;
+  padding: 4px;
+  gap: 4px;
+}
+.cq-dpc-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #3b82f6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+  border-radius: 8px;
+  font-family: var(--font);
+}
+.cq-dpc-btn:first-child {
+  border-right: none;
+}
+.cq-dpc-btn:hover {
+  background: rgba(59, 130, 246, 0.08);
+}
+.cq-dpc-btn-active {
+  background: #1e3a8a;
+  color: #fff !important;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* Service cost mode toggle (Simple / Detailed) */
+.cq-cost-mode-toggle {
+  display: flex;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f9fafb;
+  padding: 3px;
+  gap: 3px;
+}
+.cq-cost-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all 0.15s ease;
+  font-family: var(--font);
+}
+.cq-cost-mode-btn:first-child {
+  border-right: none;
+}
+.cq-cost-mode-btn:hover {
+  background: #f0fdf4;
+  color: #16A34A;
+}
+.cq-cost-mode-active {
+  background: linear-gradient(135deg, #16A34A, #15803D) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
+}
+
+/* Live calculation Agent/Customer toggle */
+.cq-calc-toggle {
+  display: flex;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 3px;
+}
+.cq-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font);
+}
+.cq-toggle-btn.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
+}
+
+/* Filter tabs (Bookings, Quotes, etc.) */
+.filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #f9fafb;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 4px;
+}
+.filter-tab {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  border-right: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font);
+}
+.filter-tab:last-child {
+  border-right: none;
+}
+.filter-tab:hover {
+  background: #f0fdf4;
+  color: #16A34A;
+}
+.filter-tab.active {
+  background: #ffffff;
+  color: #16A34A;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ─── GLOBAL CONSISTENCY: Base input overrides ──────────────────────────────── */
+
+/* Side panel base input */
+.sp-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #111827;
+  background: #ffffff;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.sp-input:hover {
+  border-color: rgba(22, 163, 74, 0.5);
+}
+.sp-input:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.sp-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Record Payment base input */
+.rp-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  font-family: var(--font);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #fff;
+}
+.rp-input:hover {
+  border-color: rgba(22, 163, 74, 0.5);
+}
+.rp-input:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.rp-input::placeholder {
+  color: #9ca3af;
+}
+
+
+/* ─── Additional Toggle Overrides ────────────────────────────────────────────── */
+
+/* Settings pricing toggle (Monthly / Annual) */
+.pricing-toggle {
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1.5px solid #d1d5db;
+  gap: 4px;
+}
+.ptoggle-btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  transition: all 0.15s ease;
+  font-family: var(--font);
+}
+.ptoggle-btn:hover {
+  background: #f0fdf4;
+  color: #16A34A;
+}
+.ptoggle-btn.active {
+  background: #fff;
+  color: #16A34A;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+.ptoggle-save-text {
+  color: #16A34A;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-left: 12px;
+  margin-right: 4px;
+}
+
+/* Billing page period toggle (Monthly / Annually) */
+.bl-period-toggle {
+  display: flex;
+  background: #f9fafb;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.bl-period-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: #6b7280;
+  transition: all 0.15s ease;
+  font-family: var(--font);
+}
+.bl-period-btn:hover {
+  background: #f0fdf4;
+  color: #16A34A;
+}
+.bl-period-btn.bl-period-active {
+  background: #fff;
+  color: #16A34A;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Itinerary design/image mode toggle */
+.itin-mode-toggle {
+  display: flex;
+  gap: 0;
+  background: #f9fafb;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  padding: 4px;
+  width: fit-content;
+  margin-bottom: 18px;
+}
+.itin-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.15s ease;
+}
+.itin-mode-btn:hover {
+  background: #f0fdf4;
+  color: #16A34A;
+}
+.itin-mode-active {
+  background: #fff;
+  color: #16A34A;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COUNTRY CODE DROPDOWN — 3-column layout (abbrev | dial | name)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cc-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 500;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+  min-width: 230px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.cc-dropdown-menu::-webkit-scrollbar { width: 5px; }
+.cc-dropdown-menu::-webkit-scrollbar-track { background: transparent; }
+.cc-dropdown-menu::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+.cc-menu-item {
+  display: grid;
+  grid-template-columns: 40px 58px 1fr;
+  align-items: center;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.cc-menu-item:hover { background: #fff7ed; }
+.cc-menu-item.cc-selected { background: #fff7ed; }
+.cc-item-abbrev { font-weight: 700; font-size: 13px; color: #1e293b; }
+.cc-item-dial { font-weight: 600; font-size: 13px; color: #f97316; }
+.cc-item-name { font-size: 12px; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Phone wrap radius — needed since overflow:visible replaced overflow:hidden */
+.sp-phone-wrap .cc-select-trigger,
+.sp-phone-wrap .sp-cc-box {
+  border-radius: 8px 0 0 8px;
+}
+.sp-phone-wrap .sp-phone-num {
+  border-radius: 0 8px 8px 0;
+}
+.cq-phone-row .cq-cc-trigger {
+  border-radius: 8px 0 0 8px;
+}
+.cq-phone-row .cq-phone-number {
+  border-radius: 0 8px 8px 0;
+}
+
+/* Trigger inside sp-phone-wrap — matches sp-cc-box sizing */
+.cc-select-trigger {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 12px;
+  background: #f9fafb;
+  border-right: 1px solid #d1d5db;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  min-width: 96px;
+  transition: background 0.15s;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  outline: none;
+  font-family: var(--font);
+}
+.cc-select-trigger:hover { background: #f0fdf4; }
+.cc-select-trigger .cc-dial-text { color: #f97316; font-weight: 700; }
+.cc-select-trigger svg { color: #6b7280; flex-shrink: 0; }
+
+/* Trigger for CreateQuote phone row — matches cq-phone-code sizing */
+.cq-cc-trigger {
+  padding: 12px 12px 12px 16px;
+  border: none;
+  border-right: 1px solid #d1d5db;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  background: #f9fafb;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font);
+  min-width: 108px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.15s;
+}
+.cq-cc-trigger:hover { background: #f0fdf4; }
+.cq-cc-trigger .cq-cc-dial { color: #f97316; font-weight: 700; }
+.cq-cc-trigger svg { color: #6b7280; flex-shrink: 0; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATE / PLACE-OF-SUPPLY SEARCHABLE DROPDOWN
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sd-field-wrap {
+  position: relative;
+  width: 100%;
+}
+.sd-field-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: var(--font);
+  outline: none;
+  text-align: left;
+  box-sizing: border-box;
+  gap: 8px;
+}
+.sd-field-trigger:hover { border-color: rgba(249, 115, 22, 0.5); }
+.sd-field-trigger.sd-open {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+.sd-field-placeholder { color: #9ca3af; font-size: 14px; }
+.sd-field-value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sd-field-chevron { color: #6b7280; flex-shrink: 0; transition: transform 0.15s; }
+.sd-field-trigger.sd-open .sd-field-chevron { transform: rotate(180deg); }
+
+.sd-field-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 500;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+  overflow: hidden;
+}
+.sd-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+}
+.sd-search-icon { color: #94a3b8; flex-shrink: 0; }
+.sd-search-box {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: #111827;
+  background: transparent;
+  font-family: var(--font);
+}
+.sd-search-box::placeholder { color: #9ca3af; }
+.sd-items-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.sd-items-list::-webkit-scrollbar { width: 5px; }
+.sd-items-list::-webkit-scrollbar-track { background: transparent; }
+.sd-items-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+.sd-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #374151;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.sd-item:hover { background: #fff7ed; color: #ea580c; }
+.sd-item.sd-item-selected { background: #fff7ed; color: #f97316; font-weight: 600; }
+.sd-no-results { padding: 10px 12px; font-size: 13px; color: #94a3b8; text-align: center; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CALENDAR DATE PICKER — custom popup replacing <input type="date">
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cal-field-wrap {
+  position: relative;
+  width: 100%;
+}
+.cal-field-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: var(--font);
+  outline: none;
+  text-align: left;
+  box-sizing: border-box;
+}
+.cal-field-trigger:hover { border-color: rgba(249, 115, 22, 0.5); }
+.cal-field-trigger.cal-open {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+.cal-field-icon { color: #94a3b8; flex-shrink: 0; }
+.cal-field-text { flex: 1; }
+.cal-field-placeholder { color: #9ca3af; }
+
+.cal-field-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 600;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+  padding: 18px;
+  width: 286px;
+}
+.cal-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.cal-popup-month { font-size: 15px; font-weight: 700; color: #1e293b; }
+.cal-popup-nav {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 8px;
+  color: #64748b;
+  transition: background 0.12s, color 0.12s;
+  display: flex;
+  align-items: center;
+}
+.cal-popup-nav:hover { background: #f1f5f9; color: #1e293b; }
+.cal-popup-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+}
+.cal-popup-wday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 4px 0;
+}
+.cal-popup-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+.cal-popup-day {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #374151;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  margin: 0 auto;
+  font-family: var(--font);
+}
+.cal-popup-day:hover:not(.cal-day-other):not(.cal-day-sel) { background: #fff7ed; color: #ea580c; }
+.cal-day-other { color: #cbd5e1; cursor: default; pointer-events: none; }
+.cal-day-now { border: 2px solid #f97316; color: #f97316; font-weight: 600; }
+.cal-day-sel { background: #f97316 !important; color: #fff !important; font-weight: 600; border: none !important; }
+.cal-day-now.cal-day-sel { border: none !important; }

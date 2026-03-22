@@ -1,4 +1,5 @@
 @import './shared/styles/dashboard.css';
+@import './shared/styles/inputs.css';
 @import './shared/styles/responsive.css';
 @import './shared/styles/landing.css';
 
@@ -346,10 +347,7 @@
 .pricing-header { display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 32px; flex-wrap: wrap; }
 .pricing-title { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
 .pricing-subtitle { font-size: 0.95rem; color: var(--text-secondary); }
-.pricing-toggle { display: flex; align-items: center; background: #f8fafc; padding: 4px 12px 4px 4px; border-radius: 24px; border: 1px solid var(--border-color); }
-.ptoggle-btn { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-secondary); }
-.ptoggle-btn.active { background: #fff; color: var(--text-primary); border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-.ptoggle-save-text { color: #10b981; font-size: 0.8rem; font-weight: 700; margin-left: 12px; margin-right: 4px; }
+/* pricing-toggle + ptoggle — styles now in inputs.css */
 
 .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .price-card { padding: 24px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; position: relative; }
@@ -1067,17 +1065,7 @@
 .cq-calc-title {
   flex: 1; font-size: 0.9rem; font-weight: 700; color: #fff;
 }
-.cq-calc-toggle {
-  display: flex; gap: 2px;
-  background: rgba(255,255,255,0.07); border-radius: 8px; padding: 3px;
-}
-.cq-toggle-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 5px 10px; border-radius: 6px; font-size: 0.73rem; font-weight: 600;
-  color: rgba(255,255,255,0.45); background: none; border: none;
-  cursor: pointer; transition: all 0.2s; font-family: var(--font);
-}
-.cq-toggle-btn.active { background: var(--accent); color: #fff; }
+/* cq-calc-toggle + cq-toggle-btn — styles now in inputs.css */
 .cq-calc-subtitle { font-size: 0.77rem; color: rgba(255,255,255,0.35); }
 .cq-calc-rows { padding: 14px 20px; }
 .cq-calc-row {
@@ -1126,24 +1114,7 @@
   border-radius: 12px; background: #fff;
 }
 
-/* Phone row: country code selector + number input */
-.cq-phone-row {
-  display: flex; border: 1.5px solid var(--border-color); border-radius: 8px;
-  overflow: hidden; transition: border-color 0.2s;
-}
-.cq-phone-row:focus-within { border-color: var(--accent); }
-.cq-phone-code {
-  padding: 10px 10px 10px 12px; border: none; border-right: 1.5px solid var(--border-color);
-  font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
-  background: #f8fafc; cursor: pointer; outline: none;
-  font-family: var(--font); min-width: 96px; flex-shrink: 0;
-}
-.cq-phone-number {
-  flex: 1; padding: 10px 14px; border: none; outline: none;
-  font-size: 0.9rem; color: var(--text-primary); background: #fff;
-  font-family: var(--font);
-}
-.cq-phone-number::placeholder { color: var(--text-muted); }
+/* Phone row — styles now in inputs.css */
 
 /* Tax label */
 .cq-tax-label {
@@ -1163,23 +1134,7 @@
 }
 .cq-create-customer-btn:hover { background: var(--accent-hover); }
 
-/* ── Step 2: Destination Type Toggle ── */
-.cq-dest-toggle {
-  display: flex; gap: 0; border: 1.5px solid var(--border); border-radius: 10px;
-  overflow: hidden; width: fit-content; margin-top: 6px;
-}
-.cq-dest-opt {
-  display: flex; align-items: center; gap: 7px;
-  padding: 9px 20px; border: none; background: var(--surface);
-  color: var(--text-muted); font-size: 0.88rem; font-weight: 500;
-  cursor: pointer; transition: all 0.15s;
-}
-.cq-dest-opt:first-child { border-right: 1.5px solid var(--border); }
-.cq-dest-opt:hover { background: #f0fdf4; color: var(--accent); }
-.cq-dest-opt-active {
-  background: linear-gradient(135deg, #16A34A, #15803D) !important;
-  color: #fff !important; font-weight: 600;
-}
+/* ── Step 2: Destination Type Toggle — styles now in inputs.css ── */
 
 /* ── TCS Banner ── */
 .cq-tcs-banner {
@@ -1189,46 +1144,9 @@
   font-size: 0.82rem; color: #92400e; margin-top: 2px;
 }
 
-/* ── Select Wrap (custom chevron) ── */
-.cq-select-wrap {
-  position: relative; display: flex; align-items: center;
-}
-.cq-select-wrap select {
-  width: 100%; appearance: none; -webkit-appearance: none;
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 8px; padding: 9px 36px 9px 12px;
-  font-size: 0.88rem; color: var(--text-primary);
-  cursor: pointer; transition: border-color 0.15s;
-}
-.cq-select-wrap select:focus { outline: none; border-color: var(--accent); }
-.cq-select-chevron {
-  position: absolute; right: 11px; pointer-events: none;
-  color: var(--text-muted);
-}
+/* ── Select Wrap — styles now in inputs.css ── */
 
-/* ── Travel Dates split card ── */
-.cq-date-split {
-  display: flex; align-items: stretch;
-  border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden;
-  background: var(--surface); margin-top: 6px;
-}
-.cq-date-half {
-  flex: 1; display: flex; flex-direction: column;
-  padding: 10px 14px; gap: 4px;
-}
-.cq-date-half:focus-within { background: #fffbf7; }
-.cq-date-sep {
-  width: 1px; background: var(--border); flex-shrink: 0;
-}
-.cq-date-sub-label {
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
-  color: var(--text-muted); text-transform: uppercase;
-}
-.cq-date-input {
-  border: none !important; outline: none !important;
-  background: transparent; font-size: 0.9rem; color: var(--text-primary);
-  padding: 0; width: 100%; cursor: pointer;
-}
+/* ── Travel Dates — styles now in inputs.css ── */
 
 /* ── Travellers Expandable ── */
 .cq-travellers-wrap {
@@ -1798,19 +1716,7 @@
   background: #dbeafe; color: #1d4ed8; font-size: 0.75rem; font-weight: 700;
 }
 
-.cq-pricing-mode-toggle {
-  display: flex; border: 1.5px solid var(--border); border-radius: 10px;
-  overflow: hidden; background: #f3f4f6; padding: 4px; gap: 4px;
-}
-.cq-pricing-mode-btn {
-  flex: 1; padding: 9px 14px; border: none; background: transparent;
-  font-size: 0.85rem; font-weight: 500; color: var(--text-muted);
-  cursor: pointer; border-radius: 7px; transition: all 0.15s; text-align: center;
-}
-.cq-pm-active {
-  background: #fff; color: var(--text-primary); font-weight: 600;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
-}
+/* Pricing mode toggle — styles now in inputs.css */
 
 .cq-p4-input {
   width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
@@ -1829,18 +1735,7 @@
 .cq-dpc-icon { display: flex; align-items: center; flex-shrink: 0; }
 .cq-dpc-title { font-size: 0.88rem; font-weight: 700; color: #1d4ed8; }
 .cq-dpc-desc { font-size: 0.78rem; color: #3b82f6; margin: 0 0 12px; line-height: 1.4; }
-.cq-dpc-toggle {
-  display: flex; border: 1.5px solid #bfdbfe; border-radius: 8px; overflow: hidden;
-  background: #fff; margin-bottom: 0;
-}
-.cq-dpc-btn {
-  flex: 1; padding: 9px 14px; border: none; background: transparent;
-  font-size: 0.84rem; font-weight: 500; color: #3b82f6;
-  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
-  transition: all 0.15s;
-}
-.cq-dpc-btn:first-child { border-right: 1.5px solid #bfdbfe; }
-.cq-dpc-btn-active { background: #1e3a8a; color: #fff !important; font-weight: 600; }
+/* DPC toggle — styles now in inputs.css */
 
 /* ── Step 3: Service Grid ── */
 .cq-s3-grid {
@@ -1905,14 +1800,7 @@
   border: none; background: transparent; cursor: pointer; padding: 4px;
   color: var(--text-muted); display: flex; align-items: center;
 }
-.cq-cost-mode-toggle { display: flex; border: 1.5px solid var(--border); border-radius: 7px; overflow: hidden; }
-.cq-cost-mode-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 5px 10px; border: none; background: var(--surface);
-  font-size: 0.78rem; font-weight: 500; color: var(--text-muted); cursor: pointer;
-}
-.cq-cost-mode-btn:first-child { border-right: 1.5px solid var(--border); }
-.cq-cost-mode-active { background: linear-gradient(135deg, #16A34A, #15803D) !important; color: #fff !important; font-weight: 600 !important; }
+/* Cost mode toggle — styles now in inputs.css */
 
 .cq-cost-input-row {
   display: flex; align-items: center; gap: 8px; padding: 12px 16px;
@@ -2110,23 +1998,7 @@
   display: flex; flex-direction: column; gap: 0;
 }
 
-/* Design / Image toggle */
-.itin-mode-toggle {
-  display: flex; gap: 0;
-  background: #f1f5f9; border-radius: 9px; padding: 3px;
-  width: fit-content; margin-bottom: 18px;
-}
-.itin-mode-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border: none; border-radius: 7px;
-  background: transparent; font-size: 0.82rem; font-weight: 600;
-  color: var(--text-secondary); cursor: pointer;
-  font-family: var(--font); transition: all 0.15s;
-}
-.itin-mode-active {
-  background: #fff; color: var(--text-primary);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
+/* Design / Image toggle — styles now in inputs.css */
 
 /* Checkbox row */
 .itin-checkbox-row {
@@ -3309,31 +3181,7 @@
    Real Create Quote (rcq-*) — Dashboard-specific overrides & additions
    ═════════════════════════════════════════════════════════════════════════════ */
 
-/* ── Phone row fix — prevent .cq-field-group generic styles from
-      overriding flex layout inside .cq-phone-row ── */
-#view-create-quote .cq-field-group .cq-phone-row {
-  display: flex; align-items: stretch;
-}
-#view-create-quote .cq-field-group .cq-phone-row .cq-phone-code {
-  width: 13%; min-width: 80px; max-width: 96px; flex-shrink: 0;
-  border: none; border-right: 1.5px solid var(--border-color);
-  border-radius: 0; padding: 10px 10px 10px 12px;
-  font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
-  background: #f8fafc; cursor: pointer; outline: none;
-  font-family: var(--font);
-  -webkit-appearance: none; -moz-appearance: none; appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  padding-right: 26px;
-}
-#view-create-quote .cq-field-group .cq-phone-row .cq-phone-number {
-  flex: 1; width: auto; min-width: 0;
-  border: none; border-radius: 0;
-  padding: 10px 14px; font-size: 0.9rem;
-  color: var(--text-primary); background: #fff; outline: none;
-  font-family: var(--font);
-}
+/* ── Phone row fix — styles now in inputs.css ── */
 
 /* ── Toast notification ── */
 .rcq-toast {
@@ -3416,25 +3264,7 @@
   padding: 20px; background: #fff; margin-bottom: 16px;
 }
 
-/* ── Duration boxes (nights/days display) ── */
-.rcq-duration-boxes {
-  display: flex; gap: 10px; margin-top: 4px;
-}
-.rcq-dur-box {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 80px; height: 68px; border-radius: 10px;
-  font-weight: 700; font-size: 1.1rem;
-}
-.rcq-dur-box small {
-  font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
-  margin-top: 2px;
-}
-.rcq-dur-night {
-  background: #1e293b; color: #fbbf24;
-}
-.rcq-dur-day {
-  background: #fef3c7; color: #92400e;
-}
+/* ── Duration boxes — styles now in inputs.css ── */
 
 /* ── Save quote button (Step 6) ── */
 .rcq-save-btn {
@@ -3612,4 +3442,37 @@
   .rcq-duration-boxes { flex-wrap: wrap; }
   .rcq-selected-card { flex-direction: column; text-align: center; }
   .rcq-change-btn { width: 100%; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   STATUS DROPDOWN FIX — scoped to real dashboard (app-mode-real)
+   Fix: overflow on .data-table-card clips absolutely-positioned
+   status dropdowns. Override to visible so dropdowns render above.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Allow dropdown to escape table card bounds */
+.app-mode-real .data-table-card {
+  overflow: visible;
+}
+
+/* Ensure dropdown has high z-index and solid styling */
+.app-mode-real .status-dropdown {
+  z-index: 9999;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+}
+
+/* Ensure wrapper stacking context */
+.app-mode-real .status-dropdown-wrapper {
+  position: relative;
+  display: inline-flex;
+  z-index: 1;
+}
+
+/* Lift the active wrapper above siblings */
+.app-mode-real td:has(.status-dropdown) {
+  z-index: 9999;
 }

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Header } from '../../shared/components/Header';
+import { RealHeader as Header } from '../components/RealHeader';
 import { QuotesSearchBar } from '../../shared/components/QuotesSearchBar';
 import { QuotesTable } from '../../shared/components/QuotesTable';
 import { TableSkeleton } from '../../shared/components/PageSkeleton';
 import { ExportDropdown } from '../../shared/components/ExportDropdown';
 import { EmptyState } from '../components/EmptyState';
 import { ConfirmDeleteModal } from '../components/ConfirmDeleteModal';
+import { ConvertToBookingModal } from '../components/ConvertToBookingModal';
 import { buildEditFormData } from '../../shared/utils/buildEditFormData';
 import { useData } from '../context/DataContext';
 
@@ -20,12 +21,13 @@ const QUOTES_COLUMNS = [
 ];
 
 export const RealQuotes = ({ onViewChange }) => {
-  const { quotes, customers, updateQuote, deleteQuote, getQuoteDetail } = useData();
+  const { quotes, customers, settings, updateQuote, deleteQuote, convertQuote, getQuoteDetail } = useData();
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [convertTarget, setConvertTarget] = useState(null); // quoteId for ConvertToBookingModal
 
   const filteredQuotes = quotes.filter(q => {
     const matchesFilter = activeFilter === 'all' || q.status === activeFilter;
@@ -41,11 +43,27 @@ export const RealQuotes = ({ onViewChange }) => {
       updateQuote(quoteId, { status: 'approved' });
     } else if (actionType === 'reject') {
       updateQuote(quoteId, { status: 'rejected' });
+    } else if (actionType === 'back-to-sent') {
+      updateQuote(quoteId, { status: 'sent' });
+    } else if (actionType === 'reopen') {
+      updateQuote(quoteId, { status: 'draft' });
+    } else if (actionType === 'convert') {
+      setConvertTarget(quoteId);
+      return; // open modal — don't refresh yet
     } else if (actionType === 'delete') {
       setDeleteTarget(quoteId);
-      return; // Don't refresh yet — wait for confirmation
+      return;
     }
     setRefreshKey(prev => prev + 1);
+  };
+
+  const handleConvertAccept = (customerEdits) => {
+    if (!convertTarget) return;
+    convertQuote(convertTarget, customerEdits);
+    setConvertTarget(null);
+    setRefreshKey(prev => prev + 1);
+    // Optionally navigate to bookings
+    if (onViewChange) onViewChange('bookings');
   };
 
   const confirmDelete = () => {
@@ -72,6 +90,10 @@ export const RealQuotes = ({ onViewChange }) => {
     const detail = getQuoteDetail(q.id);
     if (detail) quoteDetailData[q.id] = detail;
   });
+
+  // Get quote + detail for the convert modal
+  const convertQuoteObj = convertTarget ? quotes.find(q => q.id === convertTarget) : null;
+  const convertQuoteDetail = convertTarget ? getQuoteDetail(convertTarget) : null;
 
   return (
     <div id="view-quotes" className="fade-in">
@@ -130,6 +152,17 @@ export const RealQuotes = ({ onViewChange }) => {
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      {convertTarget && convertQuoteObj && (
+        <ConvertToBookingModal
+          quote={convertQuoteObj}
+          quoteDetail={convertQuoteDetail}
+          settings={settings}
+          customers={customers}
+          onAccept={handleConvertAccept}
+          onDecline={() => setConvertTarget(null)}
+        />
+      )}
     </div>
   );
 };

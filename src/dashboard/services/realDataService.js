@@ -154,6 +154,44 @@ export function createRealDataService() {
     updatePayment: (id, updates) => ls.update('payments', id, updates),
     deletePayment: (id) => ls.remove('payments', id),
 
+    // ─── Invoices ───────────────────────────────────────────
+    getInvoices: () => ls.getAll('invoices'),
+    getInvoiceById: (id) => ls.getById('invoices', id),
+    addInvoice: (data) => {
+      const id = ls.nextId('invoices', 'INV-');
+      const todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const invoice = {
+        quoteId: '',
+        bookingId: '',
+        customerName: '',
+        customerPhone: '',
+        customerEmail: '',
+        customerPan: '',
+        customerGstin: '',
+        destination: '',
+        destType: 'domestic',
+        duration: '',
+        travelers: 1,
+        travelDate: '',
+        placeOfSupply: 'India',
+        travelCost: 0,
+        serviceFee: 200,
+        cgst: 18,
+        sgst: 18,
+        invoiceValue: 0,
+        amount: '₹0',
+        total: '₹0',
+        status: 'Unpaid',
+        ...data,
+        id,
+        date: data.date || todayStr,
+        createdDate: todayStr,
+      };
+      return ls.add('invoices', invoice);
+    },
+    updateInvoice: (id, updates) => ls.update('invoices', id, updates),
+    deleteInvoice: (id) => ls.remove('invoices', id),
+
     // ─── Profile Data ───────────────────────────────────────
     getProfileData: (customerId) => ls.getObject(`profile_${customerId}`),
     updateProfileData: (customerId, data) => ls.setObject(`profile_${customerId}`, data),
@@ -165,6 +203,7 @@ export function createRealDataService() {
       activities.unshift({
         ...activity,
         time: new Date().toLocaleString('en-IN'),
+        timestamp: Date.now(),
       });
       // Keep only last 20 activities
       if (activities.length > 20) activities.length = 20;

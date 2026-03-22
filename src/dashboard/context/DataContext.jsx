@@ -11,6 +11,7 @@ export const DataProvider = ({ children }) => {
   const [quotes, setQuotes] = useState(() => service.getQuotes());
   const [bookings, setBookings] = useState(() => service.getBookings());
   const [payments, setPayments] = useState(() => service.getPayments());
+  const [invoices, setInvoices] = useState(() => service.getInvoices());
   const [settings, setSettings] = useState(() => service.getSettings());
   const [activities, setActivities] = useState(() => service.getActivities());
 
@@ -19,6 +20,7 @@ export const DataProvider = ({ children }) => {
   const refreshQuotes = useCallback(() => setQuotes(service.getQuotes()), [service]);
   const refreshBookings = useCallback(() => setBookings(service.getBookings()), [service]);
   const refreshPayments = useCallback(() => setPayments(service.getPayments()), [service]);
+  const refreshInvoices = useCallback(() => setInvoices(service.getInvoices()), [service]);
   const refreshActivities = useCallback(() => setActivities(service.getActivities()), [service]);
 
   const logActivity = useCallback((entry) => {
@@ -256,6 +258,95 @@ export const DataProvider = ({ children }) => {
     });
   }, [service, refreshPayments, logActivity]);
 
+  // ─── Invoices ─────────────────────────────────────────────
+  const addInvoice = useCallback((data) => {
+    const result = service.addInvoice(data);
+    refreshInvoices();
+    return result;
+  }, [service, refreshInvoices]);
+
+  const updateInvoice = useCallback((id, updates) => {
+    const result = service.updateInvoice(id, updates);
+    refreshInvoices();
+    return result;
+  }, [service, refreshInvoices]);
+
+  // ─── Convert Quote → Booking + Invoice ────────────────────
+  const convertQuote = useCallback((quoteId, customerEdits = {}) => {
+    const quote = service.getQuoteById(quoteId);
+    if (!quote) return null;
+
+    // 1. Mark quote as converted
+    service.updateQuote(quoteId, { status: 'converted' });
+    refreshQuotes();
+
+    // 2. Create booking
+    const booking = service.addBooking({
+      customerName: customerEdits.customerName || quote.customerName,
+      customerPhone: customerEdits.customerPhone || quote.customerPhone,
+      customerEmail: customerEdits.customerEmail || '',
+      customerPan: customerEdits.customerPan || '',
+      customerGstin: customerEdits.customerGstin || '',
+      destination: quote.destName,
+      destType: quote.destType,
+      travelDate: quote.tripDate,
+      amount: quote.amount,
+      profit: quote.profit,
+      paymentStatus: 'partial',
+      paymentText: `₹0 / ${quote.amount}`,
+      remaining: quote.amount,
+      status: 'confirmed',
+      pax: customerEdits.travelers || 1,
+      quoteId,
+    });
+    refreshBookings();
+
+    // 3. Create invoice
+    const travelCost = customerEdits.travelCost || 0;
+    const serviceFee = customerEdits.serviceFee || 200;
+    const cgst = customerEdits.cgst || 18;
+    const sgst = customerEdits.sgst || 18;
+    const invoiceValue = customerEdits.invoiceValue || (travelCost + serviceFee + cgst + sgst);
+
+    const invoice = service.addInvoice({
+      quoteId,
+      bookingId: booking.id,
+      customerName: customerEdits.customerName || quote.customerName,
+      customerPhone: customerEdits.customerPhone || quote.customerPhone,
+      customerEmail: customerEdits.customerEmail || '',
+      customerPan: customerEdits.customerPan || '',
+      customerGstin: customerEdits.customerGstin || '',
+      destination: quote.destName,
+      destType: quote.destType,
+      travelDate: quote.tripDate,
+      duration: customerEdits.duration || '',
+      travelers: customerEdits.travelers || 1,
+      placeOfSupply: customerEdits.placeOfSupply || 'India',
+      travelCost,
+      serviceFee,
+      cgst,
+      sgst,
+      invoiceValue,
+      amount: quote.amount,
+      total: `₹${invoiceValue.toLocaleString('en-IN')}`,
+      status: 'Unpaid',
+    });
+    refreshInvoices();
+
+    // 4. Log activity
+    service.addActivity({
+      type: 'booking',
+      action: 'created',
+      message: `Quote ${quoteId} converted to Booking ${booking.id} for ${quote.customerName}`,
+      name: quote.customerName,
+      id: booking.id,
+      icon: 'booking-add',
+    });
+    refreshActivities();
+
+    return { booking, invoice };
+  }, [service, refreshQuotes, refreshBookings, refreshInvoices, refreshActivities]);
+
   // ─── Settings ─────────────────────────────────────────────
   const updateSettings = useCallback((updates) => {
     const result = service.updateSettings(updates);
@@ -269,6 +360,7 @@ export const DataProvider = ({ children }) => {
     quotes,
     bookings,
     payments,
+    invoices,
     settings,
     activities,
 
@@ -308,11 +400,18 @@ export const DataProvider = ({ children }) => {
     // Settings
     updateSettings,
 
+    // Invoice CRUD
+    addInvoice,
+    updateInvoice,
+    getInvoiceById: service.getInvoiceById,
+    convertQuote,
+
     // Refresh helpers
     refreshCustomers,
     refreshQuotes,
     refreshBookings,
     refreshPayments,
+    refreshInvoices,
   };
 
   return (
