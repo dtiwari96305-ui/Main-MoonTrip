@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Header } from '../components/Header';
-import { StatCard } from '../components/StatCard';
-import { RecentActivityCard } from '../components/RecentActivityCard';
-import { FinancialSummaryCard } from '../components/FinancialSummaryCard';
-import { TopDestinations } from '../components/TopDestinations';
-import { TopCustomersCard } from '../components/TopCustomersCard';
+import { Header } from '../shared/components/Header';
+import { StatCard } from '../shared/components/StatCard';
+import { RecentActivityCard } from '../shared/components/RecentActivityCard';
+import { FinancialSummaryCard } from '../shared/components/FinancialSummaryCard';
+import { TopDestinations } from '../shared/components/TopDestinations';
+import { TopCustomersCard } from '../shared/components/TopCustomersCard';
 import { QuickActions } from '../components/QuickActions';
-import { drawRevenueChart, drawBookingsChart } from '../utils/chartUtils';
+import { drawRevenueChart, drawBookingsChart } from '../shared/utils/chartUtils';
 
 const ChartPeriodSelect = ({ id, onChangeMonths }) => {
   const [open, setOpen] = useState(false);
@@ -170,7 +170,7 @@ export const Dashboard = ({ onViewChange }) => {
         <TopDestinations />
       </div>
       <div className="dash-section-anim" style={{ animationDelay: '500ms' }}>
-        <TopCustomersCard />
+        <TopCustomersCard onViewChange={onViewChange} />
       </div>
       <div className="dash-section-anim" style={{ animationDelay: '600ms' }}>
         <QuickActions onViewChange={onViewChange} />

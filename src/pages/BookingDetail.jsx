@@ -3,7 +3,7 @@ import { openQuoteDetail } from '../utils/quoteNav';
 import { openCustomerProfile } from '../utils/customerNav';
 import { useDemoPopup } from '../context/DemoContext';
 import { openBilling } from '../utils/billingNav';
-import { InfoBtn } from '../components/InfoBtn';
+import { InfoBtn } from '../shared/components/InfoBtn';
 
 // ── Mock detailed booking data ─────────────────────────────────────────────────
 const bookingDetailData = {
@@ -121,7 +121,7 @@ const SVC_ICONS = {
 };
 
 const SVC_COLORS = {
-  flight: '#f97316', hotel: '#3b82f6', activities: '#8b5cf6', fooding: '#ec4899', transport: '#f59e0b',
+  flight: '#16A34A', hotel: '#3b82f6', activities: '#8b5cf6', fooding: '#ec4899', transport: '#f59e0b',
 };
 
 // ── Status helpers ────────────────────────────────────────────────────────────
@@ -187,7 +187,7 @@ export const BookingDetail = ({ bookingId, fromView, onBack }) => {
       <div className="bd-hero-card">
         <div className="bd-hero-left">
           <div className="bd-hero-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
           <div>
             <div className="bd-hero-id-row">

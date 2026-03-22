@@ -4,7 +4,7 @@ import { useDemoPopup } from '../context/DemoContext';
 import jsPDF from 'jspdf';
 
 const TEMPLATES = [
-  { id: 'wanderlust', label: 'Wanderlust', color: '#F47D5B', bg: '#fff7f4' },
+  { id: 'wanderlust', label: 'Wanderlust', color: '#16A34A', bg: '#f0fdf4' },
   { id: 'explorer',   label: 'Explorer',   color: '#3B82F6', bg: '#eff6ff' },
   { id: 'classic',    label: 'Classic',    color: '#1e293b', bg: '#f8fafc' },
   { id: 'horizon',    label: 'Horizon',    color: '#0EA5E9', bg: '#f0f9ff' },
@@ -15,7 +15,7 @@ const TEMPLATES = [
   { id: 'majestic',   label: 'Majestic',   color: '#F59E0B', bg: '#fffbeb' },
 ];
 
-const ACCENT_COLORS = ['#F47D5B', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899'];
+const ACCENT_COLORS = ['#16A34A', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899'];
 
 const GSTIN = 'GSTIN 27AABCW1234F1ZP';
 
@@ -30,19 +30,19 @@ export const QuoteDesigner = ({ quoteId, quoteData, fromView, onBack }) => {
   const openDemo = useDemoPopup();
 
   const [selectedTemplate, setSelectedTemplate] = useState('wanderlust');
-  const [accentColor, setAccentColor]           = useState('#F47D5B');
+  const [accentColor, setAccentColor]           = useState('#16A34A');
   const [showPreview, setShowPreview]           = useState(false);
   const [hfTab, setHfTab]                       = useState('design');
   const [companyName, setCompanyName]           = useState('WANDERLUST TRAVELS');
   const [tagline, setTagline]                   = useState('Crafting Memories, One Journey at a Time');
   const [phone, setPhone]                       = useState('+91 98765 43210');
-  const [email, setEmail]                       = useState('demo@moontrip.in');
+  const [email, setEmail]                       = useState('demo@touridoo.in');
   const [logoPosition, setLogoPosition]         = useState('left');
   const [headerLayout, setHeaderLayout]         = useState('split');
   const [headerHeight, setHeaderHeight]         = useState(80);
   const [fontSize, setFontSize]                 = useState(14);
   const [horizPadding, setHorizPadding]         = useState(24);
-  const [headerBg, setHeaderBg]                 = useState('#F47D5B');
+  const [headerBg, setHeaderBg]                 = useState('#16A34A');
   const [headerText, setHeaderText]             = useState('#ffffff');
   const [dividerLine, setDividerLine]           = useState(true);
   const [hoveredDay, setHoveredDay]             = useState(null);

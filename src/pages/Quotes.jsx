@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from '../components/Header';
-import { QuotesSearchBar } from '../components/QuotesSearchBar';
-import { QuotesTable } from '../components/QuotesTable';
-import { TableSkeleton } from '../components/PageSkeleton';
-import { ExportDropdown } from '../components/ExportDropdown';
+import { Header } from '../shared/components/Header';
+import { QuotesSearchBar } from '../shared/components/QuotesSearchBar';
+import { QuotesTable } from '../shared/components/QuotesTable';
+import { demoCustomers, demoQuoteDetailData } from '../shared/data/demoData';
+import { buildEditFormData } from '../shared/utils/buildEditFormData';
+import { useDemoPopup } from '../context/DemoContext';
+import { TableSkeleton } from '../shared/components/PageSkeleton';
+import { ExportDropdown } from '../shared/components/ExportDropdown';
 
 const QUOTES_COLUMNS = [
   { header: 'Quote #',      key: 'id' },
@@ -26,6 +29,7 @@ const initialQuotes = [
 ];
 
 export const Quotes = ({ onViewChange }) => {
+  const triggerDemoPopup = useDemoPopup();
   const [activeFilter, setActiveFilter] = useState(() => sessionStorage.getItem('quotes_activeFilter') || 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -80,7 +84,14 @@ export const Quotes = ({ onViewChange }) => {
       {isRefreshing ? (
         <TableSkeleton rows={5} cols={7} />
       ) : filteredQuotes.length > 0 ? (
-        <QuotesTable key={refreshKey} quotes={filteredQuotes} />
+        <QuotesTable
+          key={refreshKey}
+          quotes={filteredQuotes}
+          customers={demoCustomers}
+          quoteDetailData={demoQuoteDetailData}
+          buildEditFormData={buildEditFormData}
+          onAction={triggerDemoPopup}
+        />
       ) : (
 
         <div className="empty-state-card">

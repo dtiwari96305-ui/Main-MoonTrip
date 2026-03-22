@@ -1,0 +1,172 @@
+/* ============================================================
+   LANDING SCREEN — Mode Selection
+============================================================ */
+
+.landing-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 40px 20px;
+}
+
+.landing-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.landing-logo-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-logo-circle svg {
+  color: #fff;
+}
+
+.landing-logo-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.03em;
+}
+
+.landing-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.landing-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 720px;
+  width: 100%;
+}
+
+.landing-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  padding: 32px 28px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.landing-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.landing-card-demo .landing-card-icon {
+  background: linear-gradient(135deg, #f6ad55, #ed8936);
+}
+
+.landing-card-real .landing-card-icon {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.landing-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.landing-card-desc {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.landing-card-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.landing-card-demo .landing-card-btn {
+  background: linear-gradient(135deg, #f6ad55, #ed8936);
+  color: #fff;
+}
+
+.landing-card-real .landing-card-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+
+.landing-card-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.landing-card-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.landing-card-demo .landing-card-badge {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.landing-card-real .landing-card-badge {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .landing-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .landing-card {
+    padding: 24px 20px;
+  }
+
+  .landing-logo-text {
+    font-size: 1.25rem;
+  }
+}

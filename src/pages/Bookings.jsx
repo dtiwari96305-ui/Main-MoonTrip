@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from '../components/Header';
-import { BookingsTable } from '../components/BookingsTable';
-import { TableSkeleton } from '../components/PageSkeleton';
-import { ExportDropdown } from '../components/ExportDropdown';
+import { Header } from '../shared/components/Header';
+import { BookingsTable } from '../shared/components/BookingsTable';
+import { demoCustomers } from '../shared/data/demoData';
+import { useDemoPopup } from '../context/DemoContext';
+import { TableSkeleton } from '../shared/components/PageSkeleton';
+import { ExportDropdown } from '../shared/components/ExportDropdown';
 
 const BOOKINGS_COLUMNS = [
   { header: 'Booking #',   key: 'id' },
@@ -27,6 +29,7 @@ const tabs = [
 ];
 
 export const Bookings = () => {
+  const triggerDemoPopup = useDemoPopup();
   const [activeFilter, setActiveFilter] = useState(() => sessionStorage.getItem('bookings_activeFilter') || 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -99,7 +102,7 @@ export const Bookings = () => {
       {isRefreshing ? (
         <TableSkeleton rows={3} cols={9} />
       ) : filteredBookings.length > 0 ? (
-        <BookingsTable key={refreshKey} bookings={filteredBookings} />
+        <BookingsTable key={refreshKey} bookings={filteredBookings} customers={demoCustomers} onAction={triggerDemoPopup} />
       ) : activeFilter === 'cancelled' ? (
         <div className="data-table-card">
           <table className="data-table">

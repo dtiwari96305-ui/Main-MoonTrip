@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { openBilling } from '../utils/billingNav';
 import { openDesigner } from '../utils/designerNav';
 import { useDemoPopup } from '../context/DemoContext';
-import { InfoBtn } from '../components/InfoBtn';
+import { InfoBtn } from '../shared/components/InfoBtn';
 
 const STEPS = [
   { id: 1, label: 'Customer' },
@@ -963,7 +963,7 @@ const IT_CO = {
   tag:   'Crafting Memories, One Journey at a Time',
   ref:   '+919876543210',
   gstin: 'GSTIN 27AABCW1234F1ZP',
-  email: 'demo@moontrip.in',
+  email: 'demo@touridoo.in',
 };
 const fmtDate6 = d => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 const todayStr = () => new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -1253,7 +1253,7 @@ const Step6Itinerary = ({ data, onChange, editMode, onOpenDesigner }) => {
       {mode === 'designed' && (
         <div className="cq-it-designed-card">
           <div className="cq-it-designed-icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#F47D5B" strokeWidth="1.5"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="1.5"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
           </div>
           <h3 className="cq-it-designed-title">Using Design Itinerary Builder</h3>
           <p className="cq-it-designed-desc">This quote uses the design itinerary builder with custom templates, images, and rich formatting.</p>

@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { TopDemoBanner } from './TopDemoBanner';
-import { Sidebar } from './Sidebar';
+import { Sidebar } from '../shared/components/Sidebar';
 import { openBilling } from '../utils/billingNav';
+
+const PAGE_TITLES = {
+  'dashboard':        'Dashboard',
+  'customers':        'Customers',
+  'quotes':           'Quotes',
+  'bookings':         'Bookings',
+  'live-trips':       'Live Trips',
+  'payments':         'Payments',
+  'sales-invoices':   'Sales Invoices',
+  'accounts':         'Accounts',
+  'settings':         'Settings',
+  'billing':          'Billing',
+  'quote-detail':     'Quote Detail',
+  'booking-detail':   'Booking Detail',
+  'create-quote':     'Create Quote',
+  'quote-designer':   'Design Builder',
+  'customer-profile': 'Customer',
+};
 
 export const Layout = ({ activeView, onViewChange, children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pageTitle = PAGE_TITLES[activeView] || 'Touridoo';
 
   // Close sidebar when navigating to a new view
   useEffect(() => {
@@ -48,8 +67,7 @@ export const Layout = ({ activeView, onViewChange, children }) => {
           </svg>
         </button>
         <div className="mobile-topbar-logo">
-          <div className="logo-circle"></div>
-          <span className="mobile-topbar-name">Moontrip</span>
+          <span className="mobile-topbar-name">{pageTitle}</span>
         </div>
         <div
           className="mobile-topbar-avatar"

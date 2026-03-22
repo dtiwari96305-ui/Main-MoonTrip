@@ -1,7 +1,7 @@
 import React from 'react';
 import { openCustomerProfile } from '../utils/customerNav';
 
-export const TopCustomersCard = () => {
+export const TopCustomersCard = ({ onViewChange }) => {
   const customers = [
     { rank: 1, initials: 'VI', name: 'Vikram Iyer', id: 'WL-C-0003', bookings: 1, revenue: '₹4,69,900', gradient: 'linear-gradient(135deg, #667eea, #764ba2)' },
     { rank: 2, initials: 'RP', name: 'Rajesh Patel', id: 'WL-C-0003', bookings: 1, revenue: '₹1,56,880', gradient: 'linear-gradient(135deg, #f093fb, #f5576c)' },
@@ -45,6 +45,11 @@ export const TopCustomersCard = () => {
           ))}
         </tbody>
       </table>
+      {onViewChange && (
+        <button className="tc-view-all-btn" onClick={() => onViewChange('customers')}>
+          View All
+        </button>
+      )}
     </div>
   );
 };

@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { InfoBtn } from '../components/InfoBtn';
-import { RecordPaymentModal } from '../components/RecordPaymentModal';
-import { PaymentDetailModal } from '../components/PaymentDetailModal';
+import { InfoBtn } from '../shared/components/InfoBtn';
+import { RecordPaymentModal } from '../shared/components/RecordPaymentModal';
+import { PaymentDetailModal } from '../shared/components/PaymentDetailModal';
 import { openBilling } from '../utils/billingNav';
-import { ExportDropdown } from '../components/ExportDropdown';
+import { ExportDropdown } from '../shared/components/ExportDropdown';
+import { useDemoPopup } from '../context/DemoContext';
+import { demoCustomers } from '../shared/data/demoData';
+import { getDemoPaymentById } from '../shared/data/demoData';
 
 const PAYMENTS_COLUMNS = [
   { header: 'Payment #',  key: 'id' },
@@ -46,6 +49,7 @@ const FunnelIcon = ({ active, onClick }) => (
 );
 
 export const Payments = () => {
+  const triggerDemoPopup = useDemoPopup();
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('payments_activeTab') || 'all');
   const [activeStat, setActiveStat] = useState(() => sessionStorage.getItem('payments_activeStat') || 'totalReceived');
   const [customerFilter, setCustomerFilter] = useState('All Customers');
@@ -329,12 +333,16 @@ export const Payments = () => {
       <RecordPaymentModal
         isOpen={recordPaymentOpen}
         onClose={() => setRecordPaymentOpen(false)}
+        customers={demoCustomers}
+        onSave={triggerDemoPopup}
       />
 
       {paymentDetailId && (
         <PaymentDetailModal
           paymentId={paymentDetailId}
           onClose={() => setPaymentDetailId(null)}
+          getPaymentById={getDemoPaymentById}
+          onSave={triggerDemoPopup}
         />
       )}
     </div>

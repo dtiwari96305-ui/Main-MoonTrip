@@ -32,7 +32,7 @@ export const Sidebar = ({ activeView, onViewChange, isOpen, onClose }) => {
         <div className="sidebar-logo">
           <div className="logo-circle"></div>
           <div className="logo-text">
-            <span className="logo-name">Moontrip</span>
+            <span className="logo-name">Touridoo</span>
             <span className="logo-sub">Wanderlust Travels</span>
           </div>
         </div>

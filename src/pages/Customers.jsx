@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Header } from '../components/Header';
-import { CustomerStats } from '../components/CustomerStats';
-import { CustomersTable, customers as allCustomers } from '../components/CustomersTable';
-import { TableSkeleton } from '../components/PageSkeleton';
-import { ExportDropdown } from '../components/ExportDropdown';
-import { CustomerSidePanel } from '../components/CustomerSidePanel';
+import { Header } from '../shared/components/Header';
+import { CustomerStats } from '../shared/components/CustomerStats';
+import { CustomersTable } from '../shared/components/CustomersTable';
+import { TableSkeleton } from '../shared/components/PageSkeleton';
+import { ExportDropdown } from '../shared/components/ExportDropdown';
+import { CustomerSidePanel } from '../shared/components/CustomerSidePanel';
+import { useDemoPopup } from '../context/DemoContext';
 import { profileData } from './CustomerProfile';
+import { demoCustomers } from '../shared/data/demoData';
 
 const CUSTOMERS_COLUMNS = [
   { header: 'Customer #', key: 'id' },
@@ -18,10 +20,11 @@ const CUSTOMERS_COLUMNS = [
 ];
 
 export const Customers = () => {
+  const triggerDemoPopup = useDemoPopup();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [filteredCustomers, setFilteredCustomers] = useState(allCustomers);
+  const [filteredCustomers, setFilteredCustomers] = useState(demoCustomers);
 
   // Side panel state
   const [panelOpen, setPanelOpen] = useState(false);
@@ -88,6 +91,7 @@ export const Customers = () => {
       ) : (
         <CustomersTable
           key={refreshKey}
+          customers={demoCustomers}
           searchQuery={searchQuery}
           onFilteredChange={setFilteredCustomers}
           onEdit={openEditPanel}
@@ -100,6 +104,7 @@ export const Customers = () => {
         customer={panelCustomer}
         profileExt={panelProfileExt}
         onClose={() => setPanelOpen(false)}
+        onSave={triggerDemoPopup}
       />
     </div>
   );

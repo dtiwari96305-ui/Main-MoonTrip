@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { InfoBtn } from '../components/InfoBtn';
-import { TableSkeleton } from '../components/PageSkeleton';
-import { ExportDropdown } from '../components/ExportDropdown';
+import { InfoBtn } from '../shared/components/InfoBtn';
+import { TableSkeleton } from '../shared/components/PageSkeleton';
+import { ExportDropdown } from '../shared/components/ExportDropdown';
 import { openBilling } from '../utils/billingNav';
 
 const INVOICES_COLUMNS = [

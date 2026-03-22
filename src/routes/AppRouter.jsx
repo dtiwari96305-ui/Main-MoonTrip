@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AuthGuard } from '../utils/authGuard';
+import { AuthGuard } from '../shared/utils/authGuard';
 import { Layout } from '../components/Layout';
 import { Dashboard } from '../pages/Dashboard';
 import { Customers } from '../pages/Customers';
@@ -13,7 +13,7 @@ import { Accounts } from '../pages/Accounts';
 import { CreateQuote } from '../pages/CreateQuote';
 import { CustomerProfile } from '../pages/CustomerProfile';
 import { QuoteDetail } from '../pages/QuoteDetail';
-import { PageSkeleton } from '../components/PageSkeleton';
+import { PageSkeleton } from '../shared/components/PageSkeleton';
 import { registerCustomerNav } from '../utils/customerNav';
 import { registerQuoteNav } from '../utils/quoteNav';
 import { registerCreateQuoteNav } from '../utils/createQuoteNav';

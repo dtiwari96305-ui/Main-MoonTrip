@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { InfoBtn } from '../components/InfoBtn';
+import { InfoBtn } from '../shared/components/InfoBtn';
 import { openBilling } from '../utils/billingNav';
 import { useDemoPopup } from '../context/DemoContext';
 
@@ -116,7 +116,7 @@ export const Settings = () => {
                 <div className="profile-avatar-large">DA</div>
                 <div className="profile-meta">
                   <h2>Demo Admin</h2>
-                  <p>demo@moontrip.in</p>
+                  <p>demo@touridoo.in</p>
                   <span className="role-pill-red">Admin</span>
                 </div>
               </div>
@@ -134,7 +134,7 @@ export const Settings = () => {
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:4}}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                       Email
                     </label>
-                    <input type="email" className="form-input" defaultValue="demo@moontrip.in" />
+                    <input type="email" className="form-input" defaultValue="demo@touridoo.in" />
                   </div>
                 </div>
                 <div className="form-group">
@@ -183,7 +183,7 @@ export const Settings = () => {
                 </div>
                 <div className="profile-meta">
                   <h2>Wanderlust Travels</h2>
-                  <p>demo-wanderlust.moontrip.app</p>
+                  <p>demo-wanderlust.touridoo.app</p>
                   <div style={{marginTop: 6}}>
                     <span className="pro-badge-small"><span className="role-dot"></span> Pro Plan</span>
                   </div>
@@ -256,7 +256,7 @@ export const Settings = () => {
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:4}}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                       Company Email
                     </label>
-                    <input type="email" className="form-input" defaultValue="demo@moontrip.in" />
+                    <input type="email" className="form-input" defaultValue="demo@touridoo.in" />
                   </div>
                 </div>
                 <div className="form-group">

@@ -41,7 +41,7 @@ const downloadPDF = (payment) => {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('Moontrip', 14, 12);
+  doc.text('Touridoo', 14, 12);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('Travel & Tourism Agency', 14, 19);
@@ -98,7 +98,7 @@ const downloadPDF = (payment) => {
   doc.setTextColor(180, 180, 190);
   doc.setFont('helvetica', 'normal');
   doc.text('This is a computer-generated receipt. No signature required.', 14, 280);
-  doc.text('Moontrip Travel Agency · demo@moontrip.in · +91 98765 43210', 14, 285);
+  doc.text('Touridoo Travel Agency · demo@touridoo.in · +91 98765 43210', 14, 285);
 
   // Generate filename
   const dateStr = payment.date.replace(/\s/g, '').replace(/,/g, '');

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { customers } from '../components/CustomersTable';
+import { demoCustomers as customers } from '../shared/data/demoData';
 import { openQuoteDetail } from '../utils/quoteNav';
 import { openBookingDetail } from '../utils/bookingNav';
 import { openCreateQuoteWithCustomer } from '../utils/createQuoteNav';
 import { openBilling } from '../utils/billingNav';
-import { generateLedgerPdf } from '../utils/generateLedgerPdf';
-import { CustomerSidePanel } from '../components/CustomerSidePanel';
-import { RecordPaymentModal } from '../components/RecordPaymentModal';
-import { PaymentDetailModal } from '../components/PaymentDetailModal';
+import { generateLedgerPdf } from '../shared/utils/generateLedgerPdf';
+import { CustomerSidePanel } from '../shared/components/CustomerSidePanel';
+import { RecordPaymentModal } from '../shared/components/RecordPaymentModal';
+import { PaymentDetailModal } from '../shared/components/PaymentDetailModal';
 import { useDemoPopup } from '../context/DemoContext';
+import { getDemoPaymentById } from '../shared/data/demoData';
 
 // ─── Extended profile data per customer ───────────────────────────────────────
 export const profileData = {
@@ -515,6 +516,8 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
         <PaymentDetailModal
           paymentId={paymentDetailId}
           onClose={() => setPaymentDetailId(null)}
+          getPaymentById={getDemoPaymentById}
+          onSave={triggerDemoPopup}
         />
       )}
 
@@ -524,12 +527,15 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
         customer={customer}
         profileExt={ext}
         onClose={() => setEditPanelOpen(false)}
+        onSave={triggerDemoPopup}
       />
 
       <RecordPaymentModal
         isOpen={recordPaymentOpen}
         onClose={() => setRecordPaymentOpen(false)}
         preselectedCustomer={customer}
+        customers={customers}
+        onSave={triggerDemoPopup}
       />
     </div>
   );

@@ -4,7 +4,7 @@
 :root {
   --sidebar-bg: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #273449 100%);
   --sidebar-item-active-bg: rgba(255, 255, 255, 0.05);
-  --sidebar-active-indicator: #F47D5B;
+  --sidebar-active-indicator: #16A34A;
   --sidebar-hover: rgba(255, 255, 255, 0.03);
   --sidebar-text: rgba(255, 255, 255, 0.5);
   --sidebar-text-active: #ffffff;
@@ -14,8 +14,8 @@
   --text-primary: #1e293b;
   --text-secondary: #64748b;
   --text-muted: #94a3b8;
-  --accent: #F47D5B;
-  --accent-hover: #e86a45;
+  --accent: #16A34A;
+  --accent-hover: #15803D;
   --border-color: #e8ecf1;
   --green: #22c55e;
   --red: #ef4444;
@@ -221,7 +221,7 @@ button {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F47D5B, #e06040);
+  background: linear-gradient(135deg, #16A34A, #15803D);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -369,7 +369,7 @@ button {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: #F47D5B;
+  background: #16A34A;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -638,14 +638,14 @@ button {
   font-weight: 600;
   padding: 12px 24px;
   border-radius: var(--radius-sm);
-  box-shadow: 0 4px 6px -1px rgba(244, 125, 91, 0.2), 0 2px 4px -1px rgba(244, 125, 91, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.2), 0 2px 4px -1px rgba(22, 163, 74, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .new-quote-btn:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(244, 125, 91, 0.3), 0 4px 6px -2px rgba(244, 125, 91, 0.15);
+  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.3), 0 4px 6px -2px rgba(22, 163, 74, 0.15);
 }
 
 .new-quote-btn:active {
@@ -832,8 +832,8 @@ button {
 }
 
 .stat-icon-orange {
-  background: linear-gradient(135deg, #F47D5B, #e86a45);
-  box-shadow: 0 4px 12px rgba(244, 125, 91, 0.3);
+  background: linear-gradient(135deg, #16A34A, #15803D);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
 }
 
 .stat-icon-blue {
@@ -920,7 +920,7 @@ button {
 }
 
 .revenue-dot {
-  background: #F47D5B;
+  background: #16A34A;
 }
 
 .profit-dot {
@@ -1018,7 +1018,7 @@ button {
 }
 
 .tooltip-revenue {
-  color: #F47D5B;
+  color: #16A34A;
   font-weight: 600;
 }
 
@@ -1136,7 +1136,7 @@ button {
 
 .ai-orange {
   background: #fff3ed;
-  color: #F47D5B;
+  color: #16A34A;
 }
 
 .activity-details {
@@ -1352,7 +1352,7 @@ button {
 
 .fs-icon-orange {
   background: #fff3ed;
-  color: #F47D5B;
+  color: #16A34A;
 }
 
 .fs-icon-blue {
@@ -1592,7 +1592,7 @@ button {
 }
 
 .rank-1 {
-  background: #F47D5B;
+  background: #16A34A;
 }
 
 .rank-2 {
@@ -1645,7 +1645,7 @@ button {
   height: 40px;
   border-radius: 10px;
   background: #fff3ed;
-  color: #F47D5B;
+  color: #16A34A;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1809,7 +1809,7 @@ button {
 
 .qa-icon-orange {
   background: #fff3ed;
-  color: #F47D5B;
+  color: #16A34A;
 }
 
 .qa-icon-blue {
@@ -1987,7 +1987,7 @@ button {
 
 .cstat-icon-orange {
   background: #fff3ed;
-  color: #F47D5B;
+  color: #16A34A;
 }
 
 .cstat-icon-red {
@@ -2573,7 +2573,7 @@ button {
 
 .pstat-card.pstat-active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(244, 125, 91, 0.1);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
 
 .pstat-clickable {
@@ -2881,14 +2881,14 @@ button {
   width: 72px;
   height: 72px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #F47D5B, #e35d3a);
+  background: linear-gradient(135deg, #16A34A, #15803D);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
   font-weight: 700;
-  box-shadow: 0 4px 10px rgba(244, 125, 91, 0.3);
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.3);
 }
 
 .company-logo-upload {
@@ -3011,7 +3011,7 @@ button {
 .form-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(244, 125, 91, 0.1);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
 
 .form-input.uppercase-text {
@@ -3496,7 +3496,7 @@ button {
 .plan-icon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #F47D5B, #e35d3a);
+  background: linear-gradient(135deg, #16A34A, #15803D);
   color: #fff;
   border-radius: 12px;
   display: flex;
@@ -4315,8 +4315,8 @@ tr:hover .dt-actions .action-btn {
   -webkit-appearance: none;
 }
 .sp-input:focus {
-  border-color: #F47D5B;
-  box-shadow: 0 0 0 3px rgba(244, 125, 91, 0.1);
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
 .sp-input::placeholder {
   color: #c0cad8;
@@ -4360,8 +4360,8 @@ tr:hover .dt-actions .action-btn {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .sp-phone-wrap:focus-within {
-  border-color: #F47D5B;
-  box-shadow: 0 0 0 3px rgba(244, 125, 91, 0.1);
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
 .sp-cc-box {
   display: flex;
@@ -5076,7 +5076,7 @@ tr:hover .dt-actions .action-btn {
 .bl-current-left { display: flex; align-items: flex-start; gap: 16px; }
 .bl-plan-icon {
   width: 52px; height: 52px;
-  background: linear-gradient(135deg, #f97316, #fb923c);
+  background: linear-gradient(135deg, #16A34A, #15803D);
   border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
   color: #fff;
@@ -5230,7 +5230,7 @@ tr:hover .dt-actions .action-btn {
   border-width: 2px;
 }
 .bl-plan-current {
-  border-color: #f97316;
+  border-color: #16A34A;
   border-width: 2px;
 }
 .bl-popular-badge {

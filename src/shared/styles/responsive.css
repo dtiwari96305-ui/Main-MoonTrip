@@ -1,0 +1,1506 @@
+/* ============================================================
+   MOONTRIP — GLOBAL RESPONSIVE STYLESHEET
+   Breakpoints:
+     Mobile  : ≤ 767px   →  @media (max-width: 767px)
+     Desktop : ≥ 768px   →  no changes — 100% identical to current desktop
+
+   RULE: Zero desktop regression. Every mobile rule lives inside
+         @media (max-width: 767px) only. Nothing else.
+============================================================ */
+
+/* ============================================================
+   GLOBAL — prevent horizontal overflow at all sizes
+============================================================ */
+html {
+  overflow-x: hidden;
+}
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+img,
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================================================
+   SIDEBAR OVERLAY — base (hidden by default, shown on mobile)
+============================================================ */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 300ms ease-in-out, visibility 300ms ease-in-out;
+}
+.sidebar-overlay.sidebar-overlay-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+}
+
+/* Sidebar close (✕) button — hidden by default (desktop has no close btn) */
+.sidebar-close-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+  margin-bottom: 16px;
+  margin-left: auto;
+}
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* Mobile top bar — hidden by default (desktop) */
+.mobile-topbar {
+  display: none;
+}
+
+/* ============================================================
+   MOBILE TOPBAR COMPONENTS — base styles
+============================================================ */
+.mobile-hamburger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+.mobile-hamburger:hover  { background: #f1f5f9; }
+.mobile-hamburger:active { background: #e2e8f0; }
+
+.mobile-topbar-logo {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+}
+.mobile-topbar-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100vw - 120px);
+}
+.mobile-topbar-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   DESKTOP GUARD (≥ 768px) — enforce zero regression
+   Sidebar always visible, no mobile chrome
+============================================================ */
+@media (min-width: 768px) {
+  .sidebar-overlay   { display: none !important; }
+  .mobile-topbar     { display: none !important; }
+  .sidebar-close-btn { display: none !important; }
+}
+
+/* ============================================================
+   RESPONSIVE CHART CONTAINER — all sizes
+============================================================ */
+.responsive-chart-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+.responsive-chart-container canvas,
+.responsive-chart-container svg {
+  max-width: 100% !important;
+}
+
+/* ============================================================
+   ██████████████████████████████████████████████████████████
+   MOBILE (≤ 767px) — Complete fresh rewrite from reference
+   ██████████████████████████████████████████████████████████
+============================================================ */
+@media (max-width: 767px) {
+
+  /* ----------------------------------------------------------
+     BODY / ROOT
+  ---------------------------------------------------------- */
+  body { overflow-x: hidden !important; }
+  img, canvas, svg { max-width: 100%; }
+
+  /* ----------------------------------------------------------
+     SIDEBAR — hidden, slides in from left
+  ---------------------------------------------------------- */
+  .sidebar {
+    transform: translateX(-100%) !important;
+    transition: transform 300ms ease-in-out !important;
+    width: 270px !important;
+    z-index: 100 !important;
+  }
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+  .sidebar-close-btn { display: flex !important; }
+
+  /* ----------------------------------------------------------
+     DEMO BANNER — fixed at very top (36px tall)
+  ---------------------------------------------------------- */
+  .demo-banner {
+    position: static !important;  /* FIX 1: scrolls with page on mobile */
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    z-index: auto !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    font-size: 0.75rem !important;
+    padding: 0 12px !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+  }
+  .demo-banner-left {
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+  .demo-banner-left > span {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+  }
+  /* Hide detail text to keep banner on one line */
+  .banner-detail-text { display: none !important; }
+  .demo-banner-cta {
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* ----------------------------------------------------------
+     MOBILE TOPBAR — scrolls with content (NOT fixed)
+     Shows ≡ hamburger (gray rounded box) + large bold page title
+  ---------------------------------------------------------- */
+  .mobile-topbar {
+    display: flex !important;
+    position: static !important;
+    margin-top: 0 !important;           /* FIX 1: banner is in-flow, no margin needed */
+    height: auto !important;
+    min-height: 44px !important;        /* FIX 2: compact height */
+    background: #ffffff !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    padding: 8px 16px 2px !important;   /* FIX 2: reduced padding */
+    pointer-events: auto !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  .mobile-topbar-logo {
+    display: flex !important;
+    justify-content: flex-start !important;
+    flex: 1 !important;
+  }
+  .mobile-topbar-name {
+    font-size: 1.2rem !important;       /* FIX 2: compact heading */
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+  }
+  /* Hide avatar in topbar */
+  .mobile-topbar-avatar { display: none !important; }
+
+  /* Hamburger: rounded gray box (matches reference) */
+  .mobile-hamburger {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    background: #f1f5f9 !important;
+    border-radius: 10px !important;
+    padding: 8px !important;
+    pointer-events: auto !important;
+    color: var(--text-primary) !important;
+  }
+  .mobile-hamburger:hover  { background: #e2e8f0 !important; }
+  .mobile-hamburger:active { background: #cbd5e1 !important; }
+
+  /* ----------------------------------------------------------
+     MAIN CONTENT — full width, no top padding (topbar scrolls above)
+     app-layout padding-top reset: banner already handled by mobile-topbar margin-top
+  ---------------------------------------------------------- */
+  .app-layout {
+    padding-top: 0 !important;
+  }
+  .main-content {
+    margin-left: 0 !important;
+    padding-top: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 24px !important;
+  }
+
+  /* ----------------------------------------------------------
+     PAGE HEADER STRIP — hide title (shown in mobile topbar),
+     show only the actions row. Remove white card look — blend with page.
+  ---------------------------------------------------------- */
+  .dash-header-left  { display: none !important; }
+  .page-header-strip {
+    margin: 0 -16px 16px -16px !important;
+    padding: 4px 16px 12px !important;
+    background: #ffffff !important;
+    border-bottom: none !important;
+  }
+  .settings-header-strip {
+    margin: 0 -16px 16px -16px !important;
+    padding: 4px 16px 16px !important;
+    background: #ffffff !important;
+    border-bottom: none !important;
+  }
+
+  /* Dash header: actions row only */
+  .dash-header {
+    flex-direction: row !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+  }
+  .dash-header-right {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  /* Hide avatar (already in mobile topbar) */
+  .dash-header-right .header-user { display: none !important; }
+  /* Primary action button — grows to fill remaining space */
+  .dash-header-right .new-quote-btn {
+    flex: 1 1 auto !important;
+    padding: 10px 16px !important;
+    font-size: 0.85rem !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  /* Export/import button — compact auto width */
+  .dash-header-right .import-btn {
+    flex: 0 0 auto !important;
+    padding: 10px 14px !important;
+    font-size: 0.82rem !important;
+    min-height: 44px !important;
+    white-space: nowrap !important;
+  }
+  /* Date filter — shrinks to content */
+  .dash-header-right .date-filter-wrapper { flex: 0 0 auto !important; }
+  .dash-header-right .date-filter {
+    padding: 10px 12px !important;
+    font-size: 0.82rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY
+  ---------------------------------------------------------- */
+  .page-title    { font-size: 1.4rem !important; letter-spacing: -0.01em !important; }
+  .page-subtitle { font-size: 0.9rem !important; margin-top: 6px !important; }
+  .header-user-info { display: none !important; }
+  .header-user {
+    padding-left: 0 !important;
+    border-left: none !important;
+    margin-left: 0 !important;
+  }
+
+  /* ----------------------------------------------------------
+     DASHBOARD — stat cards: 2×2 grid (matches reference)
+  ---------------------------------------------------------- */
+  .stat-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .stat-card     { padding: 14px !important; }
+  .stat-value    { font-size: 1.2rem !important; }   /* FIX 2: ~19px on other pages */
+  .stat-icon-box { width: 36px !important; height: 36px !important; } /* slightly smaller globally */
+
+  /* Dashboard body: single column */
+  .dashboard-body {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* ----------------------------------------------------------
+     DASHBOARD — Charts (Revenue Overview, Monthly Bookings)
+  ---------------------------------------------------------- */
+  .chart-body {
+    height: 180px !important;
+  }
+  .chart-y-axis {
+    height: 180px !important;
+    width: 32px !important;
+  }
+  /* Chart header: title left, period selector right */
+  .chart-header {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+  .chart-header-left {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  .chart-header-right {
+    flex: 0 0 auto !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+  }
+  .chart-legend {
+    width: 100% !important;
+    order: 1 !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .chart-x-axis {
+    font-size: 0.65rem !important;
+    overflow: hidden !important;
+  }
+  .chart-area canvas { max-width: 100% !important; }
+  .revenue-chart-card { overflow: hidden !important; }
+
+  /* ----------------------------------------------------------
+     DASHBOARD — Recent Activity, Financial Summary
+  ---------------------------------------------------------- */
+  .recent-activity-card,
+  .financial-summary-card,
+  .revenue-chart-card {
+    padding: 16px !important;
+  }
+  .activity-list { max-height: none !important; }
+  .activity-item {
+    gap: 10px !important;
+    padding: 12px 0 !important;
+  }
+  .fs-grid,
+  .financial-grid { grid-template-columns: 1fr !important; }
+
+  /* ----------------------------------------------------------
+     DASHBOARD — Top Destinations
+  ---------------------------------------------------------- */
+  .destinations-row { grid-template-columns: 1fr !important; }
+  .dest-body        { grid-template-columns: 1fr !important; }
+  .dest-body--wide  { grid-template-columns: 1fr !important; }
+  .dest-map-area         { aspect-ratio: 16/9 !important; }
+  .dest-map-area--wide   { aspect-ratio: 16/9 !important; }
+  .dest-list--wide       { padding-left: 0 !important; }
+
+  /* ----------------------------------------------------------
+     DASHBOARD — Top Customers
+  ---------------------------------------------------------- */
+  .top-customers-table { width: 100% !important; }
+
+  /* ----------------------------------------------------------
+     DASHBOARD — Quick Actions: single full-width column
+  ---------------------------------------------------------- */
+  .quick-actions     { grid-template-columns: 1fr !important; }
+  .quick-action-card { padding: 14px 16px !important; }
+
+  /* ----------------------------------------------------------
+     DASHBOARD — Info/FS Popups
+  ---------------------------------------------------------- */
+  .info-popup,
+  .fs-popup {
+    width: calc(100vw - 32px) !important;
+    max-width: 320px !important;
+  }
+  .info-popup-portal {
+    max-width: calc(100vw - 48px) !important;
+    white-space: normal !important;
+  }
+
+  /* ----------------------------------------------------------
+     MAP CONTAINERS
+  ---------------------------------------------------------- */
+  .world-map-container,
+  .india-map-container,
+  [class*="map-container"] {
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* ----------------------------------------------------------
+     DATA TABLES — horizontal scroll with min-width floors
+  ---------------------------------------------------------- */
+  .data-table-card,
+  .data-table-wrapper,
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+  }
+  .data-table                        { min-width: 600px !important; }
+  #view-quotes    .data-table        { min-width: 750px !important; }
+  #view-bookings  .data-table        { min-width: 800px !important; }
+  #view-customers .data-table        { min-width: 650px !important; }
+  #view-livetrips .data-table        { min-width: 700px !important; }
+  .page-view      .data-table        { min-width: 700px !important; }
+  #view-accounts  .data-table        { min-width: 650px !important; }
+  /* Prevent mid-word column breaks */
+  .qt-dest-name,
+  .qt-dest-type,
+  .bk-destination                    { white-space: nowrap !important; }
+  .data-table td:first-child         { white-space: nowrap !important; }
+  .bk-payment                        { min-width: auto !important; }
+
+  /* ----------------------------------------------------------
+     FILTER TABS — single scrollable row
+  ---------------------------------------------------------- */
+  .filter-tabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px !important;
+    scrollbar-width: none !important;
+  }
+  .filter-tabs::-webkit-scrollbar { display: none !important; }
+
+  /* ----------------------------------------------------------
+     SEARCH BARS — full-width column layout
+  ---------------------------------------------------------- */
+  .page-search-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .search-bar-input,
+  .quotes-search-input,
+  .team-search-bar,
+  .search-input-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  .page-search-bar > .icon-btn,
+  .page-search-bar > button { align-self: flex-end !important; }
+
+  /* ----------------------------------------------------------
+     DROPDOWNS — fixed centered to stay on screen
+  ---------------------------------------------------------- */
+  .date-filter-dropdown {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    right: auto !important;
+    z-index: 9999 !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+  .date-filter { min-height: 44px !important; font-size: 0.85rem !important; }
+
+  .status-dropdown {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 9999 !important;
+    min-width: 200px !important;
+    max-width: calc(100vw - 32px) !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+  .export-dropdown-menu,
+  .export-menu,
+  [class*="export"][class*="drop"] {
+    right: 0 !important;
+    left: auto !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+  .chart-dropdown {
+    right: 0 !important;
+    left: auto !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+
+  /* ----------------------------------------------------------
+     LOGS POPUP — centered modal
+  ---------------------------------------------------------- */
+  .logs-popup-container {
+    position: fixed !important;
+    top: 140px !important;              /* FIX 4: below demo banner + topbar + actions row */
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translateX(-50%) !important; /* only horizontal centering */
+    width: min(360px, calc(100vw - 32px)) !important;
+    max-height: calc(100vh - 160px) !important;
+    border-radius: 16px !important;
+    overflow-y: auto !important;
+    z-index: 9999 !important;
+  }
+  .logs-popup-body { max-height: 60vh !important; overflow-y: auto !important; }
+
+  /* ----------------------------------------------------------
+     NEW QUOTE BUTTON — center-align content
+  ---------------------------------------------------------- */
+  .new-quote-btn { justify-content: center !important; }
+
+  /* ----------------------------------------------------------
+     STAT GRIDS (Customer, Payment, Accounts, Billing)
+  ---------------------------------------------------------- */
+  .customer-stats     { grid-template-columns: 1fr !important; }
+  .payment-stats      { grid-template-columns: 1fr !important; }
+  .pstat-card         { padding: 14px 16px !important; }
+  .pstat-value        { font-size: 1.1rem !important; }
+  .acct-stat-row      { grid-template-columns: 1fr !important; }
+  .billing-usage-grid { grid-template-columns: 1fr !important; }
+  .pricing-grid       { grid-template-columns: 1fr !important; }
+  .bl-support-grid    { grid-template-columns: 1fr !important; }
+  .cp-fin-grid        { grid-template-columns: repeat(2, 1fr) !important; }
+  .bd-payment-stats   { grid-template-columns: 1fr !important; }
+
+  /* ----------------------------------------------------------
+     ACCOUNTS TAB BAR
+  ---------------------------------------------------------- */
+  .acct-tab-bar {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    padding: 8px 12px !important;
+    gap: 4px !important;
+    scrollbar-width: none !important;
+  }
+  .acct-tab-bar::-webkit-scrollbar { display: none !important; }
+  .acct-tab-content  { padding: 0 !important; }
+  .acct-stat-amount  { font-size: 1.1rem !important; }
+  .cti-overlay       { padding: 16px !important; }
+  .acct-adjust-btn   { min-height: 44px !important; }
+  .acct-convert-btn  { min-height: 44px !important; }
+
+  /* ----------------------------------------------------------
+     SIDE PANEL (Add/Edit Customer)
+  ---------------------------------------------------------- */
+  .sp-panel {
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+  .sp-header { flex-shrink: 0 !important; }
+  .sp-body   { flex: 1 !important; overflow-y: auto !important; min-height: 0 !important; }
+  .sp-footer { flex-shrink: 0 !important; }
+  .sp-row-2  { grid-template-columns: 1fr !important; }
+  .sp-row-3  { grid-template-columns: 1fr !important; }
+  .sp-save-btn,
+  .sp-cancel-btn { min-height: 44px !important; }
+  .side-panel-container {
+    width: 100vw !important;
+    border-radius: 0 !important;
+  }
+
+  /* ----------------------------------------------------------
+     RECORD PAYMENT MODAL
+  ---------------------------------------------------------- */
+  .rp-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+  }
+  .rp-footer {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .rp-footer .rp-record-btn,
+  .rp-footer .rp-cancel-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+  }
+  .rp-row-2       { grid-template-columns: 1fr !important; }
+  .rp-search-wrap { width: 100% !important; }
+  .rp-search-input { width: 100% !important; }
+
+  /* ----------------------------------------------------------
+     DEMO POPUP MODAL
+  ---------------------------------------------------------- */
+  .demo-modal {
+    width: 90vw !important;
+    max-width: 420px !important;
+    padding: 24px 20px !important;
+  }
+  .demo-modal-btn {
+    width: 100% !important;
+    padding: 14px !important;
+    font-size: 0.97rem !important;
+    min-height: 44px !important;
+  }
+
+  /* ----------------------------------------------------------
+     PAYMENT DETAIL MODAL (pdm-)
+  ---------------------------------------------------------- */
+  .pdm-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+  }
+  .pdm-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .pdm-action-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+  .pdm-edit-footer {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .pdm-save-btn,
+  .pdm-cancel-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  /* ----------------------------------------------------------
+     CONVERT TO INVOICE MODAL (cti-)
+  ---------------------------------------------------------- */
+  .cti-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  .cti-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .cti-cancel-btn,
+  .cti-create-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+  .cti-field       { padding: 0 16px 12px !important; }
+  .cti-balance-box {
+    margin: 0 16px 12px !important;
+    padding: 12px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .cti-breakdown   { margin: 0 16px 12px !important; }
+
+  /* ----------------------------------------------------------
+     GENERIC MODAL CONTAINER
+  ---------------------------------------------------------- */
+  .modal-container {
+    width: 95vw !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  .modal-container .modal-footer,
+  .modal-container .footer-actions {
+    flex-direction: column !important;
+  }
+  .modal-container .modal-footer button,
+  .modal-container .footer-actions button {
+    width: 100% !important;
+    min-height: 44px !important;
+  }
+
+  /* ----------------------------------------------------------
+     FORM FIELDS
+  ---------------------------------------------------------- */
+  .form-row-2,
+  .form-row-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .form-group.half-width {
+    max-width: 100% !important;
+    padding-right: 0 !important;
+  }
+  .responsive-form-row { grid-template-columns: 1fr !important; }
+  .responsive-form-row .form-field { width: 100% !important; }
+
+  /* ----------------------------------------------------------
+     SETTINGS
+  ---------------------------------------------------------- */
+  .settings-pane { padding: 20px 16px !important; }
+  .settings-wrap-container { padding: 0 !important; }
+  .settings-nav {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    scrollbar-width: none !important;
+  }
+  .settings-nav::-webkit-scrollbar { display: none !important; }
+  .settings-tab {
+    flex-shrink: 0 !important;
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
+    min-height: 44px !important;
+  }
+  .settings-form         { max-width: 100% !important; }
+  .settings-content-card { width: 100% !important; box-sizing: border-box !important; }
+  .form-input,
+  .form-select,
+  .form-textarea         { width: 100% !important; box-sizing: border-box !important; }
+  .profile-header-info {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .team-search-bar { width: 100% !important; }
+  .settings-pane button[type="submit"],
+  .settings-pane .save-btn,
+  .settings-pane .update-btn,
+  .nom-save-btn,
+  .plan-action-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  /* ----------------------------------------------------------
+     BILLING SECTION
+  ---------------------------------------------------------- */
+  .bl-body             { padding: 16px 16px 32px !important; }
+  .bl-plan-cards       { grid-template-columns: 1fr !important; }
+  .bl-usage-grid       { grid-template-columns: 1fr !important; }
+  .bl-current-plan-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 18px !important;
+  }
+  .bl-current-left  { flex-wrap: wrap !important; }
+  .bl-current-price { align-self: flex-start !important; }
+  .bl-plans-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .bl-period-toggle { align-self: flex-start !important; }
+  .bl-manage-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+  .bl-history-card { overflow-x: auto !important; }
+  .pricing-toggle {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* ----------------------------------------------------------
+     CUSTOMER PROFILE (cp-)
+  ---------------------------------------------------------- */
+  .cp-hero-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .cp-detail-grid { grid-template-columns: 1fr !important; }
+  .cp-fin-grid    { grid-template-columns: repeat(2, 1fr) !important; }
+  .cp-addr-grid   { grid-template-columns: 1fr !important; }
+  .cp-table-section-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .cp-table-section-header > div,
+  .cp-table-section-header > span { width: 100% !important; }
+  .cp-section-card { padding: 16px !important; }
+  .cp-payment-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding: 12px 0 !important;
+  }
+  .cp-table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+
+  /* ----------------------------------------------------------
+     QUOTE DETAIL / BOOKING DETAIL — header action buttons
+  ---------------------------------------------------------- */
+  .detail-header-actions,
+  .qd-header-actions,
+  .bd-header-actions {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .detail-header-actions > *,
+  .qd-header-actions > *,
+  .bd-header-actions > * {
+    flex: 1 1 auto !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  /* ----------------------------------------------------------
+     QUOTE DETAIL (qd-)
+  ---------------------------------------------------------- */
+  .qd-travel-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .qd-summary-card { padding: 14px 16px !important; }
+  .qd-summary-top  {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .qd-summary-info { flex-direction: column !important; gap: 6px !important; }
+  .qd-service-list { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+  .qd-fin-rows     { font-size: 0.85rem !important; }
+  .qd-designed-panel { padding: 24px 16px !important; }
+  .qd-itin-list    { padding: 0 !important; }
+  .qd-day-group    { padding: 12px !important; }
+  .qd-body {
+    padding: 12px !important;
+    max-width: 100% !important;
+  }
+  .qd-two-col,
+  .qd-two-col-6-4  { grid-template-columns: 1fr !important; }
+  .qd-incl-excl-grid { grid-template-columns: 1fr !important; }
+  .qd-itin-fields  { grid-template-columns: 1fr !important; }
+  .qd-action-bar {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 12px 16px !important;
+  }
+  .qd-btn {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    text-align: center !important;
+  }
+  /* Itinerary dropdown — centered fixed */
+  .qd-itin-drop,
+  .itin-action-drop,
+  .qd-itin-action-drop {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 9999 !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 300px !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+
+  /* ----------------------------------------------------------
+     BOOKING DETAIL (bd-)
+  ---------------------------------------------------------- */
+  .bd-grid-2 { grid-template-columns: 1fr !important; }
+  .bd-hero-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .bd-hero-actions {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+  .bd-action-btn {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+  }
+  .bd-travel-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .bd-cust-body { padding: 14px 16px !important; }
+  .bd-progress-wrap { padding: 0 !important; }
+  .bd-hist-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+  }
+  .bd-hist-amount { align-self: flex-end !important; }
+  .bd-page {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  .bd-service-cost { min-width: auto !important; }
+
+  /* ----------------------------------------------------------
+     QUOTE DESIGNER (qds-)
+  ---------------------------------------------------------- */
+  .qds-topbar {
+    height: auto !important;
+    flex-wrap: wrap !important;
+    padding: 10px 16px !important;
+    gap: 8px !important;
+  }
+  .qds-topbar-sub  { display: none !important; }
+  .qds-top-btn     { padding: 7px 12px !important; font-size: 0.8rem !important; }
+  .qds-topbar-actions {
+    width: 100% !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+  }
+  .qds-top-btn {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    min-height: 40px !important;
+  }
+  .qds-body {
+    flex-direction: column !important;
+    overflow: auto !important;
+  }
+  .qds-left-panel {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    max-height: none !important;
+  }
+  .qds-template-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .qds-editor-toolbar {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+  .qds-editor-toolbar::-webkit-scrollbar { display: none !important; }
+  .qds-preview-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    border-radius: 12px !important;
+  }
+  .qds-preview-bar {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 10px 14px !important;
+    height: auto !important;
+  }
+  .qds-preview-bar-actions { width: 100% !important; justify-content: flex-end !important; }
+  .qds-doc-ie-grid { grid-template-columns: 1fr !important; }
+  .qds-tb-btn {
+    min-height: 36px !important;
+    min-width: 36px !important;
+  }
+  .qds-edit-day       { padding: 12px 10px !important; }
+  .qds-edit-day-title { font-size: 0.95rem !important; }
+  .qds-edit-add-day   { width: 100% !important; }
+
+  /* ----------------------------------------------------------
+     CREATE QUOTE MULTI-STEP FORM (cq-)
+  ---------------------------------------------------------- */
+  .cq-main-layout { flex-direction: column !important; }
+  .cq-step-bar {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
+  }
+  .cq-step-bar::-webkit-scrollbar { display: none !important; }
+  .cq-step-label  { display: none !important; }
+  .cq-step-content { padding: 16px !important; }
+  .cq-form-grid-2,
+  .cq-form-grid-3 { grid-template-columns: 1fr !important; }
+  .cq-services-grid { grid-template-columns: 1fr !important; }
+  .cq-review-grid { grid-template-columns: 1fr !important; }
+  .cq-nav-buttons {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .cq-next-btn,
+  .cq-prev-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+  }
+  /* Live Calculation panel: bottom drawer */
+  .cq-live-calc {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 42vh !important;
+    overflow-y: auto !important;
+    z-index: 200 !important;
+    border-radius: 16px 16px 0 0 !important;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.18) !important;
+  }
+  .cq-form-area { padding-bottom: calc(42vh + 16px) !important; }
+  .cq-travellers-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  /* ----------------------------------------------------------
+     PDF THEME GRID
+  ---------------------------------------------------------- */
+  .pdf-theme-grid { grid-template-columns: 1fr !important; }
+
+  /* ----------------------------------------------------------
+     RESPONSIVE CARD GRID
+  ---------------------------------------------------------- */
+  .responsive-card-grid { grid-template-columns: 1fr !important; }
+
+  /* ----------------------------------------------------------
+     EMPTY STATES
+  ---------------------------------------------------------- */
+  .empty-state-card { padding: 32px 20px !important; }
+  .empty-icon-wrap  { width: 56px !important; height: 56px !important; }
+
+  /* ----------------------------------------------------------
+     GLOBAL — page-level overflow guard
+     NOTE: Do NOT add overflow-x: hidden here — it clips negative margins
+     used by page-header-strip to go full-width. Body handles scroll prevention.
+  ---------------------------------------------------------- */
+  .page-view,
+  #view-customers,
+  #view-quotes,
+  #view-bookings,
+  #view-livetrips,
+  #view-accounts,
+  #view-dashboard,
+  #view-customer-profile,
+  #view-quote-detail,
+  #view-create-quote {
+    max-width: 100% !important;
+  }
+  .bd-page { max-width: 100% !important; }
+
+  /* ----------------------------------------------------------
+     TOUCH TARGETS — minimum 44×44px on all interactive elements
+  ---------------------------------------------------------- */
+  .nav-item {
+    min-height: 44px !important;
+    padding: 12px 18px !important;
+  }
+  .action-btn {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+  .icon-btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  .new-quote-btn,
+  .acct-convert-btn,
+  .acct-adjust-btn,
+  .rp-record-btn,
+  .rp-cancel-btn,
+  .pc-btn,
+  .plan-action-btn,
+  .sign-out-btn,
+  .cp-back-btn,
+  .cp-action-btn,
+  .cp-ledger-btn,
+  .bl-manage-btn,
+  .bl-plan-cta,
+  .qd-btn,
+  .bd-action-btn,
+  .sp-save-btn,
+  .sp-cancel-btn,
+  .cti-create-btn,
+  .cti-cancel-btn,
+  .pdm-save-btn,
+  .pdm-cancel-btn,
+  .cq-next-btn,
+  .cq-prev-btn        { min-height: 44px !important; }
+  .sign-out-btn       { min-height: 44px !important; }
+  .date-filter        { min-height: 44px !important; padding: 10px 14px !important; }
+  .filter-tab,
+  .acct-tab           { min-height: 44px !important; }
+
+  /* Ensure all small text is at least 13px */
+  .page-subtitle,
+  .empty-state-desc,
+  .form-helper,
+  .sp-subtitle,
+  .version-label      { font-size: 13px !important; }
+
+  /* ==========================================================
+     DASHBOARD — MOBILE SPECIFIC FIXES (FIX 3 – FIX 9)
+     Scoped to #view-dashboard — zero desktop regression
+  ========================================================== */
+
+  /* FIX 1 — Header buttons: slightly larger than before, still compact */
+  #view-dashboard .page-header-strip {
+    padding: 12px 16px 8px !important;
+  }
+  #view-dashboard .dash-header {
+    margin-bottom: 0 !important;
+  }
+  #view-dashboard .dash-header-right {
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  #view-dashboard .dash-header-right .date-filter-wrapper {
+    flex: 0 0 auto !important;
+  }
+  #view-dashboard .dash-header-right .date-filter {
+    padding: 7px 12px !important;
+    font-size: 0.78rem !important;   /* ~12.5px */
+    min-height: 34px !important;
+    white-space: nowrap !important;
+  }
+  #view-dashboard .dash-header-right .date-filter-chevron {
+    width: 11px !important;
+    height: 11px !important;
+  }
+  #view-dashboard .dash-header-right .new-quote-btn {
+    flex: 0 0 auto !important;
+    padding: 7px 12px !important;
+    font-size: 0.78rem !important;   /* ~12.5px */
+    min-height: 34px !important;
+    white-space: nowrap !important;
+  }
+  #view-dashboard .dash-header-right .new-quote-btn svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+  #view-dashboard .dash-header-right .icon-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+  }
+  #view-dashboard .dash-header-right .icon-btn svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  /* FIX 2 + FIX 5 — Stat cards: compact padding, smaller icon, shadow */
+  #view-dashboard .stat-card {
+    padding: 10px 12px !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  }
+  #view-dashboard .stat-icon-box {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+  #view-dashboard .stat-icon-box svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* FIX 6 — Recent Activity: show max 4 items, rest scrollable */
+  #view-dashboard .activity-list {
+    max-height: 272px !important;   /* ≈ 4 × 68px items at mobile size */
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* FIX 7 — Compact text sizes across dashboard */
+  #view-dashboard .chart-title          { font-size: 0.88rem !important; font-weight: 700 !important; }
+  #view-dashboard .chart-subtitle       { font-size: 0.73rem !important; }
+  #view-dashboard .stat-label           { font-size: 0.71rem !important; }
+  #view-dashboard .stat-value           { font-size: 1.1rem !important; }
+  #view-dashboard .stat-change          { font-size: 0.71rem !important; }
+  #view-dashboard .activity-title       { font-size: 0.9rem !important; }
+  #view-dashboard .activity-subtitle    { font-size: 0.73rem !important; }
+  #view-dashboard .activity-ref         { font-size: 0.78rem !important; }
+  #view-dashboard .activity-amount      { font-size: 0.78rem !important; }
+  #view-dashboard .activity-customer    { font-size: 0.73rem !important; }
+  #view-dashboard .activity-date        { font-size: 0.71rem !important; }
+  #view-dashboard .tc-title             { font-size: 0.9rem !important; }
+  #view-dashboard .tc-subtitle          { font-size: 0.73rem !important; }
+  #view-dashboard .tc-table th          { font-size: 0.65rem !important; }
+  #view-dashboard .tc-table td          { font-size: 0.78rem !important; }
+
+  /* FIX 8 — Revenue Overview: legend + dropdown on one line */
+  #view-dashboard .revenue-chart-card .chart-header {
+    flex-wrap: nowrap !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  #view-dashboard .revenue-chart-card .chart-header-left {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  #view-dashboard .revenue-chart-card .chart-header-right {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+  #view-dashboard .revenue-chart-card .chart-legend {
+    width: auto !important;
+    order: 0 !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    font-size: 0.7rem !important;
+  }
+  #view-dashboard .revenue-chart-card .legend-item {
+    white-space: nowrap !important;
+    font-size: 0.7rem !important;
+  }
+
+  /* FIX 9 — Monthly Bookings: heading + dropdown on one line
+     Both chart cards use .revenue-chart-card class.
+     The global .chart-header { flex-direction: row } already ensures one-line layout
+     for Monthly Bookings (it has no legend to wrap). Just ensure no wrapping. */
+  #view-dashboard .chart-header {
+    flex-wrap: nowrap !important;
+  }
+  #view-dashboard .chart-header-right {
+    flex-shrink: 0 !important;
+  }
+  #view-dashboard .chart-period-wrapper {
+    flex-shrink: 0 !important;
+  }
+
+  /* FIX 2 — Financial Summary Card */
+  #view-dashboard .financial-summary-card {
+    padding: 14px !important;
+  }
+  #view-dashboard .fs-title {
+    font-size: 0.82rem !important;    /* ~13px */
+  }
+  #view-dashboard .fs-header p {
+    font-size: 0.69rem !important;    /* ~11px */
+  }
+  #view-dashboard .fs-items {
+    gap: 10px !important;
+  }
+  #view-dashboard .fs-item {
+    padding: 8px 0 !important;
+    gap: 10px !important;
+  }
+  #view-dashboard .fs-icon-wrap {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    border-radius: 8px !important;
+  }
+  #view-dashboard .fs-icon-wrap svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  #view-dashboard .fs-label {
+    font-size: 0.69rem !important;    /* ~11px */
+  }
+  #view-dashboard .fs-value {
+    font-size: 0.82rem !important;    /* ~13px */
+  }
+  #view-dashboard .fs-sub {
+    font-size: 0.69rem !important;
+  }
+
+  /* FIX 3 & 4 — Top Domestic & International Destinations */
+  #view-dashboard .dest-header {
+    padding: 12px 14px 8px !important;
+    gap: 8px !important;
+  }
+  #view-dashboard .dest-icon-wrap {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    border-radius: 8px !important;
+  }
+  #view-dashboard .dest-icon-wrap svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  #view-dashboard .dest-title {
+    font-size: 0.82rem !important;    /* ~13px */
+  }
+  #view-dashboard .dest-subtitle {
+    font-size: 0.69rem !important;    /* ~11px */
+  }
+  #view-dashboard .dest-map-area,
+  #view-dashboard .dest-map-area--wide {
+    max-width: 100% !important;
+  }
+  #view-dashboard .dest-list {
+    padding: 8px 14px 10px !important;
+    gap: 6px !important;
+  }
+  #view-dashboard .dest-list-label {
+    font-size: 0.63rem !important;
+    padding: 0 0 4px !important;
+  }
+  #view-dashboard .dest-list-item {
+    padding: 6px 0 !important;
+    gap: 8px !important;
+  }
+  #view-dashboard .dest-rank {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    font-size: 0.63rem !important;
+  }
+  #view-dashboard .dest-name {
+    font-size: 0.75rem !important;    /* ~12px */
+  }
+  #view-dashboard .dest-meta {
+    font-size: 0.69rem !important;    /* ~11px */
+  }
+
+  /* FIX 5 — Top Customers Card */
+  #view-dashboard .top-customers-card {
+    padding: 12px 14px !important;
+  }
+  #view-dashboard .tc-header {
+    padding-bottom: 8px !important;
+    gap: 8px !important;
+  }
+  #view-dashboard .tc-icon-wrap {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    border-radius: 8px !important;
+  }
+  #view-dashboard .tc-icon-wrap svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  #view-dashboard .tc-title {
+    font-size: 0.82rem !important;    /* ~13px */
+  }
+  #view-dashboard .tc-subtitle {
+    font-size: 0.69rem !important;    /* ~11px */
+  }
+  #view-dashboard .tc-table th {
+    font-size: 0.63rem !important;
+    padding: 6px 4px !important;
+  }
+  #view-dashboard .tc-table td {
+    font-size: 0.75rem !important;    /* ~12px */
+    padding: 7px 4px !important;
+  }
+  #view-dashboard .tc-rank {
+    font-size: 0.75rem !important;
+    width: 16px !important;
+  }
+  #view-dashboard .tc-avatar {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    font-size: 0.63rem !important;
+    border-radius: 50% !important;
+  }
+  #view-dashboard .tc-customer-name {
+    font-size: 0.75rem !important;   /* ~12px */
+  }
+  #view-dashboard .tc-customer-id {
+    font-size: 0.63rem !important;
+  }
+  #view-dashboard .tc-revenue {
+    font-size: 0.75rem !important;   /* ~12px */
+  }
+  #view-dashboard .tc-bookings {
+    font-size: 0.75rem !important;
+  }
+
+  /* FIX 6, 7, 8 — Quick Action Cards (Create Quote, Add Customer, View Bookings) */
+  #view-dashboard .quick-action-card {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+  #view-dashboard .qa-icon-wrap {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    border-radius: 8px !important;
+  }
+  #view-dashboard .qa-icon-wrap svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  #view-dashboard .qa-title {
+    font-size: 0.82rem !important;    /* ~13px */
+  }
+  #view-dashboard .qa-desc {
+    font-size: 0.69rem !important;    /* ~11px */
+  }
+  #view-dashboard .qa-arrow svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  /* FIX 10 — View All button in Top Customers */
+  .tc-view-all-btn {
+    display: block !important;
+    width: fit-content !important;
+    margin: 12px auto 0 !important;
+    padding: 6px 20px !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    color: var(--accent) !important;
+    background: transparent !important;
+    border: 1.5px solid var(--accent) !important;
+    border-radius: 20px !important;
+    cursor: pointer !important;
+    text-align: center !important;
+  }
+  .tc-view-all-btn:hover {
+    background: var(--accent) !important;
+    color: #fff !important;
+  }
+}
+
+/* ============================================================
+   MODE CLASSES — app-mode-real removes demo banner offsets
+   Applied to root element when in real dashboard mode
+============================================================ */
+
+/* Desktop: real mode removes banner and its 36px gap from app-layout */
+.app-mode-real .demo-banner { display: none !important; }
+.app-mode-real .app-layout { padding-top: 0 !important; }
+
+/* Tablet (≤ 1024px): topbar was offset by banner, remove it */
+@media (max-width: 1024px) {
+  .app-mode-real .mobile-topbar {
+    top: 0 !important;
+    margin-top: 0 !important;
+  }
+  .app-mode-real .main-content {
+    padding-top: 56px !important;
+  }
+}
+
+/* Mobile (≤ 767px): banner is in-flow, no offset needed — just hide it */
+@media (max-width: 767px) {
+  .app-mode-real .mobile-topbar {
+    margin-top: 0 !important;
+  }
+}

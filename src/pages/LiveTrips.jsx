@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from '../components/Header';
-import { TableSkeleton } from '../components/PageSkeleton';
+import { Header } from '../shared/components/Header';
+import { TableSkeleton } from '../shared/components/PageSkeleton';
 
 const tabs = [
   { id: 'live', label: 'Live' },
