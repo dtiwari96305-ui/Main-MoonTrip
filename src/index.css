@@ -3528,6 +3528,83 @@
   color: var(--text-primary); flex-shrink: 0;
 }
 
+/* ── Bordered input override (PART 3) — visible borders on all inputs ── */
+#view-create-quote .rcq-bordered-input {
+  border: 1.5px solid rgba(255,255,255,0.25) !important;
+  border-radius: 7px !important;
+  transition: border-color 0.2s !important;
+}
+#view-create-quote .rcq-bordered-input:focus {
+  border-color: #16a34a !important;
+  outline: none !important;
+}
+/* For inputs on white backgrounds (day cards, cost rows, etc.) */
+#view-create-quote .cq-it-day-card .rcq-bordered-input,
+#view-create-quote .cq-it-cost-row .rcq-bordered-input,
+#view-create-quote .cq-it-incl-row .rcq-bordered-input,
+#view-create-quote .cq-it-terms-grid .rcq-bordered-input,
+#view-create-quote .cq-it-notes-ta.rcq-bordered-input {
+  border-color: var(--border-color) !important;
+}
+#view-create-quote .cq-it-day-card .rcq-bordered-input:focus,
+#view-create-quote .cq-it-cost-row .rcq-bordered-input:focus,
+#view-create-quote .cq-it-incl-row .rcq-bordered-input:focus,
+#view-create-quote .cq-it-terms-grid .rcq-bordered-input:focus,
+#view-create-quote .cq-it-notes-ta.rcq-bordered-input:focus {
+  border-color: #16a34a !important;
+}
+
+/* ── Editable trip title input in green header ── */
+.rcq-title-input {
+  width: 100%; border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 10px;
+  background: rgba(255,255,255,0.07); color: #fff;
+  font-size: 1.3rem; font-weight: 800; font-family: var(--font);
+  outline: none; transition: border-color 0.2s;
+}
+.rcq-title-input::placeholder { color: rgba(255,255,255,0.35); }
+.rcq-title-input:focus { border-color: rgba(255,255,255,0.5); }
+
+/* ── Add buttons (PART 4) — proper styled buttons ── */
+.rcq-add-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 7px 16px; margin: 6px 0 4px 50px;
+  border: 1.5px dashed #16a34a; border-radius: 8px;
+  background: transparent; color: #16a34a;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  font-family: var(--font); transition: all 0.15s;
+}
+.rcq-add-btn:hover { background: #f0fdf4; border-style: solid; }
+.rcq-add-btn-full { margin-left: 0; width: 100%; justify-content: center; padding: 10px 20px; }
+.rcq-add-btn-excl { border-color: #ef4444; color: #ef4444; }
+.rcq-add-btn-excl:hover { background: #fef2f2; border-color: #ef4444; }
+
+/* ── Analysis tab body ── */
+.rcq-analysis-body {
+  padding: 24px; background: #fff;
+}
+
+/* ── Analysis footnote ── */
+.rcq-analysis-footnote {
+  margin-top: 24px; padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.8rem; color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── Donut chart wrapper ── */
+.rcq-donut-wrap {
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  min-width: 140px;
+}
+
+/* ── Elegant terms text (PART 5) ── */
+.rcq-terms-elegant {
+  font-family: Georgia, 'Times New Roman', serif !important;
+  font-size: 0.88rem !important; line-height: 1.7 !important;
+  color: var(--text-primary) !important; letter-spacing: 0.01em;
+}
+
 /* ── Responsive for rcq components ── */
 @media (max-width: 768px) {
   .rcq-analysis-grid { grid-template-columns: 1fr; }
