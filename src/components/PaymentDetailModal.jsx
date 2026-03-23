@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { jsPDF } from 'jspdf';
+import { LOGO_BASE64 } from '../shared/utils/branding';
 import { getPaymentById } from '../data/paymentsData';
 import { useDemoPopup } from '../context/DemoContext';
 
@@ -38,13 +39,15 @@ const downloadPDF = (payment) => {
   doc.setFillColor(102, 126, 234);
   doc.rect(0, 0, 210, 28, 'F');
 
+  doc.addImage(LOGO_BASE64, 'PNG', 14, 6, 12, 12);
+
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('Touridoo', 14, 12);
+  doc.text('Touridoo', 28, 13);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('Travel & Tourism Agency', 14, 19);
+  doc.text('Travel & Tourism Agency', 28, 18);
 
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');

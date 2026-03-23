@@ -1018,17 +1018,20 @@ input[type="date"].cq-date-input {
 .cc-select-trigger {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 12px 12px;
-  background: #f9fafb;
+  gap: 4px;
+  padding: 12px 8px;
+  background: #f1f5f9;
   border-right: 1px solid #d1d5db;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #1e293b;
   white-space: nowrap;
   flex-shrink: 0;
   cursor: pointer;
-  min-width: 96px;
+  min-width: 75px;
+  max-width: 75px;
+  width: 75px;
+  box-sizing: border-box;
   transition: background 0.15s;
   border-top: none;
   border-bottom: none;

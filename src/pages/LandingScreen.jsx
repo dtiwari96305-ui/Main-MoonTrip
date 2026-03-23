@@ -4,11 +4,16 @@ export const LandingScreen = ({ onSelectMode }) => {
   return (
     <div className="landing-screen">
       <div className="landing-logo">
-        <div className="landing-logo-circle">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#fff' }}>
-            <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5s-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-1.1-.3-2.3.4-2.7 1.4l-.3.7 7.4 3.7-4.4 4.1-3-.7c-.6-.2-1.2 0-1.5.5L.2 17.1l3 1.9 1.9 3 1.1-.6c.5-.3.7-.9.5-1.5l-.7-3 4.1-4.4 3.7 7.4.7-.3c1-.4 1.7-1.6 1.4-2.7z"/>
-          </svg>
-        </div>
+        <img 
+          src="/assets/touridoo-logo.png" 
+          alt="Touridoo Logo" 
+          style={{ 
+            width: '64px', 
+            height: '64px', 
+            borderRadius: '12px', 
+            objectFit: 'contain' 
+          }} 
+        />
         <span className="landing-logo-text">Touridoo</span>
       </div>
       <p className="landing-subtitle">Choose your dashboard experience</p>

@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { LOGO_BASE64 } from './branding';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CO = {
@@ -127,17 +128,18 @@ export const generateCustomerPDF = (quoteId, detail) => {
 
   // ── PAGE 1 ──────────────────────────────────────────────────────────────────
 
-  // Company name — top left
+  // Company logo + names — top left
+  doc.addImage(LOGO_BASE64, 'PNG', M, y, 16, 16);
+  
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
   doc.setTextColor(DARK[0], DARK[1], DARK[2]);
-  doc.text(CO.name, M, y);
+  doc.text('Touridoo', M + 20, y + 8);
 
-  // Email + phone — same line, right side
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
-  doc.text(`${CO.email}  |  ${CO.phone}`, M, y + 5.5);
+  doc.text(`Wanderlust Travels  |  ${CO.email}  |  ${CO.phone}`, M + 20, y + 13);
 
   // "QUOTATION" centered title
   doc.setFont('helvetica', 'bold');
@@ -380,18 +382,18 @@ export const generateAgentPDF = (quoteId, detail, quoteStatus) => {
 
   // ── PAGE 1 ──────────────────────────────────────────────────────────────────
 
-  // Company name
+  // Company logo + names — top left
+  doc.addImage(LOGO_BASE64, 'PNG', M, y, 16, 16);
+  
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
   doc.setTextColor(DARK[0], DARK[1], DARK[2]);
-  doc.text(CO.name, M, y);
+  doc.text('Touridoo', M + 20, y + 8);
 
-  // Email + phone
-  y += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
-  doc.text(`${CO.email}  |  ${CO.phone}`, M, y);
+  doc.text(`Wanderlust Travels  |  ${CO.email}  |  ${CO.phone}`, M + 20, y + 13);
 
   // "INTERNAL — AGENT COPY" subtitle
   y += 6;

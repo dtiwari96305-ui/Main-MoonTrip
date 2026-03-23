@@ -19,7 +19,11 @@ const PAGE_TITLES = {
   'create-quote':     'Create Quote',
   'quote-designer':   'Design Builder',
   'customer-profile': 'Customer',
+  'help':             'Help Center',
+  'manual':           'Manual',
 };
+
+
 
 export const DemoLayout = ({ activeView, onViewChange, onSwitchMode, children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

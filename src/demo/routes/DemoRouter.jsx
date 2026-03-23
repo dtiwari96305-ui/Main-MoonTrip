@@ -25,9 +25,13 @@ import { registerDesignerNav } from '../../utils/designerNav';
 import { Billing } from '../../pages/Billing';
 import { BookingDetail } from '../../pages/BookingDetail';
 import { QuoteDesigner } from '../../pages/QuoteDesigner';
+import { HelpSection } from '../../shared/components/HelpSection';
+import { ManualSection } from '../../shared/components/ManualSection';
+
 
 export const DemoRouter = ({ onSwitchMode }) => {
   const [activeView, setActiveView] = useState(() => sessionStorage.getItem('demo_activeView') || 'dashboard');
+  const [viewData, setViewData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [pendingView, setPendingView] = useState(activeView);
   const [customerProfileId, setCustomerProfileId] = useState(() => sessionStorage.getItem('demo_customerProfileId') || null);
@@ -36,7 +40,7 @@ export const DemoRouter = ({ onSwitchMode }) => {
   const [quoteFromView, setQuoteFromView] = useState(() => sessionStorage.getItem('demo_quoteFromView') || 'quotes');
   const [createQuoteCustomer, setCreateQuoteCustomer] = useState(null);
   const [editQuoteData, setEditQuoteData] = useState(null);
-  const [billingFromView, setBillingFromView] = useState('dashboard');
+  const [billingFromView, setBillingFromView] = useState(null);
   const [bookingDetailId, setBookingDetailId] = useState(() => sessionStorage.getItem('demo_bookingDetailId') || null);
   const [bookingFromView, setBookingFromView] = useState(() => sessionStorage.getItem('demo_bookingFromView') || 'bookings');
   const [designerQuoteId, setDesignerQuoteId] = useState(null);
@@ -121,7 +125,7 @@ export const DemoRouter = ({ onSwitchMode }) => {
     });
   }, []);
 
-  const handleViewChange = (newView) => {
+  const handleViewChange = (newView, data = {}) => {
     if (newView === activeView && !isLoading) return;
 
     if (activeViewRef.current === 'create-quote' && newView !== 'create-quote') {
@@ -132,6 +136,7 @@ export const DemoRouter = ({ onSwitchMode }) => {
     setPendingView(newView);
     setIsLoading(true);
     sessionStorage.setItem('demo_activeView', newView);
+    setViewData(data); // Set viewData here
 
     setTimeout(() => {
       setActiveView(newView);
@@ -170,8 +175,11 @@ export const DemoRouter = ({ onSwitchMode }) => {
                 {activeView === 'payments' && <Payments />}
                 {activeView === 'invoices' && <SalesInvoices />}
                 {activeView === 'accounts' && <Accounts />}
-                {activeView === 'settings' && <Settings />}
+                {activeView === 'settings' && <Settings onNavigate={handleViewChange} />}
+                {activeView === 'help' && <HelpSection mode="demo" onViewChange={handleViewChange} />}
+                {activeView === 'manual' && <ManualSection mode="demo" initialSection={viewData.initialSection} />}
                 {activeView === 'billing' && (
+
                   <Billing
                     fromView={billingFromView}
                     onBack={() => handleViewChange(billingFromView || 'settings')}

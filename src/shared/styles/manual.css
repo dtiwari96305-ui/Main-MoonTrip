@@ -1,0 +1,314 @@
+.manual-container {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  margin: 0;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+/* Ensure main-content handles the edge-to-edge manual correctly */
+.main-content {
+  position: relative;
+}
+
+/* Ensure Header inside Manual uses container edges, matching other pages */
+.manual-container .page-header-strip {
+  margin: 0; /* Reset negative margins since parent is already pulled */
+  padding: 24px 32px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Layout for Sidebar + Content */
+.manual-layout {
+  display: flex;
+  flex: 1; /* Take all remaining height below header */
+  overflow: hidden; 
+  background: #f9fafb;
+}
+
+/* Sidebar Navigator - Fixed */
+.manual-sidebar {
+  width: 260px;
+  height: 100%; /* Fill parent layout height */
+  border-right: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.manual-sidebar-label {
+  padding: 0 24px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3af;
+  letter-spacing: 0.08em;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.manual-sidebar-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.manual-sidebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+
+.manual-sidebar-item:hover {
+  background: #f9fafb;
+}
+
+.manual-sidebar-item.active {
+  background: #fff7ed;
+  color: #f97316;
+  font-weight: 600;
+  border-left-color: #f97316;
+}
+
+.manual-sidebar-item .count {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.manual-sidebar-item.active .count {
+  color: #f97316;
+}
+
+/* Right Content Area - Independent Scroll */
+.manual-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 40px 80px 40px;
+  scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Search Bar - Fixed at top of content area or scrolled with content? 
+   Let's keep it scrolled with content for natural flow but prominent. */
+.manual-search-container {
+  padding: 24px 0 16px 0;
+  background: #f9fafb;
+}
+
+.manual-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Section Heading */
+.manual-section-heading {
+  margin-top: 48px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.manual-section-top-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.manual-section-icon {
+  font-size: 24px;
+}
+
+.manual-section-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.manual-section-subtitle {
+  font-size: 14px;
+  color: #f97316; /* Muted brand color */
+  opacity: 0.8;
+  margin-left: 34px; /* Align with title text after icon */
+  font-weight: 500;
+}
+
+.manual-section-separator {
+  height: 1px;
+  background: #e5e7eb;
+  width: 100%;
+  margin-top: 48px;
+}
+
+.manual-section:first-child .manual-section-heading {
+  margin-top: 24px;
+}
+
+/* Article Grid/List */
+.articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Article Card */
+.article-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.article-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.article-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.article-article-subtitle {
+  font-size: 14px;
+  color: #f97316;
+  opacity: 0.7;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.article-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #374151;
+}
+
+.article-body p {
+  margin-bottom: 12px;
+}
+
+.article-body p:last-child {
+  margin-bottom: 0;
+}
+
+.article-body ul {
+  padding-left: 20px;
+  margin: 12px 0;
+}
+
+.article-body li {
+  margin-bottom: 8px;
+}
+
+.article-badge {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-credit {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.badge-debit {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Back to Top - Rounded Pill */
+.back-to-top-pill {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  padding: 10px 18px;
+  border-radius: 24px;
+  background: #f97316;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  z-index: 100;
+}
+
+.back-to-top-pill.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.back-to-top-pill:hover {
+  background: #ea580c;
+  transform: scale(1.02);
+}
+
+/* Search Highlights */
+.manual-highlight {
+  background: #fef9c3;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+/* No Results */
+.no-results-manual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  color: #9ca3af;
+  gap: 16px;
+}
+
+.no-results-icon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+/* Print Overrides */
+@media print {
+  .manual-sidebar, .back-to-top-pill, .manual-search-container, .print-btn, .header-log-btn {
+    display: none !important;
+  }
+  .manual-content {
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+}

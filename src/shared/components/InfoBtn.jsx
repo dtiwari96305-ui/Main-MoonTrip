@@ -81,9 +81,14 @@ const infoPopupText = {
   rp_mode: 'How the customer made the payment. This is shown on the payment receipt.',
   rp_advance_balance: 'The unallocated portion of this payment will be saved as advance balance for this customer, usable against future bookings.',
   rp_reference: 'UTR (Unique Transaction Reference) number from the bank or payment app. Useful for reconciliation.',
+  // CUSTOMER SIDE PANEL
+  sp_customer_type: 'Corporate customers with a GSTIN receive B2B GST invoices. Individual customers receive B2C invoices.',
+  sp_pan: '10-character Permanent Account Number. Required on tax invoices above ₹2 lakh. Auto-populates on quotes and invoices.',
+  sp_gstin: '15-character GST number for corporate customers. Auto-fills the State field. Used on B2B invoices.',
+  sp_tags: 'Comma-separated labels for organizing customers, e.g. VIP, Frequent Traveler.',
 };
 
-export const InfoBtn = ({ infoKey, variant = 'dark' }) => {
+export const InfoBtn = ({ infoKey, variant = 'dark', iconType = 'default', className = 'info-btn' }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
@@ -127,7 +132,7 @@ export const InfoBtn = ({ infoKey, variant = 'dark' }) => {
   return (
     <>
       <span 
-        className="info-btn" 
+        className={className} 
         ref={iconRef} 
         onClick={(e) => {
           e.preventDefault();
@@ -136,12 +141,20 @@ export const InfoBtn = ({ infoKey, variant = 'dark' }) => {
         }}
         style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-          <circle cx="12" cy="12" r="11" style={{opacity:0.15}}/>
-          <circle cx="12" cy="12" r="8.5" style={{opacity:0.25}}/>
-          <circle cx="12" cy="12" r="6" style={{opacity:0.6}}/>
-          <path d="M12 11v5M12 7.5h.01" strokeWidth="2.5" strokeLinecap="round"/>
-        </svg>
+        {iconType === 'simple' ? (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <circle cx="12" cy="12" r="11" style={{opacity:0.15}}/>
+            <circle cx="12" cy="12" r="8.5" style={{opacity:0.25}}/>
+            <circle cx="12" cy="12" r="6" style={{opacity:0.6}}/>
+            <path d="M12 11v5M12 7.5h.01" strokeWidth="2.5" strokeLinecap="round"/>
+          </svg>
+        )}
       </span>
       
       {showPopup && createPortal(

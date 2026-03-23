@@ -1,13 +1,51 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DemoLogButton } from '../../demo/components/DemoLogButton';
+import { RealLogButton } from '../../dashboard/components/RealLogButton';
 import { openBilling } from '../../utils/billingNav';
+import { useData } from '../../dashboard/context/DataContext';
 
+const RealHeaderUser = () => {
+  const { settings } = useData();
+  const userData = {
+    name: settings?.userName || 'Admin',
+    role: settings?.userRole || 'Admin',
+    initials: (settings?.userName || 'A').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+  };
+  
+  return (
+    <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+      <div className="header-user-avatar">{userData.initials}</div>
+      <div className="header-user-info">
+        <span className="header-user-name">{userData.name}</span>
+        <span className="header-user-role"><span className="role-dot"></span> {userData.role}</span>
+      </div>
+    </div>
+  );
+};
 
+const DemoHeaderUser = () => (
+  <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+    <div className="header-user-avatar">DA</div>
+    <div className="header-user-info">
+      <span className="header-user-name">Demo Admin</span>
+      <span className="header-user-role"><span className="role-dot"></span> Pro</span>
+    </div>
+  </div>
+);
 
-export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, buttonLabel = 'New Quote', showNewQuote = true, children }) => {
+export const Header = ({ 
+  title, 
+  subtitle, 
+  showDateFilter = false, 
+  onNewQuote, 
+  buttonLabel = 'New Quote', 
+  showNewQuote = true, 
+  mode = 'demo',
+  children 
+}) => {
   const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState('Last 30 days');
-    const dateFilterRef = useRef(null);
+  const dateFilterRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -63,16 +101,14 @@ export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, bu
               {buttonLabel}
             </button>
           )}
-          <DemoLogButton />
-          <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
-            <div className="header-user-avatar">DA</div>
-            <div className="header-user-info">
-              <span className="header-user-name">Demo Admin</span>
-              <span className="header-user-role"><span className="role-dot"></span> Pro</span>
-            </div>
-          </div>
+
+          {mode === 'demo' ? <DemoLogButton /> : <RealLogButton />}
+          {mode === 'demo' ? <DemoHeaderUser /> : <RealHeaderUser />}
+          
         </div>
       </div>
     </div>
   );
 };
+
+

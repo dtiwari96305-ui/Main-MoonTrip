@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
+import { InfoBtn } from './InfoBtn';
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -276,16 +277,7 @@ const CalendarPicker = ({ value, onChange, placeholder }) => {
   );
 };
 
-// ─── InfoIcon ─────────────────────────────────────────────────────────────────
-const InfoIcon = ({ title }) => (
-  <span className="sp-info-icon" title={title}>
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="16" x2="12" y2="12"/>
-      <line x1="12" y1="8" x2="12.01" y2="8"/>
-    </svg>
-  </span>
-);
+
 
 // Parse phone number - strip country code prefix like "+91 " or "+91"
 function parsePhoneNumber(raw) {
@@ -580,7 +572,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
               {/* Customer Type */}
               <div className="sp-field">
                 <label className="sp-label">
-                  Customer Type <InfoIcon title="Individual for personal travelers, Corporate for business accounts" />
+                  Customer Type <InfoBtn infoKey="sp_customer_type" />
                 </label>
                 <div className="sp-select-wrap">
                   <select
@@ -605,7 +597,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
                       <rect x="3" y="4" width="18" height="16" rx="2"/>
                       <path d="M8 10h8M8 14h5"/>
                     </svg>
-                    PAN Number <InfoIcon title="Permanent Account Number (10 characters)" />
+                    PAN Number <InfoBtn infoKey="sp_pan" />
                   </label>
                   <input
                     type="text"
@@ -621,7 +613,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
-                    GSTIN <InfoIcon title="GST Identification Number (15 characters)" />
+                    GSTIN <InfoBtn infoKey="sp_gstin" />
                   </label>
                   <input
                     type="text"
@@ -681,7 +673,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
 
               <div className="sp-field">
                 <label className="sp-label">
-                  Tags <InfoIcon title="Comma-separated labels, e.g. VIP, Frequent Traveler" />
+                  Tags <InfoBtn infoKey="sp_tags" />
                 </label>
                 <input
                   type="text"

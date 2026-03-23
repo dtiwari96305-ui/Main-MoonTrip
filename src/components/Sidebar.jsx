@@ -30,10 +30,20 @@ export const Sidebar = ({ activeView, onViewChange, isOpen, onClose }) => {
         </button>
 
         <div className="sidebar-logo">
-          <div className="logo-circle"></div>
+          <img 
+            src="/assets/touridoo-logo.png" 
+            alt="Touridoo Logo" 
+            style={{ 
+              width: '36px', 
+              height: '36px', 
+              borderRadius: '8px', 
+              objectFit: 'contain',
+              flexShrink: 0
+            }} 
+          />
           <div className="logo-text">
-            <span className="logo-name">Touridoo</span>
-            <span className="logo-sub">Wanderlust Travels</span>
+            <span className="logo-name">{companyName}</span>
+            <span className="logo-sub">{companySubtitle}</span>
           </div>
         </div>
       </div>

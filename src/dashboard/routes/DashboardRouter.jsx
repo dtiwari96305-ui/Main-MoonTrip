@@ -27,19 +27,21 @@ import { RealQuoteDetail } from '../pages/QuoteDetail';
 import { RealBilling } from '../pages/Billing';
 import { RealBookingDetail } from '../pages/BookingDetail';
 import { RealQuoteDesigner } from '../pages/QuoteDesigner';
+import { HelpSection } from '../../shared/components/HelpSection';
+import { ManualSection } from '../../shared/components/ManualSection';
+
 
 const DashboardRouterInner = ({ onSwitchMode }) => {
   const { settings } = useData();
-  const [activeView, setActiveView] = useState(() => sessionStorage.getItem('real_activeView') || 'dashboard');
-  const [isLoading, setIsLoading] = useState(true);
-  const [pendingView, setPendingView] = useState(activeView);
+  const [activeView, setActiveView] = useState(() => sessionStorage.getItem('activeView') || 'dashboard');
+  const [viewData, setViewData] = useState({});
+  const [billingFromView, setBillingFromView] = useState(null);
   const [customerProfileId, setCustomerProfileId] = useState(() => sessionStorage.getItem('real_customerProfileId') || null);
   const [profileFromView, setProfileFromView] = useState(() => sessionStorage.getItem('real_profileFromView') || 'customers');
   const [quoteDetailId, setQuoteDetailId] = useState(() => sessionStorage.getItem('real_quoteDetailId') || null);
   const [quoteFromView, setQuoteFromView] = useState(() => sessionStorage.getItem('real_quoteFromView') || 'quotes');
   const [createQuoteCustomer, setCreateQuoteCustomer] = useState(null);
   const [editQuoteData, setEditQuoteData] = useState(null);
-  const [billingFromView, setBillingFromView] = useState('dashboard');
   const [bookingDetailId, setBookingDetailId] = useState(() => sessionStorage.getItem('real_bookingDetailId') || null);
   const [bookingFromView, setBookingFromView] = useState(() => sessionStorage.getItem('real_bookingFromView') || 'bookings');
   const [designerQuoteId, setDesignerQuoteId] = useState(null);
@@ -48,14 +50,6 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
   const activeViewRef = useRef(activeView);
 
   useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      setPendingView(null);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     registerCustomerNav((customerId, fromView) => {
@@ -123,94 +117,84 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
     });
   }, []);
 
-  const handleViewChange = (newView) => {
-    if (newView === activeView && !isLoading) return;
-
-    if (activeViewRef.current === 'create-quote' && newView !== 'create-quote') {
+  const handleViewChange = (view, data = {}) => {
+    setActiveView(view);
+    setViewData(data);
+    if (view === 'billing') {
+      setBillingFromView(activeView);
+    }
+    if (activeViewRef.current === 'create-quote' && view !== 'create-quote') {
       setCreateQuoteCustomer(null);
       setEditQuoteData(null);
     }
-
-    setPendingView(newView);
-    setIsLoading(true);
-    sessionStorage.setItem('real_activeView', newView);
-
-    setTimeout(() => {
-      setActiveView(newView);
-      setIsLoading(false);
-      setPendingView(null);
-    }, 600);
+    sessionStorage.setItem('activeView', view);
   };
 
   return (
     <RealLayout
-      activeView={isLoading ? pendingView : activeView}
+      activeView={activeView}
       onViewChange={handleViewChange}
       onSwitchMode={onSwitchMode}
-      userName={settings.userName || 'Admin'}
-      userRole={settings.userRole || 'admin'}
-      companyName={settings.companyName || 'My Agency'}
-      companySubtitle={settings.companySubtitle || 'Travel & Tourism'}
+      userName={settings?.business_name || 'Admin'}
     >
-      <div className="fade-in" key={isLoading ? 'loading' : activeView}>
-        {isLoading ? (
-          <PageSkeleton view={pendingView} />
-        ) : (
-          <>
-            {activeView === 'dashboard' && <RealDashboard onViewChange={handleViewChange} />}
-            {activeView === 'customers' && <RealCustomers />}
-            {activeView === 'quotes' && <RealQuotes onViewChange={handleViewChange} />}
-            {activeView === 'create-quote' && <RealCreateQuote onViewChange={handleViewChange} prefilledCustomer={createQuoteCustomer} editQuote={editQuoteData} />}
-            {activeView === 'bookings' && <RealBookings />}
-            {activeView === 'booking-detail' && (
-              <RealBookingDetail
-                bookingId={bookingDetailId}
-                fromView={bookingFromView}
-                onBack={() => handleViewChange(bookingFromView || 'bookings')}
-                onViewChange={handleViewChange}
-              />
-            )}
-            {activeView === 'livetrips' && <RealLiveTrips />}
-            {activeView === 'payments' && <RealPayments />}
-            {activeView === 'invoices' && <RealSalesInvoices />}
-            {activeView === 'accounts' && <RealAccounts />}
-            {activeView === 'settings' && <RealSettings />}
-            {activeView === 'billing' && (
-              <RealBilling
-                fromView={billingFromView}
-                onBack={() => handleViewChange(billingFromView || 'settings')}
-              />
-            )}
-            {activeView === 'customer-profile' && (
-              <RealCustomerProfile
-                customerId={customerProfileId}
-                fromView={profileFromView}
-                onBack={() => handleViewChange(profileFromView || 'customers')}
-                onViewChange={handleViewChange}
-              />
-            )}
-            {activeView === 'quote-detail' && (
-              <RealQuoteDetail
-                quoteId={quoteDetailId}
-                fromView={quoteFromView}
-                onBack={() => handleViewChange(quoteFromView || 'quotes')}
-                onViewChange={handleViewChange}
-              />
-            )}
-            {activeView === 'quote-designer' && (
-              <RealQuoteDesigner
-                quoteId={designerQuoteId}
-                quoteData={designerQuoteData}
-                fromView={designerFromView}
-                onBack={() => handleViewChange(designerFromView || 'create-quote')}
-              />
-            )}
-          </>
-        )}
+      <div className="fade-in" key={activeView}>
+        <>
+          {activeView === 'dashboard' && <RealDashboard onViewChange={handleViewChange} />}
+          {activeView === 'customers' && <RealCustomers onViewChange={handleViewChange} />}
+          {activeView === 'quotes' && <RealQuotes onViewChange={handleViewChange} />}
+          {activeView === 'create-quote' && <RealCreateQuote onViewChange={handleViewChange} prefilledCustomer={createQuoteCustomer} editQuote={editQuoteData} />}
+          {activeView === 'bookings' && <RealBookings onViewChange={handleViewChange} />}
+          {activeView === 'booking-detail' && (
+            <RealBookingDetail
+              bookingId={bookingDetailId}
+              fromView={bookingFromView}
+              onBack={() => handleViewChange(bookingFromView || 'bookings')}
+              onViewChange={handleViewChange}
+            />
+          )}
+          {activeView === 'livetrips' && <RealLiveTrips onViewChange={handleViewChange} />}
+          {activeView === 'payments' && <RealPayments />}
+          {activeView === 'invoices' && <RealSalesInvoices />}
+          {activeView === 'accounts' && <RealAccounts />}
+          {activeView === 'settings' && <RealSettings onViewChange={handleViewChange} />}
+          {activeView === 'help' && <HelpSection mode="real" onViewChange={handleViewChange} />}
+          {activeView === 'manual' && <ManualSection mode="real" initialSection={viewData.initialSection} />}
+          {activeView === 'billing' && (
+            <RealBilling
+              fromView={billingFromView}
+              onBack={() => handleViewChange(billingFromView || 'settings')}
+            />
+          )}
+          {activeView === 'customer-profile' && (
+            <RealCustomerProfile
+              customerId={customerProfileId}
+              fromView={profileFromView}
+              onBack={() => handleViewChange(profileFromView || 'customers')}
+              onViewChange={handleViewChange}
+            />
+          )}
+          {activeView === 'quote-detail' && (
+            <RealQuoteDetail
+              quoteId={quoteDetailId}
+              fromView={quoteFromView}
+              onBack={() => handleViewChange(quoteFromView || 'quotes')}
+              onViewChange={handleViewChange}
+            />
+          )}
+          {activeView === 'quote-designer' && (
+            <RealQuoteDesigner
+              quoteId={designerQuoteId}
+              quoteData={designerQuoteData}
+              fromView={designerFromView}
+              onBack={() => handleViewChange(designerFromView || 'create-quote')}
+            />
+          )}
+        </>
       </div>
     </RealLayout>
   );
 };
+
 
 export const DashboardRouter = ({ onSwitchMode }) => (
   <AuthGuard>

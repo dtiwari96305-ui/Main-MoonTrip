@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { LOGO_BASE64 } from '../shared/utils/branding';
 
 // ─── Company constants ─────────────────────────────────────────────────────────
 const COMPANY = {
@@ -43,17 +44,18 @@ export const generateLedgerPdf = ({ customer, ext, myLedger }) => {
   doc.setFillColor(248, 250, 252);
   doc.rect(0, 0, PW, 36, 'F');
 
-  // Company name — large bold
+  // Company logo + names — top left
+  doc.addImage(LOGO_BASE64, 'PNG', ML, 8, 14, 14);
+  
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
   doc.setTextColor(15, 23, 42);
-  doc.text(COMPANY.name, ML, 12);
+  doc.text('Touridoo', ML + 18, 15);
 
-  // Company email | phone — below name
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text(`${COMPANY.email}  \u2022  ${COMPANY.phone}`, ML, 18);
+  doc.text(`Wanderlust Travels  \u2022  ${COMPANY.email}  \u2022  ${COMPANY.phone}`, ML + 18, 20);
 
   // Document title — right side
   doc.setFont('helvetica', 'bold');

@@ -53,6 +53,15 @@ const infoPopupText = {
   cq_state_of_travel: 'Used to determine the Place of Supply for GST, which decides whether CGST+SGST or IGST applies on the invoice.',
   cq_tcs_banner: 'TCS (Tax Collected at Source) is mandated by the Indian government for international tour packages exceeding ₹7 lakh per person.',
 
+  // CANCEL BOOKING MODAL
+  cbm_actual_charges: 'The actual cost you paid to your vendors to cancel this booking. This is for your records only and is never shown to the customer.',
+  cbm_customer_charges: 'The cancellation penalty charged to the customer. This amount appears on the Cancellation Note as a non-refundable charge.',
+  cbm_handling_fee: 'An optional administrative fee for your time and effort in processing the cancellation.',
+
+  // CREATE QUOTE — STEP 3 SERVICES
+  cq_svc_margin: { heading: 'Margin', body: 'Per-service profit margin. The sum of all service margins is used as your total margin in the Pricing step.' },
+  cq_svc_toggle: 'Simple lets you enter a total cost and vendor. Detailed lets you add individual legs, nights, or items for a richer itinerary breakdown.',
+
   // CREATE QUOTE — STEP 4
   cq_billing_model: 'Determines how GST is calculated on your invoice. Choose based on your business registration type and preference.',
   cq_bm_pure_agent: 'You act as a facilitator. GST is charged only on your service fee/margin, not on the full trip cost.',
@@ -72,9 +81,14 @@ const infoPopupText = {
   rp_mode: 'How the customer made the payment. This is shown on the payment receipt.',
   rp_advance_balance: 'The unallocated portion of this payment will be saved as advance balance for this customer, usable against future bookings.',
   rp_reference: 'UTR (Unique Transaction Reference) number from the bank or payment app. Useful for reconciliation.',
+  // CUSTOMER SIDE PANEL
+  sp_customer_type: 'Corporate customers with a GSTIN receive B2B GST invoices. Individual customers receive B2C invoices.',
+  sp_pan: '10-character Permanent Account Number. Required on tax invoices above ₹2 lakh. Auto-populates on quotes and invoices.',
+  sp_gstin: '15-character GST number for corporate customers. Auto-fills the State field. Used on B2B invoices.',
+  sp_tags: 'Comma-separated labels for organizing customers, e.g. VIP, Frequent Traveler.',
 };
 
-export const InfoBtn = ({ infoKey }) => {
+export const InfoBtn = ({ infoKey, variant = 'dark', iconType = 'default', className = 'info-btn' }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
@@ -118,7 +132,7 @@ export const InfoBtn = ({ infoKey }) => {
   return (
     <>
       <span 
-        className="info-btn" 
+        className={className} 
         ref={iconRef} 
         onClick={(e) => {
           e.preventDefault();
@@ -127,17 +141,25 @@ export const InfoBtn = ({ infoKey }) => {
         }}
         style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-          <circle cx="12" cy="12" r="11" style={{opacity:0.15}}/>
-          <circle cx="12" cy="12" r="8.5" style={{opacity:0.25}}/>
-          <circle cx="12" cy="12" r="6" style={{opacity:0.6}}/>
-          <path d="M12 11v5M12 7.5h.01" strokeWidth="2.5" strokeLinecap="round"/>
-        </svg>
+        {iconType === 'simple' ? (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <circle cx="12" cy="12" r="11" style={{opacity:0.15}}/>
+            <circle cx="12" cy="12" r="8.5" style={{opacity:0.25}}/>
+            <circle cx="12" cy="12" r="6" style={{opacity:0.6}}/>
+            <path d="M12 11v5M12 7.5h.01" strokeWidth="2.5" strokeLinecap="round"/>
+          </svg>
+        )}
       </span>
       
       {showPopup && createPortal(
-        <div 
-          className="info-popup-portal"
+        <div
+          className={`info-popup-portal${variant === 'light' ? ' info-popup-portal--light' : ''}`}
           ref={popupRef}
           style={{
             position: 'absolute',
@@ -147,11 +169,20 @@ export const InfoBtn = ({ infoKey }) => {
             zIndex: 99999,
           }}
         >
-          <div className="ip-content">
-            {infoPopupText[infoKey] || 'More information coming soon.'}
-          </div>
-          <button className="ip-learn-more">
-            Learn more 
+          {(() => {
+            const entry = infoPopupText[infoKey];
+            const isObj = entry && typeof entry === 'object';
+            const heading = isObj ? entry.heading : null;
+            const body = isObj ? entry.body : (entry || 'More information coming soon.');
+            return (
+              <>
+                {heading && <div className="ip-heading">{heading}</div>}
+                <div className="ip-content">{body}</div>
+              </>
+            );
+          })()}
+          <button className={`ip-learn-more${variant === 'light' ? ' ip-learn-more--light' : ''}`}>
+            Learn more
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           </button>
         </div>,
