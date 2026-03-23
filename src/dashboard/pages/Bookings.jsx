@@ -4,6 +4,7 @@ import { BookingsTable } from '../../shared/components/BookingsTable';
 import { TableSkeleton } from '../../shared/components/PageSkeleton';
 import { ExportDropdown } from '../../shared/components/ExportDropdown';
 import { ConfirmDeleteModal } from '../components/ConfirmDeleteModal';
+import { CancelBookingModal } from '../components/CancelBookingModal';
 import { useData } from '../context/DataContext';
 
 const BOOKINGS_COLUMNS = [
@@ -23,12 +24,13 @@ const tabs = [
 ];
 
 export const RealBookings = () => {
-  const { bookings, customers, updateBooking, deleteBooking } = useData();
+  const { bookings, customers, invoices, updateBooking, deleteBooking, updateInvoice, deleteInvoice } = useData();
   const [activeFilter, setActiveFilter] = useState(() => sessionStorage.getItem('real_bookings_activeFilter') || 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
 
   useEffect(() => {
     sessionStorage.setItem('real_bookings_activeFilter', activeFilter);
@@ -43,9 +45,25 @@ export const RealBookings = () => {
     return matchesFilter && matchesSearch;
   });
 
+  const handleCancelNote = ({ invoice }) => {
+    updateBooking(cancelTarget.id, { status: 'cancelled' });
+    if (invoice) updateInvoice(invoice.id, { status: 'Cancelled' });
+    setCancelTarget(null);
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const handleVoid = ({ invoice }) => {
+    updateBooking(cancelTarget.id, { status: 'cancelled' });
+    if (invoice) deleteInvoice(invoice.id);
+    setCancelTarget(null);
+    setRefreshKey(prev => prev + 1);
+  };
+
   const handleAction = (actionType, bookingId) => {
     if (actionType === 'cancel') {
-      updateBooking(bookingId, { status: 'cancelled' });
+      const booking = bookings.find(b => b.id === bookingId);
+      setCancelTarget(booking || { id: bookingId });
+      return;
     } else if (actionType === 'complete') {
       updateBooking(bookingId, { status: 'completed' });
     } else if (actionType === 'reopen') {
@@ -187,6 +205,16 @@ export const RealBookings = () => {
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      {cancelTarget && (
+        <CancelBookingModal
+          booking={cancelTarget}
+          invoices={invoices}
+          onClose={() => setCancelTarget(null)}
+          onCancelNote={handleCancelNote}
+          onVoid={handleVoid}
+        />
+      )}
     </div>
   );
 };

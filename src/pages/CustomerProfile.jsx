@@ -8,6 +8,8 @@ import { generateLedgerPdf } from '../shared/utils/generateLedgerPdf';
 import { CustomerSidePanel } from '../shared/components/CustomerSidePanel';
 import { RecordPaymentModal } from '../shared/components/RecordPaymentModal';
 import { PaymentDetailModal } from '../shared/components/PaymentDetailModal';
+import { IndiaMapD3 } from '../shared/components/IndiaMapD3';
+import { WorldMapD3 } from '../shared/components/WorldMapD3';
 import { useDemoPopup } from '../context/DemoContext';
 import { getDemoPaymentById } from '../shared/data/demoData';
 
@@ -18,11 +20,8 @@ export const profileData = {
     emailOverride: 'rahul.sharma@email.com',
     tags: ['international', 'solo'],
     pan: '', gstin: '', company: '',
-    ledger: [
-      { id: 'REC-0001', date: '09 Mar 2026', desc: 'Cash(Advance) - INV-101', credit: 140952, balance: 140952 },
-    ],
     payments: [
-      { id: 'REC-0001', badge: 'Advance', date: '09 Mar 2026', method: 'cash', amount: 140952 },
+      { id: 'REC-0001', date: '09 Mar 2026', method: 'cash', amount: 140952, bookingId: 'WL-B-0002' },
     ],
   },
   'WL-C-0002': {
@@ -30,11 +29,8 @@ export const profileData = {
     emailOverride: 'priya.mehta@email.com',
     tags: ['domestic', 'family'],
     pan: '', gstin: '', company: '',
-    ledger: [
-      { id: 'REC-0005', date: '07 Mar 2026', desc: 'upi(Advance) - UPI/326541239876', credit: 25000, balance: 25000 },
-    ],
     payments: [
-      { id: 'REC-0005', badge: 'Advance', date: '07 Mar 2026', method: 'upi', amount: 25000 },
+      { id: 'REC-0005', date: '07 Mar 2026', method: 'upi', amount: 25000, bookingId: '' },
     ],
   },
   'WL-C-0003': {
@@ -42,11 +38,8 @@ export const profileData = {
     emailOverride: 'vikram.iyer@email.com',
     tags: ['domestic', 'corporate', 'group'],
     pan: 'AABCV1234D', gstin: '29AABCV1234D1Z5', company: 'Iyer Enterprises Pvt. Ltd.',
-    ledger: [
-      { id: 'REC-0002', date: '09 Mar 2026', desc: 'Bank Transfer(Advance) - REF/449827312', credit: 469900, balance: 469900 },
-    ],
     payments: [
-      { id: 'REC-0002', badge: 'Advance', date: '09 Mar 2026', method: 'bank', amount: 469900 },
+      { id: 'REC-0002', date: '09 Mar 2026', method: 'bank', amount: 235000, bookingId: 'WL-B-0001' },
     ],
   },
   'WL-C-0004': {
@@ -54,7 +47,6 @@ export const profileData = {
     emailOverride: 'ananya.reddy@email.com',
     tags: ['international', 'honeymoon'],
     pan: '', gstin: '', company: '',
-    ledger: [],
     payments: [],
   },
   'WL-C-0005': {
@@ -62,11 +54,8 @@ export const profileData = {
     emailOverride: 'rajesh.patel@email.com',
     tags: ['domestic', 'corporate', 'family'],
     pan: 'ABCPR9876F', gstin: '24ABCPR9876F1ZP', company: 'Patel Group of Companies',
-    ledger: [
-      { id: 'REC-0003', date: '01 Mar 2026', desc: 'Card(Full Payment) - TXID/889234100', credit: 156880, balance: 156880 },
-    ],
     payments: [
-      { id: 'REC-0003', badge: 'Full', date: '01 Mar 2026', method: 'card', amount: 156880 },
+      { id: 'REC-0003', date: '01 Mar 2026', method: 'card', amount: 156880, bookingId: 'WL-B-0003' },
     ],
   },
   'WL-C-0006': {
@@ -74,34 +63,97 @@ export const profileData = {
     emailOverride: 'arjun.singh@email.com',
     tags: ['domestic', 'adventure'],
     pan: '', gstin: '', company: '',
-    ledger: [],
     payments: [],
   },
 };
 
-// ─── Booking data (mirrored from Bookings.jsx) ────────────────────────────────
+// ─── Booking data ─────────────────────────────────────────────────────────────
 const allBookings = [
-  { id: 'WL-B-0002', customerName: 'Rahul Sharma', destination: 'Bali, Indonesia', amount: '₹1,40,952', profit: '₹18,000', paymentStatus: 'paid', paymentText: '₹1,40,952 / ₹1,40,952', remaining: '—', status: 'confirmed', date: '09 Mar 2026' },
-  { id: 'WL-B-0001', customerName: 'Vikram Iyer', destination: 'Goa', amount: '₹4,69,900', profit: '₹55,000', paymentStatus: 'partial', paymentText: '₹2,35,000 / ₹4,69,900', remaining: '₹2,34,900', status: 'confirmed', date: '09 Mar 2026' },
-  { id: 'WL-B-0003', customerName: 'Rajesh Patel', destination: 'Srinagar - Gulmarg - Pahalgam', amount: '₹1,56,880', profit: '₹16,000', paymentStatus: 'paid', paymentText: '₹1,56,880 / ₹1,56,880', remaining: '—', status: 'completed', date: '01 Mar 2026' },
+  { id: 'WL-B-0002', customerName: 'Rahul Sharma',  destination: 'Bali, Indonesia',              destType: 'international', amount: '₹1,40,952', profit: '₹18,000', paymentStatus: 'paid',    paymentText: '₹1,40,952 / ₹1,40,952', remaining: '₹0',       status: 'confirmed',  date: '09 Mar 2026' },
+  { id: 'WL-B-0001', customerName: 'Vikram Iyer',   destination: 'Goa',                          destType: 'domestic',      amount: '₹4,69,900', profit: '₹55,000', paymentStatus: 'partial', paymentText: '₹2,35,000 / ₹4,69,900', remaining: '₹2,34,900', status: 'confirmed',  date: '09 Mar 2026' },
+  { id: 'WL-B-0003', customerName: 'Rajesh Patel',  destination: 'Srinagar - Gulmarg - Pahalgam', destType: 'domestic',      amount: '₹1,56,880', profit: '₹16,000', paymentStatus: 'paid',    paymentText: '₹1,56,880 / ₹1,56,880', remaining: '₹0',       status: 'completed',  date: '01 Mar 2026' },
 ];
 
-// ─── Quote data (mirrored from Quotes.jsx) ────────────────────────────────────
+// ─── Quote data ───────────────────────────────────────────────────────────────
 const allQuotes = [
-  { id: 'WL-Q-0001', customerName: 'Rahul Sharma', destName: 'Bali, Indonesia', destType: 'international', amount: '₹1,40,952', profit: '₹18,000', status: 'converted', tripDate: '15 Apr 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0002', customerName: 'Priya Mehta', destName: 'Jaipur - Udaipur - Jodhpur', destType: 'domestic', amount: '₹1,10,520', profit: '₹14,000', status: 'sent', tripDate: '01 May 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0003', customerName: 'Vikram Iyer', destName: 'Goa', destType: 'domestic', amount: '₹4,69,900', profit: '₹55,000', status: 'converted', tripDate: '20 Mar 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0004', customerName: 'Ananya Reddy', destName: 'Paris - Switzerland - Rome', destType: 'international', amount: '₹8,92,400', profit: '₹1,05,000', status: 'draft', tripDate: '10 Jun 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0005', customerName: 'Rajesh Patel', destName: 'Srinagar - Gulmarg - Pahalgam', destType: 'domestic', amount: '₹1,56,880', profit: '₹16,000', status: 'converted', tripDate: '05 Apr 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0006', customerName: 'Arjun Singh', destName: 'Leh - Ladakh', destType: 'domestic', amount: '₹78,500', profit: '₹9,500', status: 'approved', tripDate: '22 May 2026', createdDate: '10 Mar 2026' },
+  { id: 'WL-Q-0001', customerName: 'Rahul Sharma', destName: 'Bali, Indonesia',             destType: 'international', amount: '₹1,40,952', profit: '₹18,000', status: 'converted', tripDate: '15 Apr 2026', createdDate: '09 Mar 2026' },
+  { id: 'WL-Q-0002', customerName: 'Priya Mehta',  destName: 'Jaipur - Udaipur - Jodhpur', destType: 'domestic',      amount: '₹1,10,520', profit: '₹14,000', status: 'sent',      tripDate: '01 May 2026', createdDate: '09 Mar 2026' },
+  { id: 'WL-Q-0003', customerName: 'Vikram Iyer',  destName: 'Goa',                        destType: 'domestic',      amount: '₹4,69,900', profit: '₹55,000', status: 'converted', tripDate: '20 Mar 2026', createdDate: '09 Mar 2026' },
+  { id: 'WL-Q-0004', customerName: 'Ananya Reddy', destName: 'Paris - Switzerland - Rome', destType: 'international', amount: '₹8,92,400', profit: '₹1,05,000',status: 'draft',     tripDate: '10 Jun 2026', createdDate: '09 Mar 2026' },
+  { id: 'WL-Q-0005', customerName: 'Rajesh Patel', destName: 'Srinagar - Gulmarg - Pahalgam', destType: 'domestic',  amount: '₹1,56,880', profit: '₹16,000', status: 'converted', tripDate: '05 Apr 2026', createdDate: '09 Mar 2026' },
+  { id: 'WL-Q-0006', customerName: 'Arjun Singh',  destName: 'Leh - Ladakh',              destType: 'domestic',      amount: '₹78,500',   profit: '₹9,500',  status: 'approved',  tripDate: '22 May 2026', createdDate: '10 Mar 2026' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmtAmount = (n) => `₹${n.toLocaleString('en-IN')}`;
+const fmtAmount = (n) => `₹${Math.round(n).toLocaleString('en-IN')}`;
+const parseAmt = (s) => parseInt((s || '0').replace(/[₹,\s]/g, ''), 10) || 0;
 
 const StatusPill = ({ status }) => {
   const map = { confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled', converted: 'Converted', sent: 'Sent', draft: 'Draft', approved: 'Approved', rejected: 'Rejected' };
   return <span className={`status-pill status-${status}`}>{map[status] || status}</span>;
+};
+
+// Extract paid amount from paymentText (e.g. "₹2,35,000 / ₹4,69,900" → 235000)
+const getPaidAmt = (b) => {
+  if (b.paymentStatus === 'paid') return parseAmt(b.amount);
+  const m = (b.paymentText || '').match(/₹([0-9,]+)\s*\//);
+  return m ? parseInt(m[1].replace(/,/g, ''), 10) : 0;
+};
+
+// Aggregate bookings by destination → sorted list
+const aggDestinations = (bookings) => {
+  const map = {};
+  bookings.forEach(b => {
+    const k = b.destination;
+    if (!map[k]) map[k] = { name: k, trips: 0, total: 0 };
+    map[k].trips++;
+    map[k].total += parseAmt(b.amount);
+  });
+  return Object.values(map).sort((a, b) => b.total - a.total);
+};
+
+// Build ledger from bookings (debit) + payments (credit)
+const buildLedger = (myBookings, myPayments) => {
+  const entries = [];
+
+  myBookings.filter(b => b.status !== 'cancelled').forEach(b => {
+    entries.push({
+      date: b.date,
+      ref: b.id,
+      refType: 'debit',
+      desc: `Tax Invoice${b.destination ? ` (${b.destination})` : ''}`,
+      debit: parseAmt(b.amount),
+      credit: 0,
+    });
+  });
+
+  myPayments.forEach(p => {
+    entries.push({
+      date: p.date,
+      ref: p.id,
+      refType: 'credit',
+      desc: p.method || 'payment',
+      debit: 0,
+      credit: p.amount,
+      bookingId: p.bookingId || '',
+    });
+  });
+
+  // Sort oldest-first for running balance
+  entries.sort((a, b) => {
+    const da = new Date(a.date.split(' ').reverse().join(' '));
+    const db = new Date(b.date.split(' ').reverse().join(' '));
+    return da - db;
+  });
+
+  let running = 0;
+  entries.forEach(e => {
+    running += e.debit - e.credit;
+    e.balance = running;
+  });
+
+  // Display newest first
+  return entries.reverse();
 };
 
 // ─── Main CustomerProfile Component ──────────────────────────────────────────
@@ -114,32 +166,47 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
   const customer = customers.find(c => c.id === customerId);
   if (!customer) return null;
 
-  const ext = profileData[customerId] || { city: '', state: '', country: '', emailOverride: '', tags: [], pan: '', gstin: '', company: '', ledger: [], payments: [] };
+  const ext = profileData[customerId] || { city: '', state: '', country: '', emailOverride: '', tags: [], pan: '', gstin: '', company: '', payments: [] };
   const email = ext.emailOverride || customer.email;
 
   const myBookings = allBookings.filter(b => b.customerName === customer.name);
-  const myQuotes = allQuotes.filter(q => q.customerName === customer.name);
-  const myLedger = ext.ledger || [];
+  const myQuotes   = allQuotes.filter(q => q.customerName === customer.name);
   const myPayments = ext.payments || [];
 
   // Financial stats
-  const totalBookingValue = myBookings.reduce((sum, b) => {
-    const n = parseInt(b.amount.replace(/[₹,]/g, ''), 10) || 0;
-    return sum + n;
-  }, 0);
-  const totalPaid = myBookings.reduce((sum, b) => {
-    if (b.paymentStatus === 'paid') {
-      const n = parseInt(b.amount.replace(/[₹,]/g, ''), 10) || 0;
-      return sum + n;
-    }
-    const match = b.paymentText.match(/₹([0-9,]+) \//);
-    if (match) return sum + parseInt(match[1].replace(/,/g, ''), 10);
-    return sum;
-  }, 0);
-  const pending = totalBookingValue - totalPaid;
-  const advanceBalance = myLedger.reduce((sum, l) => sum + (l.credit || 0) - (l.debit || 0), 0);
+  const totalBookingValue = myBookings.filter(b => b.status !== 'cancelled').reduce((s, b) => s + parseAmt(b.amount), 0);
+  const totalPaid         = myPayments.reduce((s, p) => s + (p.amount || 0), 0);
+  const pending           = Math.max(0, totalBookingValue - totalPaid);
+  const advanceBalance    = Math.max(0, totalPaid - totalBookingValue);
+  const progressPct       = totalBookingValue > 0 ? Math.min(100, Math.round((totalPaid / totalBookingValue) * 100)) : 0;
 
-  const backLabel = fromView === 'bookings' ? 'Bookings' : fromView === 'quotes' ? 'Quotes' : 'Customers';
+  // Top destinations
+  const domesticBookings = myBookings.filter(b => b.destType === 'domestic' && b.status !== 'cancelled');
+  const intlBookings     = myBookings.filter(b => b.destType === 'international' && b.status !== 'cancelled');
+  const topDomestic      = aggDestinations(domesticBookings);
+  const topIntl          = aggDestinations(intlBookings);
+
+  // Ledger
+  const ledgerEntries = buildLedger(myBookings, myPayments);
+  const ledgerDebitTotal  = ledgerEntries.reduce((s, e) => s + e.debit,  0);
+  const ledgerCreditTotal = ledgerEntries.reduce((s, e) => s + e.credit, 0);
+  const ledgerBalance     = ledgerDebitTotal - ledgerCreditTotal;
+
+  // Sorted bookings (newest first)
+  const sortedBookings = [...myBookings].sort((a, b) => {
+    const da = new Date(a.date.split(' ').reverse().join(' '));
+    const db = new Date(b.date.split(' ').reverse().join(' '));
+    return db - da;
+  });
+
+  // Sorted payments (newest first)
+  const sortedPayments = [...myPayments].sort((a, b) => {
+    const da = new Date(a.date.split(' ').reverse().join(' '));
+    const db = new Date(b.date.split(' ').reverse().join(' '));
+    return db - da;
+  });
+
+  const myLedger = (ext.ledger || []);
 
   return (
     <div id="view-customer-profile" className="fade-in">
@@ -184,7 +251,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
 
       <div className="cp-body">
 
-        {/* ── Hero Card ── */}
+        {/* ── PANEL 1: Hero Card ── */}
         <div className="cp-hero-card">
           <div className="cp-hero-left">
             <div className="cp-hero-avatar" style={{ background: customer.gradient }}>{customer.initials}</div>
@@ -192,7 +259,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
               <div className="cp-hero-name-row">
                 <span className="cp-hero-name">{customer.name}</span>
                 <span className="cp-type-badge cp-type-individual">{customer.type}</span>
-                <button className="cp-ledger-btn" onClick={() => generateLedgerPdf({ customer, ext, myLedger })}>
+                <button className="cp-ledger-btn" onClick={() => generateLedgerPdf({ customer, ext, myLedger: [...ledgerEntries].reverse().map(e => ({ date: e.date, desc: e.desc, debit: e.debit || undefined, credit: e.credit || undefined, balance: -e.balance })) })}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   Ledger
                 </button>
@@ -216,7 +283,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
           </div>
         </div>
 
-        {/* ── Personal Details + Address ── */}
+        {/* ── PANEL 2: Personal Details + Address ── */}
         <div className="cp-detail-grid">
           <div className="cp-detail-card">
             <div className="cp-detail-header">
@@ -229,14 +296,14 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                   <div>
                     <span className="cp-field-label">PHONE</span>
-                    <span className="cp-field-value">{customer.phone}</span>
+                    <span className="cp-field-value">{customer.phone || '—'}</span>
                   </div>
                 </div>
                 <div className="cp-detail-field">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                   <div>
                     <span className="cp-field-label">EMAIL</span>
-                    <span className="cp-field-value">{email}</span>
+                    <span className="cp-field-value">{email || '—'}</span>
                   </div>
                 </div>
               </div>
@@ -250,20 +317,24 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
             </div>
             <div className="cp-detail-rows">
               <div className="cp-detail-row cp-addr-grid">
-                <div className="cp-detail-field">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{flexShrink:0}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  <div>
-                    <span className="cp-field-label">CITY</span>
-                    <span className="cp-field-value">{ext.city || customer.location}</span>
+                {ext.city && (
+                  <div className="cp-detail-field">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{flexShrink:0}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <div>
+                      <span className="cp-field-label">CITY</span>
+                      <span className="cp-field-value">{ext.city}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="cp-detail-field">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{flexShrink:0}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  <div>
-                    <span className="cp-field-label">STATE</span>
-                    <span className="cp-field-value">{ext.state || ''}</span>
+                )}
+                {ext.state && (
+                  <div className="cp-detail-field">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{flexShrink:0}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <div>
+                      <span className="cp-field-label">STATE</span>
+                      <span className="cp-field-value">{ext.state}</span>
+                    </div>
                   </div>
-                </div>
+                )}
                 <div className="cp-detail-field">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{flexShrink:0}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                   <div>
@@ -276,7 +347,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
           </div>
         </div>
 
-        {/* ── Business & Identity ── */}
+        {/* ── PANEL 3: Business & Identity ── */}
         <div className="cp-section-card">
           <div className="cp-section-title">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4M9 7h6M9 11h6"/></svg>
@@ -313,11 +384,11 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
               )}
             </div>
           ) : (
-            <p className="cp-empty-text">No business details on record.</p>
+            <p className="cp-empty-text">No business details added.</p>
           )}
         </div>
 
-        {/* ── Financial Summary ── */}
+        {/* ── PANEL 4: Financial Summary ── */}
         <div className="cp-fin-section">
           <div className="cp-section-heading">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -326,32 +397,113 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
           <div className="cp-fin-grid">
             <div className="cp-fin-card cp-fin-blue">
               <span className="cp-fin-label">Total Booking Value</span>
-              <span className="cp-fin-value">{totalBookingValue > 0 ? fmtAmount(totalBookingValue) : '₹0'}</span>
+              <span className="cp-fin-value">{fmtAmount(totalBookingValue)}</span>
             </div>
             <div className="cp-fin-card cp-fin-green">
               <span className="cp-fin-label">Total Paid</span>
-              <span className="cp-fin-value">{totalPaid > 0 ? fmtAmount(totalPaid) : '₹0'}</span>
+              <span className="cp-fin-value">{fmtAmount(totalPaid)}</span>
             </div>
             <div className="cp-fin-card cp-fin-amber">
               <span className="cp-fin-label">Pending</span>
-              <span className="cp-fin-value">{pending > 0 ? fmtAmount(pending) : '₹0'}</span>
+              <span className="cp-fin-value">{fmtAmount(pending)}</span>
             </div>
             <div className="cp-fin-card cp-fin-purple">
               <span className="cp-fin-label">Advance Balance</span>
-              <span className="cp-fin-value">{advanceBalance > 0 ? fmtAmount(advanceBalance) : '₹0'}</span>
+              <span className="cp-fin-value">{fmtAmount(advanceBalance)}</span>
+            </div>
+          </div>
+          <div className="cp-fin-progress-wrap">
+            <div className="cp-fin-progress-label">
+              <span>Overall Payment Progress</span>
+              <span>{progressPct}%</span>
+            </div>
+            <div className="cp-fin-progress-bar">
+              <div className="cp-fin-progress-fill" style={{ width: `${progressPct}%` }} />
             </div>
           </div>
         </div>
 
-        {/* ── Customer Ledger ── */}
+        {/* ── PANEL 5: Top Domestic Destinations ── */}
+        {topDomestic.length > 0 && (
+          <div className="cp-dest-section">
+            <div className="cp-dest-card">
+              <div className="cp-dest-header">
+                <div className="cp-dest-icon-row">
+                  <div className="cp-dest-icon-wrap cp-dest-icon-wrap-orange">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </div>
+                  <div className="cp-dest-title-col">
+                    <span className="cp-dest-title">Top Domestic Destinations</span>
+                    <span className="cp-dest-subtitle">{topDomestic.length} destination{topDomestic.length !== 1 ? 's' : ''}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="cp-dest-layout">
+                <div className="cp-dest-map">
+                  <IndiaMapD3 destinations={topDomestic} />
+                </div>
+                <div className="cp-dest-list">
+                  <div className="cp-dest-list-label">TOP DESTINATIONS</div>
+                  {topDomestic.map((d, i) => (
+                    <div key={d.name} className="cp-dest-item">
+                      <div className="cp-dest-rank">{i + 1}</div>
+                      <div className="cp-dest-info">
+                        <span className="cp-dest-name">{d.name}</span>
+                        <span className="cp-dest-trips">{d.trips} trip{d.trips !== 1 ? 's' : ''} · {fmtAmount(d.total)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── PANEL 6: Top International Destinations ── */}
+        {topIntl.length > 0 && (
+          <div className="cp-dest-section">
+            <div className="cp-dest-card">
+              <div className="cp-dest-header">
+                <div className="cp-dest-icon-row">
+                  <div className="cp-dest-icon-wrap cp-dest-icon-wrap-blue">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  </div>
+                  <div className="cp-dest-title-col">
+                    <span className="cp-dest-title">Top International Destinations</span>
+                    <span className="cp-dest-subtitle">{topIntl.length} destination{topIntl.length !== 1 ? 's' : ''}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="cp-dest-layout">
+                <div className="cp-dest-map">
+                  <WorldMapD3 destinations={topIntl} />
+                </div>
+                <div className="cp-dest-list">
+                  <div className="cp-dest-list-label">TOP DESTINATIONS</div>
+                  {topIntl.map((d, i) => (
+                    <div key={d.name} className="cp-dest-item">
+                      <div className="cp-dest-rank cp-dest-rank-blue">{i + 1}</div>
+                      <div className="cp-dest-info">
+                        <span className="cp-dest-name">{d.name}</span>
+                        <span className="cp-dest-trips">{d.trips} trip{d.trips !== 1 ? 's' : ''} · {fmtAmount(d.total)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── PANEL 7: Customer Ledger ── */}
         <div className="cp-section-card">
           <div className="cp-table-section-header">
             <div className="cp-section-heading" style={{marginBottom:0}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-              CUSTOMER LEDGER ({myLedger.length})
+              CUSTOMER LEDGER ({ledgerEntries.length})
             </div>
             <div style={{display:'flex', gap:8}}>
-              <button className="cp-tbl-btn" onClick={() => generateLedgerPdf({ customer, ext, myLedger })}>
+              <button className="cp-tbl-btn" onClick={() => generateLedgerPdf({ customer, ext, myLedger: [...ledgerEntries].reverse().map(e => ({ date: e.date, desc: e.desc, debit: e.debit || undefined, credit: e.credit || undefined, balance: -e.balance })) })}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 PDF
               </button>
@@ -361,7 +513,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
               </button>
             </div>
           </div>
-          {myLedger.length > 0 ? (
+          {ledgerEntries.length > 0 ? (
             <div className="cp-table-wrap">
               <table className="cp-table">
                 <thead>
@@ -369,70 +521,95 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
                     <th>DATE</th>
                     <th>REF</th>
                     <th>DESCRIPTION</th>
-                    <th>DEBIT</th>
-                    <th>CREDIT</th>
-                    <th>BALANCE</th>
+                    <th style={{textAlign:'right'}}>DEBIT</th>
+                    <th style={{textAlign:'right'}}>CREDIT</th>
+                    <th style={{textAlign:'right'}}>BALANCE</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {myLedger.map((entry, i) => {
-                    const runningBal = entry.balance;
-                    return (
-                      <tr key={i}>
-                        <td className="cp-td-date">{entry.date}</td>
-                        <td><span className="cp-ref-link" onClick={() => setPaymentDetailId(entry.id)}>{entry.id}</span></td>
-                        <td className="cp-td-desc">{entry.desc}</td>
-                        <td className="cp-td-num">{entry.debit ? `₹${entry.debit.toLocaleString('en-IN')}` : ''}</td>
-                        <td className="cp-td-credit">{entry.credit ? `₹${entry.credit.toLocaleString('en-IN')}` : ''}</td>
-                        <td className="cp-td-balance">₹{runningBal.toLocaleString('en-IN')} Cr</td>
-                      </tr>
-                    );
-                  })}
+                  {ledgerEntries.map((e, i) => (
+                    <tr key={i}>
+                      <td className="cp-td-date">{e.date}</td>
+                      <td>
+                        {e.refType === 'debit' ? (
+                          <span className="cp-ref-debit" onClick={() => openBookingDetail(e.ref, 'customer-profile')}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                            {e.ref}
+                          </span>
+                        ) : (
+                          <span className="cp-ref-credit" onClick={() => setPaymentDetailId(e.ref)}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="17" y1="7" x2="7" y2="17"/><polyline points="17 17 7 17 7 7"/></svg>
+                            {e.ref}
+                          </span>
+                        )}
+                      </td>
+                      <td className="cp-td-desc">{e.desc}</td>
+                      <td className="cp-td-debit">{e.debit > 0 ? fmtAmount(e.debit) : ''}</td>
+                      <td className="cp-td-credit">{e.credit > 0 ? fmtAmount(e.credit) : ''}</td>
+                      <td className={e.balance === 0 ? 'cp-td-bal-zero' : e.balance > 0 ? 'cp-td-bal-dr' : 'cp-td-bal-cr'}>
+                        {e.balance === 0 ? '₹0' : `${fmtAmount(Math.abs(e.balance))} ${e.balance > 0 ? 'Dr' : 'Cr'}`}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="cp-ledger-totals">
+                    <td colSpan={3} className="cp-ledger-totals-label">TOTALS</td>
+                    <td className="cp-td-debit">{ledgerDebitTotal > 0 ? fmtAmount(ledgerDebitTotal) : '—'}</td>
+                    <td className="cp-td-credit">{ledgerCreditTotal > 0 ? fmtAmount(ledgerCreditTotal) : '—'}</td>
+                    <td className={ledgerBalance === 0 ? 'cp-td-bal-zero' : ledgerBalance > 0 ? 'cp-td-bal-dr' : 'cp-td-bal-cr'}>
+                      {ledgerBalance === 0 ? '₹0' : `${fmtAmount(Math.abs(ledgerBalance))} ${ledgerBalance > 0 ? 'Dr' : 'Cr'}`}
+                    </td>
+                  </tr>
                 </tbody>
               </table>
+              <div className="cp-ledger-due" style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px'}}>
+                <span className="cp-ledger-due-label">Amount Due from Customer</span>
+                <span className="cp-ledger-due-amount">{ledgerBalance > 0 ? fmtAmount(ledgerBalance) : '₹0'}</span>
+              </div>
             </div>
           ) : (
-            <p className="cp-empty-text">No ledger entries yet.</p>
+            <p className="cp-empty-text">No transactions yet.</p>
           )}
         </div>
 
-        {/* ── Bookings ── */}
+        {/* ── PANEL 8: Bookings ── */}
         <div className="cp-section-card">
           <div className="cp-section-heading">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            BOOKINGS ({myBookings.length})
+            BOOKINGS ({sortedBookings.length})
           </div>
-          {myBookings.length > 0 ? (
+          {sortedBookings.length > 0 ? (
             <div className="cp-table-wrap">
               <table className="cp-table">
                 <thead>
                   <tr>
-                    <th>BOOKING #</th>
+                    <th>BOOKING</th>
                     <th>DESTINATION</th>
-                    <th>TOTAL</th>
-                    <th>PAYMENT</th>
-                    <th>STATUS</th>
                     <th>DATE</th>
+                    <th>STATUS</th>
+                    <th style={{textAlign:'right'}}>PAYABLE</th>
+                    <th style={{textAlign:'right'}}>PAID</th>
+                    <th>PAYMENT</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {myBookings.map(b => (
-                    <tr key={b.id}>
-                      <td><span className="qt-id cp-name-link" onClick={() => openBookingDetail(b.id, 'customer-profile')}>{b.id}</span></td>
-                      <td>
-                        <span className="bk-destination">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{color:'#94a3b8',flexShrink:0}}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                          {b.destination}
-                        </span>
-                      </td>
-                      <td><span className="qt-amount">{b.amount}</span></td>
-                      <td>
-                        <span className={`payment-badge payment-${b.paymentStatus}`}>{b.paymentStatus === 'paid' ? 'Paid' : 'Partial'}</span>
-                      </td>
-                      <td><StatusPill status={b.status} /></td>
-                      <td><span className="qt-date">{b.date}</span></td>
-                    </tr>
-                  ))}
+                  {sortedBookings.map(b => {
+                    const paidAmt = getPaidAmt(b);
+                    return (
+                      <tr key={b.id}>
+                        <td><span className="qt-id cp-name-link" onClick={() => openBookingDetail(b.id, 'customer-profile')}>{b.id}</span></td>
+                        <td>{b.destination || '—'}</td>
+                        <td className="cp-td-date">{b.date}</td>
+                        <td><StatusPill status={b.status} /></td>
+                        <td className="cp-bk-payable">{b.amount}</td>
+                        <td className={paidAmt > 0 ? 'cp-bk-paid' : 'cp-bk-paid-zero'}>{paidAmt > 0 ? fmtAmount(paidAmt) : '₹0'}</td>
+                        <td>
+                          <span className={`payment-badge payment-${b.paymentStatus}`}>
+                            {b.paymentStatus === 'paid' ? 'Paid' : b.paymentStatus === 'partial' ? 'Partial' : 'Pending'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -441,7 +618,32 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
           )}
         </div>
 
-        {/* ── Quotes ── */}
+        {/* ── PANEL 9: Payment History ── */}
+        <div className="cp-section-card">
+          <div className="cp-section-heading">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            PAYMENT HISTORY ({sortedPayments.length})
+          </div>
+          {sortedPayments.length > 0 ? (
+            <div className="cp-payment-list">
+              {sortedPayments.map((p, i) => (
+                <div key={i} className="cp-payment-row">
+                  <div className="cp-payment-left">
+                    <span className="cp-pay-ref-link" onClick={() => setPaymentDetailId(p.id)}>{p.id}</span>
+                    <span className="cp-pay-meta">
+                      {p.date} · {p.method}{p.bookingId ? ` · ${p.bookingId}` : ''}
+                    </span>
+                  </div>
+                  <span className="cp-pay-amount">+{fmtAmount(p.amount)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="cp-empty-text">No payments recorded yet.</p>
+          )}
+        </div>
+
+        {/* ── Quotes (keep existing) ── */}
         <div className="cp-section-card">
           <div className="cp-section-heading">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -484,33 +686,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
           )}
         </div>
 
-        {/* ── Payment History ── */}
-        <div className="cp-section-card">
-          <div className="cp-section-heading">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            PAYMENT HISTORY ({myPayments.length})
-          </div>
-          {myPayments.length > 0 ? (
-            <div className="cp-payment-list">
-              {myPayments.map((p, i) => (
-                <div key={i} className="cp-payment-row">
-                  <div className="cp-payment-left">
-                    <span className="cp-ref-link" onClick={() => setPaymentDetailId(p.id)}>{p.id}</span>
-                    <span className={`cp-pay-badge cp-pay-badge-${p.badge.toLowerCase()}`}>{p.badge}</span>
-                    <span className="cp-pay-meta">{p.date} · {p.method}</span>
-                  </div>
-                  <span className="cp-pay-amount">+{fmtAmount(p.amount)}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="cp-empty-text">No payment history.</p>
-          )}
-        </div>
-
       </div>
-
-
 
       {paymentDetailId && (
         <PaymentDetailModal

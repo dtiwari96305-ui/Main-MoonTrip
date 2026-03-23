@@ -250,7 +250,7 @@ const CalendarPicker = ({ value, onChange, placeholder }) => {
             </button>
           </div>
           <div className="cal-popup-weekdays">
-            {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
+            {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
               <span key={d} className="cal-popup-wday">{d}</span>
             ))}
           </div>

@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { openBilling } from '../utils/billingNav';
 import { openDesigner } from '../utils/designerNav';
 import { useDemoPopup } from '../context/DemoContext';
 import { InfoBtn } from '../shared/components/InfoBtn';
+import { calculate, extractGstinState } from '../shared/utils/calculationEngine';
 
 const STEPS = [
   { id: 1, label: 'Customer' },
@@ -44,24 +45,33 @@ const SERVICE_LIST = [
 
 
 // ─── Live Calculation Panel ───────────────────────────────────────────────────
-const LiveCalculation = ({ mode, onModeChange, pricing }) => {
-  const costOfServices = parseFloat(pricing.costOfServices) || 0;
-  const hiddenMarkup   = parseFloat(pricing.hiddenMarkup)   || 0;
-  const costOfTravel   = costOfServices + hiddenMarkup;
-  const processingCharge = parseFloat(pricing.processingCharge) || 0;
-  const isNoMargin = hiddenMarkup <= 0;
-  const gstAmount  = isNoMargin ? 0 : processingCharge * 0.18;
-  const cgst = gstAmount / 2;
-  const sgst = gstAmount / 2;
-  const invoiceValue  = costOfTravel + processingCharge + gstAmount;
-  const tcs           = 0;
-  const totalPayable  = invoiceValue + tcs;
-  const profit        = hiddenMarkup + processingCharge;
+const CALC_SUBTITLES = {
+  'pure-agent':     'Pure Agent – GST @18% on margin only',
+  'principal-18':   'Principal – GST @18% on full value',
+  'principal-5':    'Principal Package – GST @5% on total (No ITC)',
+  'principal-pass': 'Principal Pass-through – GST @18% + ITC',
+};
 
-  const fmt = (n) => '₹' + (n === 0 ? '0' : Math.round(n).toLocaleString('en-IN'));
+const fmtCalc = (n) => '₹' + (n === 0 ? '0' : Math.round(n).toLocaleString('en-IN'));
+
+const LiveCalculation = ({ mode, onModeChange, calc }) => {
+  const c = calc;
+  const gstPct = Math.round(c.gstRate * 100);
+  const halfPct = Math.round(c.gstRate * 50);
+
+  const GstSubRows = () => {
+    if (c.noGst) return <div className="cq-calc-row cq-calc-subrow"><span>No GST applicable</span><span>₹0</span></div>;
+    if (c.gstType === 'cgst-sgst') return (
+      <>
+        <div className="cq-calc-row cq-calc-subrow"><span>CGST @{halfPct}%</span><span>{fmtCalc(c.cgst)}</span></div>
+        <div className="cq-calc-row cq-calc-subrow"><span>SGST @{halfPct}%</span><span>{fmtCalc(c.sgst)}</span></div>
+      </>
+    );
+    return <div className="cq-calc-row cq-calc-subrow"><span>IGST @{gstPct}%</span><span>{fmtCalc(c.igst)}</span></div>;
+  };
 
   const WarningBox = () => (
-    isNoMargin ? (
+    c.isNoMargin ? (
       <div className="cq-calc-warning">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -74,7 +84,6 @@ const LiveCalculation = ({ mode, onModeChange, pricing }) => {
 
   return (
     <div className="cq-live-calc">
-      {/* Header — same for both modes */}
       <div className="cq-calc-header">
         <div className="cq-calc-title-row">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -92,22 +101,30 @@ const LiveCalculation = ({ mode, onModeChange, pricing }) => {
             </button>
           </div>
         </div>
-        <p className="cq-calc-subtitle">Pure Agent – GST @18% on margin only</p>
+        <p className="cq-calc-subtitle">{CALC_SUBTITLES[c.billingModel] || CALC_SUBTITLES['pure-agent']}</p>
       </div>
 
-      {/* ── Agent view ── */}
       {mode === 'agent' && (
         <>
           <div className="cq-calc-rows">
-            <div className="cq-calc-row"><span>Cost of Services</span><span>{fmt(costOfServices)}</span></div>
-            <div className="cq-calc-row"><span>Hidden Markup</span><span>{fmt(hiddenMarkup)}</span></div>
-            <div className="cq-calc-row"><span>Cost of Travel (shown to customer)</span><span>{fmt(costOfTravel)}</span></div>
-            <div className="cq-calc-row"><span>Processing Charge (excl GST)</span><span>{fmt(processingCharge)}</span></div>
-            <div className="cq-calc-row"><span>GST @18% (on processing charge)</span><span>{fmt(gstAmount)}</span></div>
-            <div className="cq-calc-row cq-calc-subrow"><span>IGST @18%</span><span>{fmt(gstAmount)}</span></div>
-            <div className="cq-calc-row cq-calc-bold"><span>Invoice Value</span><span>{fmt(invoiceValue)}</span></div>
-            <div className="cq-calc-row"><span>TCS @5% (N/A)</span><span>{fmt(tcs)}</span></div>
-            <div className="cq-calc-row cq-calc-bold"><span>Total Payable</span><span>{fmt(totalPayable)}</span></div>
+            <div className="cq-calc-row"><span>Cost of Services</span><span>{fmtCalc(c.costOfServices)}</span></div>
+            <div className="cq-calc-row"><span>Hidden Markup</span><span>{fmtCalc(c.margin)}</span></div>
+            {c.isPureAgent ? (
+              <>
+                <div className="cq-calc-row"><span>Cost of Travel (shown to customer)</span><span>{fmtCalc(c.costOfTravel)}</span></div>
+                <div className="cq-calc-row"><span>Processing Charge (excl GST)</span><span>{fmtCalc(c.processingCharge)}</span></div>
+                <div className="cq-calc-row"><span>GST @{gstPct}% (on processing charge)</span><span>{fmtCalc(c.gstAmount)}</span></div>
+              </>
+            ) : (
+              <>
+                <div className="cq-calc-row"><span>Package Price</span><span>{fmtCalc(c.packagePrice)}</span></div>
+                <div className="cq-calc-row"><span>GST @{gstPct}% (on full value)</span><span>{fmtCalc(c.gstAmount)}</span></div>
+              </>
+            )}
+            <GstSubRows />
+            <div className="cq-calc-row cq-calc-bold"><span>Invoice Value</span><span>{fmtCalc(c.invoiceValue)}</span></div>
+            <div className="cq-calc-row"><span>TCS @5% {c.tcsApplicable ? '' : '(N/A)'}</span><span>{fmtCalc(c.tcs)}</span></div>
+            <div className="cq-calc-row cq-calc-bold"><span>Total Payable</span><span>{fmtCalc(c.totalPayable)}</span></div>
           </div>
           <WarningBox />
           <div className="cq-calc-profit">
@@ -115,25 +132,44 @@ const LiveCalculation = ({ mode, onModeChange, pricing }) => {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
               Your Profit
             </div>
-            <div className="cq-calc-row cq-calc-bold" style={{ marginTop: 6 }}>
+            <div className="cq-calc-row" style={{ marginTop: 6 }}><span>Margin</span><span>{fmtCalc(c.margin)}</span></div>
+            <div className="cq-calc-row"><span>Commission</span><span>{fmtCalc(c.commission)}</span></div>
+            <div className="cq-calc-row cq-calc-bold">
               <span>Total Profit</span>
-              <span className="cq-profit-value">{fmt(profit)}</span>
+              <span className="cq-profit-value">{fmtCalc(c.totalProfit)}</span>
             </div>
           </div>
         </>
       )}
 
-      {/* ── Customer view (what the customer sees on their invoice) ── */}
       {mode === 'customer' && (
         <>
           <div className="cq-calc-rows">
-            <div className="cq-calc-row"><span>Cost of Travel</span><span>{fmt(costOfTravel)}</span></div>
-            <div className="cq-calc-row"><span>Processing Charge</span><span>{fmt(processingCharge)}</span></div>
-            <div className="cq-calc-row"><span>GST on Processing</span><span>{fmt(gstAmount)}</span></div>
-            <div className="cq-calc-row cq-calc-bold"><span>Invoice Value</span><span>{fmt(invoiceValue)}</span></div>
-            <div className="cq-calc-row"><span>TCS @5% (N/A)</span><span>{fmt(tcs)}</span></div>
-            <div className="cq-calc-row cq-calc-bold"><span>Total Payable</span><span>{fmt(totalPayable)}</span></div>
+            {c.isPureAgent ? (
+              <>
+                <div className="cq-calc-row"><span>Cost of Travel</span><span>{fmtCalc(c.costOfTravel)}</span></div>
+                <div className="cq-calc-row"><span>Processing Charge</span><span>{fmtCalc(c.processingCharge)}</span></div>
+                <div className="cq-calc-row"><span>GST on Processing</span><span>{fmtCalc(c.gstAmount)}</span></div>
+              </>
+            ) : (
+              <>
+                <div className="cq-calc-row"><span>Package Price</span><span>{fmtCalc(c.packagePrice)}</span></div>
+                <div className="cq-calc-row"><span>GST @{gstPct}%</span><span>{fmtCalc(c.gstAmount)}</span></div>
+              </>
+            )}
+            <GstSubRows />
+            <div className="cq-calc-row cq-calc-bold"><span>Invoice Value</span><span>{fmtCalc(c.invoiceValue)}</span></div>
+            <div className="cq-calc-row"><span>TCS @5% {c.tcsApplicable ? '' : '(N/A)'}</span><span>{fmtCalc(c.tcs)}</span></div>
+            <div className="cq-calc-row cq-calc-bold"><span>Total Payable</span><span>{fmtCalc(c.totalPayable)}</span></div>
           </div>
+          {c.noGst && !c.isNoMargin && (
+            <div className="cq-calc-warning" style={{ background: '#eff6ff', borderColor: '#bfdbfe' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" style={{ flexShrink: 0 }}>
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>No GST applicable for international supply.</span>
+            </div>
+          )}
           <WarningBox />
         </>
       )}
@@ -513,38 +549,830 @@ const Step2Trip = ({ data, onChange }) => {
   );
 };
 
-// ─── Step 3: Services ─────────────────────────────────────────────────────────
-const CURRENCIES = ['INR','USD','EUR','AED','SGD','AUD','GBP'];
+// ─── Step 3 helpers ──────────────────────────────────────────────────────────
+const CQ_CURRENCIES = [
+  { code:'INR', label:'₹ INR' }, { code:'USD', label:'$ USD' },
+  { code:'EUR', label:'€ EUR' }, { code:'GBP', label:'£ GBP' },
+  { code:'AED', label:'إ.د AED'}, { code:'SAR', label:'ریال SAR'},
+  { code:'SGD', label:'S$ SGD' }, { code:'THB', label:'฿ THB' },
+  { code:'AUD', label:'A$ AUD' }, { code:'CAD', label:'C$ CAD' },
+  { code:'JPY', label:'¥ JPY'  }, { code:'CHF', label:'CHF'   },
+];
+const SVC_HAS_TOGGLE = k => !['landPackage','fooding'].includes(k);
+const SVC_HAS_INFO   = k => !['landPackage','fooding','flightExtras'].includes(k);
+const SVC_IS_ITEMS   = k => ['flight','flightExtras','train','bus','hotel','activities','cabTransport','admission','other'].includes(k);
+const uid = () => Date.now() + Math.random();
+const mkLeg   = () => ({ id:uid(), from:'',to:'',airline:'',flightNo:'',depDate:'',depHH:'',depMM:'',arrDate:'',arrHH:'',arrMM:'',cost:'',showBd:false,baseFare:'',taxes:'',otherCharges:'',vendor:'' });
+const mkExtra = () => ({ id:uid(), type:'Seat',link:'None (standalone)',description:'',cost:'',vendor:'' });
+const mkTrain = () => ({ id:uid(), fromStation:'',toStation:'',trainNo:'',trainName:'',class:'',date:'',depHH:'',depMM:'',arrHH:'',arrMM:'',pnr:'',cost:'',vendor:'' });
+const mkBus   = () => ({ id:uid(), fromCity:'',toCity:'',operator:'',busType:'',seatType:'',date:'',boardingPoint:'',droppingPoint:'',depHH:'',depMM:'',arrHH:'',arrMM:'',ticketNo:'',cost:'',vendor:'' });
+const mkHotel = () => ({ id:uid(), city:'',hotelName:'',starRating:'4 Star',roomType:'Double',checkInDate:'',checkInHH:'',checkInMM:'',checkOutDate:'',checkOutHH:'',checkOutMM:'',mealPlan:'CP – Breakfast',cost:'',showBd:false,baseFare:'',taxes:'',otherCharges:'',vendor:'' });
+const mkActiv = () => ({ id:uid(), activityName:'',location:'',date:'',duration:'Half Day',inclusions:'',cost:'',vendor:'' });
+const mkXfer  = () => ({ id:uid(), vehicle:'Sedan',dateFrom:'',dateTo:'',pickup:'',drop:'',cost:'',vendor:'' });
+const mkAdm   = () => ({ id:uid(), name:'',location:'',date:'',tickets:'',notes:'',cost:'',vendor:'' });
+const mkOther = () => ({ id:uid(), type:'Forex',description:'',cost:'',vendor:'' });
+const mkDet   = () => ({ mode:'simple', currency:'INR', cost:'', margin:'', vendor:'', items:[], showVendorAdj:false, vendorAdj:{ commission:'',tds:'',vendorFee:'',feeGst:'' }, visaType:'Tourist', visaCountry:'', visaCost:'', visaVendor:'' });
+const sumItems = items => items.reduce((s,it)=>s+(parseFloat(it.cost)||0),0);
+const fmtRs    = n => '₹' + (parseFloat(n)||0).toLocaleString('en-IN');
 
+// Mini sub-components for Step 3
+const CQTrashBtn = ({ onClick }) => (
+  <button type="button" className="cq-item-del" onClick={onClick} title="Remove">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+      <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+    </svg>
+  </button>
+);
+const CQArrow = () => (
+  <span className="cq-route-arrow">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
+      <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+    </svg>
+  </span>
+);
+const CQDate = ({ value, onChange, placeholder }) => (
+  <input type="date" className="cq-date-input" value={value||''} onChange={e=>onChange(e.target.value)} title={placeholder||'Select date'} />
+);
+const CQTime = ({ hh, mm, onHH, onMM }) => (
+  <span className="cq-time-wrap">
+    <input type="text" className="cq-time-in" placeholder="HH" maxLength={2} value={hh||''} onChange={e=>onHH(e.target.value)} />
+    <span className="cq-colon">:</span>
+    <input type="text" className="cq-time-in" placeholder="MM" maxLength={2} value={mm||''} onChange={e=>onMM(e.target.value)} />
+  </span>
+);
+const CQTimeHelper = () => <p className="cq-time-help">Time is in 24-hour format (HH:mm)</p>;
+const CQCurSelect = ({ value, onChange }) => (
+  <select className="cq-cur-sel" value={value||'INR'} onChange={e=>onChange(e.target.value)}>
+    {CQ_CURRENCIES.map(c=><option key={c.code} value={c.code}>{c.label}</option>)}
+  </select>
+);
+const CQYellowBanner = ({ currency }) => (
+  <div className="cq-yellow-banner">
+    {currency==='INR' ? 'All item costs in INR' : `Base currency: INR`}
+  </div>
+);
+const CQServiceFooter = ({ total, margin, onMargin }) => (
+  <div className="cq-svc-footer">
+    <div className="cq-svc-total-row">
+      <span className="cq-svc-total-lbl">Total (auto-summed)</span>
+      <span className="cq-svc-total-val">{fmtRs(total)}</span>
+    </div>
+    <div className="cq-svc-margin-row">
+      <span className="cq-svc-margin-lbl">Margin <InfoBtn infoKey="cq_svc_margin" variant="light" /></span>
+      <span className="cq-svc-rs">₹</span>
+      <input type="number" className="cq-svc-margin-in" placeholder="0" value={margin||''} onChange={e=>onMargin(e.target.value)} />
+    </div>
+  </div>
+);
+const CQVendorAdj = ({ show, adj, onToggle, onAdj }) => (
+  <div className="cq-vendor-adj-wrap">
+    <button type="button" className="cq-adj-btn" onClick={onToggle}>
+      Vendor Invoice Adjustments <span>{show ? '▲ Hide' : '▼ Show'}</span>
+    </button>
+    {show && (
+      <div className="cq-adj-body">
+        {[['commission','Commission','I earn (Less)'],['tds','TDS','Receivable'],['vendorFee','Vendor Fee','Processing (Add)'],['feeGst','Fee GST','CGST+SGST (Add)']].map(([k,lbl,help])=>(
+          <div key={k} className="cq-adj-row">
+            <label className="cq-adj-lbl">{lbl}</label>
+            <input type="number" className="cq-adj-in" placeholder="0" value={adj[k]||''} onChange={e=>onAdj({ ...adj, [k]:e.target.value })} />
+            <span className="cq-adj-help">{help}</span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+const CQSimpleForm = ({ det, onU }) => (
+  <div className="cq-simple-form">
+    <div className="cq-simple-row">
+      <CQCurSelect value={det.currency} onChange={v=>onU({ currency:v })} />
+      <input type="number" className="cq-svc-in" placeholder="Cost" value={det.cost||''} onChange={e=>onU({ cost:e.target.value })} />
+      <span className="cq-svc-rs">₹</span>
+      <input type="number" className="cq-svc-in" placeholder="Margin" value={det.margin||''} onChange={e=>onU({ margin:e.target.value })} />
+      <input type="text" className="cq-svc-vendor" placeholder="Vendor name" value={det.vendor||''} onChange={e=>onU({ vendor:e.target.value })} />
+    </div>
+    <p className="cq-svc-note">Entered in {det.currency||'INR'}</p>
+  </div>
+);
+const CQCostBreakdown = ({ item, onItem }) => (
+  <>
+    <div className="cq-bd-row">
+      <label className="cq-field-lbl">Cost</label>
+      <button type="button" className="cq-bd-btn" onClick={()=>onItem({ showBd: !item.showBd })}>
+        {item.showBd ? 'Hide' : 'Breakdown'}
+      </button>
+    </div>
+    <input type="number" className="cq-text-in" placeholder="0" value={item.cost||''} onChange={e=>onItem({ cost:e.target.value })} />
+    {item.showBd && (
+      <div className="cq-bd-fields">
+        {[['baseFare','Base Fare'],['taxes','Taxes'],['otherCharges','Other Charges']].map(([fk,fl])=>(
+          <div key={fk} className="cq-bd-item">
+            <label className="cq-field-lbl-sm">{fl}</label>
+            <input type="number" className="cq-text-in" placeholder="0" value={item[fk]||''} onChange={e=>onItem({ [fk]:e.target.value })} />
+          </div>
+        ))}
+      </div>
+    )}
+  </>
+);
+
+// ─── Step 3: Services ─────────────────────────────────────────────────────────
 const Step3Services = ({ data, onChange }) => {
   const selected   = data.services       || {};
   const details    = data.serviceDetails || {};
-  const todayStr   = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const todayFx    = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
   const selectedKeys = SERVICE_LIST.filter(s => selected[s.key]).map(s => s.key);
   const pkgDetected  = selectedKeys.length >= 2;
 
   const toggleService = (key) => {
     const next = { ...selected, [key]: !selected[key] };
-    // if deselecting, remove from details & costs
     if (!next[key]) {
       const nd = { ...details }; delete nd[key];
       const nc = { ...(data.serviceCosts || {}) }; delete nc[key];
       onChange({ services: next, serviceDetails: nd, serviceCosts: nc });
     } else {
-      if (!details[key]) {
-        onChange({ services: next, serviceDetails: { ...details, [key]: { cost: '', margin: '', vendor: '', currency: 'INR', mode: 'simple' } } });
-      } else {
-        onChange({ services: next });
-      }
+      const nd = details[key] ? details : { ...details, [key]: mkDet() };
+      onChange({ services: next, serviceDetails: nd });
     }
   };
 
-  const updateDetail = (key, field, val) => {
-    const nd = { ...details, [key]: { ...(details[key] || { cost: '', margin: '', vendor: '', currency: 'INR', mode: 'simple' }), [field]: val } };
-    const patch = { serviceDetails: nd };
-    // keep serviceCosts in sync for Step4
-    if (field === 'cost') patch.serviceCosts = { ...(data.serviceCosts || {}), [key]: val };
-    onChange(patch);
+  const updDet = (key, patch) => {
+    const cur = details[key] || mkDet();
+    const upd = { ...cur, ...patch };
+    const nd  = { ...details, [key]: upd };
+    let totalCost = 0;
+    if (!SVC_IS_ITEMS(key) || upd.mode === 'simple') {
+      totalCost = parseFloat(upd.cost) || 0;
+    } else if (key === 'visa') {
+      totalCost = parseFloat(upd.visaCost) || 0;
+    } else {
+      totalCost = sumItems(upd.items || []);
+    }
+    const nc = { ...(data.serviceCosts || {}), [key]: String(totalCost||'') };
+    onChange({ serviceDetails: nd, serviceCosts: nc });
+  };
+
+  const updItem = (key, idx, patch) => {
+    const det = details[key] || mkDet();
+    const items = [...(det.items || [])];
+    items[idx] = { ...items[idx], ...patch };
+    updDet(key, { items });
+  };
+
+  const addItem = (key, factory) => {
+    const det = details[key] || mkDet();
+    updDet(key, { items: [...(det.items || []), factory()] });
+  };
+
+  const delItem = (key, idx) => {
+    const det = details[key] || mkDet();
+    const items = (det.items || []).filter((_,i) => i !== idx);
+    updDet(key, { items });
+  };
+
+  const getFlightLegs = () => {
+    const fDet = details['flight'];
+    if (!fDet || !fDet.items) return [];
+    return fDet.items.map((leg, i) => {
+      const label = `Leg ${i+1}${leg.from||leg.to ? ` (${leg.from||'?'} → ${leg.to||'?'})` : ''}`;
+      return label;
+    });
+  };
+
+  const renderServiceBody = (key, det) => {
+    const isSimple = det.mode === 'simple';
+
+    if (key === 'landPackage' || key === 'fooding') {
+      return <CQSimpleForm det={det} onU={p=>updDet(key,p)} />;
+    }
+
+    if (isSimple) {
+      return <CQSimpleForm det={det} onU={p=>updDet(key,p)} />;
+    }
+
+    // FLIGHT
+    if (key === 'flight') {
+      const legs = det.items || [];
+      const total = sumItems(legs);
+      return (
+        <div className="cq-detailed-body">
+          <CQYellowBanner currency={det.currency} />
+          {legs.map((leg, idx) => (
+            <div key={leg.id||idx} className="cq-item-card">
+              <div className="cq-item-hdr">
+                <span className="cq-item-lbl">Leg {idx+1}</span>
+                <CQTrashBtn onClick={()=>delItem(key,idx)} />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Route</label>
+                <div className="cq-route-row">
+                  <input type="text" className="cq-text-in" placeholder="From" value={leg.from||''} onChange={e=>updItem(key,idx,{from:e.target.value})} />
+                  <CQArrow />
+                  <input type="text" className="cq-text-in" placeholder="To" value={leg.to||''} onChange={e=>updItem(key,idx,{to:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Airline</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. Air India" value={leg.airline||''} onChange={e=>updItem(key,idx,{airline:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Flight No.</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. AI 101" value={leg.flightNo||''} onChange={e=>updItem(key,idx,{flightNo:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Departure</label>
+                <div className="cq-dep-row">
+                  <CQDate value={leg.depDate} onChange={v=>updItem(key,idx,{depDate:v})} placeholder="Date" />
+                  <CQTime hh={leg.depHH} mm={leg.depMM} onHH={v=>updItem(key,idx,{depHH:v})} onMM={v=>updItem(key,idx,{depMM:v})} />
+                </div>
+                <CQTimeHelper />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Arrival</label>
+                <div className="cq-dep-row">
+                  <CQDate value={leg.arrDate} onChange={v=>updItem(key,idx,{arrDate:v})} placeholder="Date" />
+                  <CQTime hh={leg.arrHH} mm={leg.arrMM} onHH={v=>updItem(key,idx,{arrHH:v})} onMM={v=>updItem(key,idx,{arrMM:v})} />
+                </div>
+                <CQTimeHelper />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Passengers</label>
+                <div className="cq-pass-hint">Add traveler names in Trip Details to select passengers here</div>
+              </div>
+              <div className="cq-field-g">
+                <CQCostBreakdown item={leg} onItem={p=>updItem(key,idx,p)} />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Vendor</label>
+                <input type="text" className="cq-text-in" placeholder="Vendor name" value={leg.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+              </div>
+            </div>
+          ))}
+          <div className="cq-add-btns">
+            <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkLeg)}>+ Add Flight Leg</button>
+            <button type="button" className="cq-add-btn-purple">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              Import PNR
+            </button>
+          </div>
+          <CQVendorAdj show={det.showVendorAdj} adj={det.vendorAdj||{}} onToggle={()=>updDet(key,{showVendorAdj:!det.showVendorAdj})} onAdj={v=>updDet(key,{vendorAdj:v})} />
+          <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+        </div>
+      );
+    }
+
+    // FLIGHT EXTRAS
+    if (key === 'flightExtras') {
+      const extras = det.items || [];
+      const total  = sumItems(extras);
+      const flightOpts = ['None (standalone)', ...getFlightLegs()];
+      const typeOpts   = ['Seat','Meals','Baggage','Priority Boarding','Lounge','Other'];
+      return (
+        <div className="cq-detailed-body">
+          {extras.map((ex, idx) => (
+            <div key={ex.id||idx} className="cq-item-card">
+              <div className="cq-item-hdr">
+                <span className="cq-item-lbl">Extra {idx+1}</span>
+                <CQTrashBtn onClick={()=>delItem(key,idx)} />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Type</label>
+                  <select className="cq-sel" value={ex.type||'Seat'} onChange={e=>updItem(key,idx,{type:e.target.value})}>
+                    {typeOpts.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Link to Flight</label>
+                  <select className="cq-sel" value={ex.link||'None (standalone)'} onChange={e=>updItem(key,idx,{link:e.target.value})}>
+                    {flightOpts.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Description</label>
+                <input type="text" className="cq-text-in" placeholder="e.g. Extra 15kg checked baggage, Window seat 12A..." value={ex.description||''} onChange={e=>updItem(key,idx,{description:e.target.value})} />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Cost</label>
+                  <input type="number" className="cq-text-in" placeholder="0" value={ex.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Vendor</label>
+                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={ex.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkExtra)}>+ Add Flight Extra</button>
+          <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+        </div>
+      );
+    }
+
+    // TRAIN
+    if (key === 'train') {
+      const journeys = det.items || [];
+      const total    = sumItems(journeys);
+      const classOpts = ['1A – First AC','2A – Second AC','3A – Third AC','3E – Third AC Economy','SL – Sleeper','CC – AC Chair Car','EC – Exec. Chair Car','2S – Second Sitting'];
+      return (
+        <div className="cq-detailed-body">
+          <CQYellowBanner currency={det.currency} />
+          {journeys.map((j, idx) => (
+            <div key={j.id||idx} className="cq-item-card">
+              <div className="cq-item-hdr">
+                <span className="cq-item-lbl">Journey {idx+1}</span>
+                <CQTrashBtn onClick={()=>delItem(key,idx)} />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Route</label>
+                <div className="cq-route-row">
+                  <input type="text" className="cq-text-in" placeholder="From station" value={j.fromStation||''} onChange={e=>updItem(key,idx,{fromStation:e.target.value})} />
+                  <CQArrow />
+                  <input type="text" className="cq-text-in" placeholder="To station" value={j.toStation||''} onChange={e=>updItem(key,idx,{toStation:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Train No.</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. 12301" value={j.trainNo||''} onChange={e=>updItem(key,idx,{trainNo:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Train Name</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. Rajdhani Express" value={j.trainName||''} onChange={e=>updItem(key,idx,{trainName:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Class</label>
+                  <select className="cq-sel" value={j.class||''} onChange={e=>updItem(key,idx,{class:e.target.value})}>
+                    <option value="">Select class</option>
+                    {classOpts.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Date</label>
+                  <CQDate value={j.date} onChange={v=>updItem(key,idx,{date:v})} placeholder="Select date" />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Dep. Time</label>
+                  <CQTime hh={j.depHH} mm={j.depMM} onHH={v=>updItem(key,idx,{depHH:v})} onMM={v=>updItem(key,idx,{depMM:v})} />
+                  <CQTimeHelper />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Arr. Time</label>
+                  <CQTime hh={j.arrHH} mm={j.arrMM} onHH={v=>updItem(key,idx,{arrHH:v})} onMM={v=>updItem(key,idx,{arrMM:v})} />
+                  <CQTimeHelper />
+                </div>
+              </div>
+              <div className="cq-grid-3">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">PNR</label>
+                  <input type="text" className="cq-text-in" placeholder="10 digits" value={j.pnr||''} onChange={e=>updItem(key,idx,{pnr:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Cost</label>
+                  <input type="number" className="cq-text-in" placeholder="0" value={j.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Vendor</label>
+                  <input type="text" className="cq-text-in" placeholder="IRCTC / Agent" value={j.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkTrain)}>+ Add Train Journey</button>
+          <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+        </div>
+      );
+    }
+
+    // BUS
+    if (key === 'bus') {
+      const journeys = det.items || [];
+      const total    = sumItems(journeys);
+      const busTypes  = ['Volvo AC Sleeper','Volvo AC Semi-Sleeper','AC Sleeper','AC Seater','Non-AC Sleeper','Bharat Benz AC','Scania AC Multi-Axle','Electric AC','Mini Bus','Deluxe / Super Deluxe'];
+      const seatTypes = ['Sleeper','Semi-Sleeper','Seater','Seater (Push Back)'];
+      return (
+        <div className="cq-detailed-body">
+          <CQYellowBanner currency={det.currency} />
+          {journeys.map((j, idx) => (
+            <div key={j.id||idx} className="cq-item-card">
+              <div className="cq-item-hdr">
+                <span className="cq-item-lbl">Journey {idx+1}</span>
+                <CQTrashBtn onClick={()=>delItem(key,idx)} />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Route</label>
+                <div className="cq-route-row">
+                  <input type="text" className="cq-text-in" placeholder="From city" value={j.fromCity||''} onChange={e=>updItem(key,idx,{fromCity:e.target.value})} />
+                  <CQArrow />
+                  <input type="text" className="cq-text-in" placeholder="To city" value={j.toCity||''} onChange={e=>updItem(key,idx,{toCity:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Operator / Travels</label>
+                <input type="text" className="cq-text-in" placeholder="e.g. VRL Travels" value={j.operator||''} onChange={e=>updItem(key,idx,{operator:e.target.value})} />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Bus Type</label>
+                  <select className="cq-sel" value={j.busType||''} onChange={e=>updItem(key,idx,{busType:e.target.value})}>
+                    <option value="">Select bus type</option>
+                    {busTypes.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Seat Type</label>
+                  <select className="cq-sel" value={j.seatType||''} onChange={e=>updItem(key,idx,{seatType:e.target.value})}>
+                    <option value="">Select seat type</option>
+                    {seatTypes.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Date</label>
+                <CQDate value={j.date} onChange={v=>updItem(key,idx,{date:v})} placeholder="Select date" />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Boarding Point</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. Majestic Bus Stand" value={j.boardingPoint||''} onChange={e=>updItem(key,idx,{boardingPoint:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Dropping Point</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. Swargate" value={j.droppingPoint||''} onChange={e=>updItem(key,idx,{droppingPoint:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Dep. Time</label>
+                  <CQTime hh={j.depHH} mm={j.depMM} onHH={v=>updItem(key,idx,{depHH:v})} onMM={v=>updItem(key,idx,{depMM:v})} />
+                  <CQTimeHelper />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Arr. Time</label>
+                  <CQTime hh={j.arrHH} mm={j.arrMM} onHH={v=>updItem(key,idx,{arrHH:v})} onMM={v=>updItem(key,idx,{arrMM:v})} />
+                  <CQTimeHelper />
+                </div>
+              </div>
+              <div className="cq-grid-3">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Ticket No.</label>
+                  <input type="text" className="cq-text-in" placeholder="Ticket / PNR" value={j.ticketNo||''} onChange={e=>updItem(key,idx,{ticketNo:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Cost</label>
+                  <input type="number" className="cq-text-in" placeholder="0" value={j.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Vendor</label>
+                  <input type="text" className="cq-text-in" placeholder="RedBus / AbhiBus / Agent" value={j.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkBus)}>+ Add Bus Journey</button>
+          <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+        </div>
+      );
+    }
+
+    // HOTEL
+    if (key === 'hotel') {
+      const hotels = det.items || [];
+      const total  = sumItems(hotels);
+      const starOpts = ['3 Star','4 Star','5 Star','5 Star Deluxe'];
+      const roomOpts = ['Single','Double','Twin','Triple','Suite'];
+      const mealOpts = ['EP – No Meals','CP – Breakfast','MAP – Breakfast + Dinner','AP – All Meals'];
+      return (
+        <div className="cq-detailed-body">
+          <CQYellowBanner currency={det.currency} />
+          {hotels.map((h, idx) => (
+            <div key={h.id||idx} className="cq-item-card">
+              <div className="cq-item-hdr">
+                <span className="cq-item-lbl">Hotel {idx+1}</span>
+                <CQTrashBtn onClick={()=>delItem(key,idx)} />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">City</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. Mumbai" value={h.city||''} onChange={e=>updItem(key,idx,{city:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Hotel Name</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. Taj Palace" value={h.hotelName||''} onChange={e=>updItem(key,idx,{hotelName:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Star Rating</label>
+                  <select className="cq-sel" value={h.starRating||'4 Star'} onChange={e=>updItem(key,idx,{starRating:e.target.value})}>
+                    {starOpts.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Room Type</label>
+                  <select className="cq-sel" value={h.roomType||'Double'} onChange={e=>updItem(key,idx,{roomType:e.target.value})}>
+                    {roomOpts.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Check-in</label>
+                <div className="cq-dep-row">
+                  <CQDate value={h.checkInDate} onChange={v=>updItem(key,idx,{checkInDate:v})} placeholder="Check-in date" />
+                  <CQTime hh={h.checkInHH} mm={h.checkInMM} onHH={v=>updItem(key,idx,{checkInHH:v})} onMM={v=>updItem(key,idx,{checkInMM:v})} />
+                </div>
+                <CQTimeHelper />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Check-out</label>
+                <div className="cq-dep-row">
+                  <CQDate value={h.checkOutDate} onChange={v=>updItem(key,idx,{checkOutDate:v})} placeholder="Check-out date" />
+                  <CQTime hh={h.checkOutHH} mm={h.checkOutMM} onHH={v=>updItem(key,idx,{checkOutHH:v})} onMM={v=>updItem(key,idx,{checkOutMM:v})} />
+                </div>
+                <CQTimeHelper />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Meal Plan</label>
+                <select className="cq-sel" value={h.mealPlan||'CP – Breakfast'} onChange={e=>updItem(key,idx,{mealPlan:e.target.value})}>
+                  {mealOpts.map(o=><option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+              <div className="cq-field-g">
+                <CQCostBreakdown item={h} onItem={p=>updItem(key,idx,p)} />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Vendor</label>
+                <input type="text" className="cq-text-in" placeholder="Vendor name" value={h.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+              </div>
+            </div>
+          ))}
+          <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkHotel)}>+ Add Hotel</button>
+          <CQVendorAdj show={det.showVendorAdj} adj={det.vendorAdj||{}} onToggle={()=>updDet(key,{showVendorAdj:!det.showVendorAdj})} onAdj={v=>updDet(key,{vendorAdj:v})} />
+          <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+        </div>
+      );
+    }
+
+    // VISA
+    if (key === 'visa') {
+      const visaTypes = ['Tourist','Business','Transit','E-Visa','On Arrival','Not Required'];
+      return (
+        <div className="cq-detailed-body">
+          <CQYellowBanner currency={det.currency} />
+          <div className="cq-grid-2">
+            <div className="cq-field-g">
+              <label className="cq-field-lbl">Visa Type</label>
+              <select className="cq-sel" value={det.visaType||'Tourist'} onChange={e=>updDet(key,{visaType:e.target.value})}>
+                {visaTypes.map(o=><option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+            <div className="cq-field-g">
+              <label className="cq-field-lbl">Country</label>
+              <input type="text" className="cq-text-in" placeholder="Country" value={det.visaCountry||''} onChange={e=>updDet(key,{visaCountry:e.target.value})} />
+            </div>
+          </div>
+          <div className="cq-grid-2">
+            <div className="cq-field-g">
+              <label className="cq-field-lbl">Cost</label>
+              <input type="number" className="cq-text-in" placeholder="0" value={det.visaCost||''} onChange={e=>updDet(key,{visaCost:e.target.value, cost:e.target.value})} />
+            </div>
+            <div className="cq-field-g">
+              <label className="cq-field-lbl">Vendor</label>
+              <input type="text" className="cq-text-in" placeholder="Vendor name" value={det.visaVendor||''} onChange={e=>updDet(key,{visaVendor:e.target.value})} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ACTIVITIES
+    if (key === 'activities') {
+      const acts  = det.items || [];
+      const total = sumItems(acts);
+      const durOpts = ['2 hrs','3 hrs','4 hrs','Half Day','Full Day','Multi-day'];
+      return (
+        <div className="cq-detailed-body">
+          <CQYellowBanner currency={det.currency} />
+          {acts.map((a, idx) => (
+            <div key={a.id||idx} className="cq-item-card">
+              <div className="cq-item-hdr">
+                <span className="cq-item-lbl">Activity {idx+1}</span>
+                <CQTrashBtn onClick={()=>delItem(key,idx)} />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Activity Name</label>
+                  <input type="text" className="cq-text-in" placeholder="Activity name" value={a.activityName||''} onChange={e=>updItem(key,idx,{activityName:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Location</label>
+                  <input type="text" className="cq-text-in" placeholder="Location" value={a.location||''} onChange={e=>updItem(key,idx,{location:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Date</label>
+                  <CQDate value={a.date} onChange={v=>updItem(key,idx,{date:v})} placeholder="Date" />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Duration</label>
+                  <select className="cq-sel" value={a.duration||'Half Day'} onChange={e=>updItem(key,idx,{duration:e.target.value})}>
+                    {durOpts.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Inclusions</label>
+                <textarea className="cq-textarea" placeholder="Inclusions (pickup, guide, tickets...)" rows={2} value={a.inclusions||''} onChange={e=>updItem(key,idx,{inclusions:e.target.value})} />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Cost</label>
+                  <input type="number" className="cq-text-in" placeholder="Cost" value={a.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Vendor</label>
+                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={a.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkActiv)}>+ Add Activity</button>
+          <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+        </div>
+      );
+    }
+
+    // CAB / TRANSPORT
+    if (key === 'cabTransport') {
+      const xfers  = det.items || [];
+      const total  = sumItems(xfers);
+      const vehOpts = ['Sedan','SUV','Tempo Traveller','Mini Bus','Coach','Ferry','Speedboat'];
+      return (
+        <div className="cq-detailed-body">
+          <CQYellowBanner currency={det.currency} />
+          {xfers.map((x, idx) => (
+            <div key={x.id||idx} className="cq-item-card">
+              <div className="cq-item-hdr">
+                <span className="cq-item-lbl">Transfer {idx+1}</span>
+                <CQTrashBtn onClick={()=>delItem(key,idx)} />
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Vehicle</label>
+                <select className="cq-sel" value={x.vehicle||'Sedan'} onChange={e=>updItem(key,idx,{vehicle:e.target.value})}>
+                  {vehOpts.map(o=><option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Date From</label>
+                  <CQDate value={x.dateFrom} onChange={v=>updItem(key,idx,{dateFrom:v})} placeholder="From" />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Date To</label>
+                  <CQDate value={x.dateTo} onChange={v=>updItem(key,idx,{dateTo:v})} placeholder="To" />
+                </div>
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Route</label>
+                <div className="cq-route-row">
+                  <input type="text" className="cq-text-in" placeholder="Pickup" value={x.pickup||''} onChange={e=>updItem(key,idx,{pickup:e.target.value})} />
+                  <CQArrow />
+                  <input type="text" className="cq-text-in" placeholder="Drop" value={x.drop||''} onChange={e=>updItem(key,idx,{drop:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Cost</label>
+                  <input type="number" className="cq-text-in" placeholder="0" value={x.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Vendor</label>
+                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={x.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkXfer)}>+ Add Transfer</button>
+          <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+        </div>
+      );
+    }
+
+    // ADMISSION / ENTRY
+    if (key === 'admission') {
+      const adms  = det.items || [];
+      const total = sumItems(adms);
+      return (
+        <div className="cq-detailed-body">
+          <CQYellowBanner currency={det.currency} />
+          {adms.map((a, idx) => (
+            <div key={a.id||idx} className="cq-item-card">
+              <div className="cq-item-hdr">
+                <span className="cq-item-lbl">Entry {idx+1}</span>
+                <CQTrashBtn onClick={()=>delItem(key,idx)} />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Name / Attraction</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. Disneyland" value={a.name||''} onChange={e=>updItem(key,idx,{name:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Location</label>
+                  <input type="text" className="cq-text-in" placeholder="e.g. Paris" value={a.location||''} onChange={e=>updItem(key,idx,{location:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Date</label>
+                  <CQDate value={a.date} onChange={v=>updItem(key,idx,{date:v})} placeholder="Select date" />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">No. of Tickets</label>
+                  <input type="number" className="cq-text-in" placeholder="0" value={a.tickets||''} onChange={e=>updItem(key,idx,{tickets:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-field-g">
+                <label className="cq-field-lbl">Notes</label>
+                <textarea className="cq-textarea" placeholder="Timings, inclusions, special access..." rows={2} value={a.notes||''} onChange={e=>updItem(key,idx,{notes:e.target.value})} />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Cost</label>
+                  <input type="number" className="cq-text-in" placeholder="0" value={a.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Vendor</label>
+                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={a.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkAdm)}>+ Add Entry / Admission</button>
+          <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+        </div>
+      );
+    }
+
+    // TRAVEL INSURANCE
+    if (key === 'insurance') {
+      return <CQSimpleForm det={det} onU={p=>updDet(key,p)} />;
+    }
+
+    // OTHER
+    if (key === 'other') {
+      const items = det.items || [];
+      const total = sumItems(items);
+      const typeOpts = ['Forex','Meet & Greet','Porter & Tips','Guide','Sim/WiFi','Cruise','Train Tickets','Entry Permits','Miscellaneous'];
+      return (
+        <div className="cq-detailed-body">
+          <CQYellowBanner currency={det.currency} />
+          {items.map((it, idx) => (
+            <div key={it.id||idx} className="cq-item-card">
+              <div className="cq-item-hdr">
+                <span className="cq-item-lbl">Item {idx+1}</span>
+                <CQTrashBtn onClick={()=>delItem(key,idx)} />
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Type</label>
+                  <select className="cq-sel" value={it.type||'Forex'} onChange={e=>updItem(key,idx,{type:e.target.value})}>
+                    {typeOpts.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Description</label>
+                  <input type="text" className="cq-text-in" placeholder="Description" value={it.description||''} onChange={e=>updItem(key,idx,{description:e.target.value})} />
+                </div>
+              </div>
+              <div className="cq-grid-2">
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Cost</label>
+                  <input type="number" className="cq-text-in" placeholder="Cost" value={it.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                </div>
+                <div className="cq-field-g">
+                  <label className="cq-field-lbl">Vendor</label>
+                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={it.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkOther)}>+ Add Item</button>
+          <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -556,7 +1384,7 @@ const Step3Services = ({ data, onChange }) => {
         </div>
       </div>
 
-      {/* ── Service grid ── */}
+      {/* Service selector grid */}
       <div className="cq-s3-grid">
         {SERVICE_LIST.map(svc => {
           const isOn = !!selected[svc.key];
@@ -574,7 +1402,7 @@ const Step3Services = ({ data, onChange }) => {
         })}
       </div>
 
-      {/* ── Cost Details ── */}
+      {/* Cost details area */}
       {selectedKeys.length > 0 && (
         <>
           <div className="cq-cost-section-header">
@@ -582,52 +1410,45 @@ const Step3Services = ({ data, onChange }) => {
             <span className="cq-cost-divider-text">COST DETAILS</span>
             <div className="cq-cost-divider-line" />
           </div>
-          <p className="cq-fx-ref">FX reference: Frankfurter (ECB daily) • Updated {todayStr}</p>
+          <p className="cq-fx-ref">FX reference: Frankfurter (ECB daily) • Updated {todayFx}</p>
 
           {selectedKeys.map(key => {
             const svc = SERVICE_LIST.find(s => s.key === key);
-            const det = details[key] || { cost: '', margin: '', vendor: '', currency: 'INR', mode: 'simple' };
+            const det = details[key] || mkDet();
+            const hasToggle = SVC_HAS_TOGGLE(key);
+            const hasInfo   = SVC_HAS_INFO(key);
+            const isFlightExtras = key === 'flightExtras';
+
             return (
               <div key={key} className="cq-cost-block">
-                {/* Header row */}
                 <div className="cq-cost-block-header">
                   <div className="cq-cost-svc-icon">{svc.icon}</div>
                   <span className="cq-cost-svc-name">{svc.label}</span>
-                  <button type="button" className="cq-cost-info-btn" title="Help">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  </button>
-                  <div className="cq-cost-mode-toggle">
-                    <button type="button" className={`cq-cost-mode-btn${det.mode !== 'detailed' ? ' cq-cost-mode-active' : ''}`} onClick={() => updateDetail(key, 'mode', 'simple')}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                      Simple
-                    </button>
-                    <button type="button" className={`cq-cost-mode-btn${det.mode === 'detailed' ? ' cq-cost-mode-active' : ''}`} onClick={() => updateDetail(key, 'mode', 'detailed')}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-                      Detailed
-                    </button>
+                  {hasInfo && <InfoBtn infoKey="cq_svc_toggle" variant="light" />}
+                  <div className="cq-hdr-cur">
+                    <CQCurSelect value={det.currency} onChange={v=>updDet(key,{currency:v})} />
                   </div>
+                  {hasToggle && (
+                    <div className="cq-cost-mode-toggle">
+                      <button type="button" className={`cq-cost-mode-btn${det.mode!=='detailed'?' cq-cost-mode-active':''}`} onClick={()=>updDet(key,{mode:'simple'})}>Simple</button>
+                      <button type="button" className={`cq-cost-mode-btn${det.mode==='detailed'?' cq-cost-mode-active':''}`} onClick={()=>{
+                        const needsItem = SVC_IS_ITEMS(key) && !['visa','insurance'].includes(key);
+                        const factory = { flight:mkLeg, flightExtras:mkExtra, train:mkTrain, bus:mkBus, hotel:mkHotel, activities:mkActiv, cabTransport:mkXfer, admission:mkAdm, other:mkOther }[key];
+                        const items = (det.items||[]).length===0 && needsItem && factory ? [factory()] : (det.items||[]);
+                        updDet(key, { mode:'detailed', items });
+                      }}>Detailed</button>
+                    </div>
+                  )}
                 </div>
 
-                {/* Input row */}
-                <div className="cq-cost-input-row">
-                  <div className="cq-currency-wrap">
-                    <span className="cq-currency-rupee">₹</span>
-                    <select value={det.currency || 'INR'} onChange={e => updateDetail(key, 'currency', e.target.value)} className="cq-currency-select">
-                      {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink:0, color:'var(--text-muted)' }}><polyline points="6 9 12 15 18 9"/></svg>
-                  </div>
-                  <input type="number" placeholder="Cost" className="cq-cost-input" value={det.cost} onChange={e => updateDetail(key, 'cost', e.target.value)} />
-                  <span className="cq-cost-sep-rupee">₹</span>
-                  <input type="number" placeholder="Margin" className="cq-cost-input" value={det.margin} onChange={e => updateDetail(key, 'margin', e.target.value)} />
-                  <input type="text" placeholder="Vendor name" className="cq-vendor-input" value={det.vendor} onChange={e => updateDetail(key, 'vendor', e.target.value)} />
-                </div>
-                <p className="cq-cost-note">Entered in {det.currency || 'INR'}</p>
+                {isFlightExtras
+                  ? renderServiceBody(key, { ...det, mode:'detailed' })
+                  : renderServiceBody(key, det)
+                }
               </div>
             );
           })}
 
-          {/* Package detected banner */}
           {pkgDetected && (
             <div className="cq-pkg-banner">
               <strong>Package detected:</strong>&nbsp;{selectedKeys.length}+ services selected. This qualifies as a package for GST/TCS purposes.
@@ -668,13 +1489,20 @@ const InfoIcon = ({ tip }) => (
   </span>
 );
 
-const Step4Pricing = ({ data, onChange }) => {
+const Step4Pricing = ({ data, onChange, calc }) => {
   const billingModel   = data.billingModel   || 'pure-agent';
   const placeOfSupply  = data.placeOfSupply  || '';
   const pricingMode    = data.pricingMode    || 'total-quote';
   const dpcDisplay     = data.dpcDisplay     || 'exclusive';
+  const isPureAgent    = billingModel === 'pure-agent';
 
   const setField = (key, val, extra = {}) => onChange({ [key]: val, ...extra });
+
+  const gstBadgeLabel = calc ? (
+    calc.noGst ? 'No GST applicable' :
+    calc.gstType === 'cgst-sgst' ? `CGST + SGST (${Math.round(calc.gstRate * 100)}%)` :
+    `IGST (${Math.round(calc.gstRate * 100)}%)`
+  ) : '';
 
   return (
     <div className="cq-step-content">
@@ -721,7 +1549,7 @@ const Step4Pricing = ({ data, onChange }) => {
         <svg className="cq-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       {placeOfSupply && (
-        <span className="cq-gst-badge">IGST (18%)</span>
+        <span className="cq-gst-badge">{gstBadgeLabel}</span>
       )}
 
       {/* ── Pricing Mode toggle ── */}
@@ -758,6 +1586,12 @@ const Step4Pricing = ({ data, onChange }) => {
             value={data.totalQuoteAmount || ''}
             onChange={e => setField('totalQuoteAmount', e.target.value)}
           />
+          {calc && (parseFloat(data.totalQuoteAmount) || 0) > 0 && (
+            <p className="cq-p4-hint" style={{ color: '#059669', fontWeight: 500 }}>
+              Calculated margin: ₹{Math.round(calc.margin).toLocaleString('en-IN')}
+              {calc.margin < 0 && <span style={{ color: '#dc2626' }}> (negative)</span>}
+            </p>
+          )}
         </>
       )}
 
@@ -791,52 +1625,59 @@ const Step4Pricing = ({ data, onChange }) => {
       />
       <p className="cq-p4-hint">Commission is tracked separately and added to total profit</p>
 
-      {/* ── Display Processing Charge card ── */}
-      <div className="cq-dpc-card">
-        <div className="cq-dpc-header">
-          <span className="cq-dpc-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          </span>
-          <span className="cq-dpc-title">Display Processing Charge (Customer Quote)</span>
+      {/* ── Display Processing Charge card — Pure Agent only ── */}
+      {isPureAgent && (
+        <div className="cq-dpc-card">
+          <div className="cq-dpc-header">
+            <span className="cq-dpc-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </span>
+            <span className="cq-dpc-title">Display Processing Charge (Customer Quote)</span>
+          </div>
+          <p className="cq-dpc-desc">Customize the processing charge shown to the customer. This doesn't affect actual billing — only the customer-facing display.</p>
+          <div className="cq-dpc-toggle">
+            <button
+              type="button"
+              className={`cq-dpc-btn${dpcDisplay === 'inclusive' ? ' cq-dpc-btn-active' : ''}`}
+              onClick={() => setField('dpcDisplay', 'inclusive')}
+            >Inclusive of GST <InfoBtn infoKey="cq_dpc_inclusive" /></button>
+            <button
+              type="button"
+              className={`cq-dpc-btn${dpcDisplay === 'exclusive' ? ' cq-dpc-btn-active' : ''}`}
+              onClick={() => setField('dpcDisplay', 'exclusive')}
+            >
+              Exclusive of GST
+              <InfoBtn infoKey="cq_dpc_exclusive" />
+            </button>
+          </div>
+          <input
+            type="number"
+            className="cq-p4-input"
+            style={{ marginTop: 10 }}
+            placeholder="Display processing charge amount"
+            value={data.displayProcessingCharge || ''}
+            onChange={e => setField('displayProcessingCharge', e.target.value, { processingCharge: e.target.value })}
+          />
         </div>
-        <p className="cq-dpc-desc">Customize the processing charge shown to the customer. This doesn't affect actual billing — only the customer-facing display.</p>
-        <div className="cq-dpc-toggle">
-          <button
-            type="button"
-            className={`cq-dpc-btn${dpcDisplay === 'inclusive' ? ' cq-dpc-btn-active' : ''}`}
-            onClick={() => setField('dpcDisplay', 'inclusive')}
-          >Inclusive of GST <InfoBtn infoKey="cq_dpc_inclusive" /></button>
-          <button
-            type="button"
-            className={`cq-dpc-btn${dpcDisplay === 'exclusive' ? ' cq-dpc-btn-active' : ''}`}
-            onClick={() => setField('dpcDisplay', 'exclusive')}
-          >
-            Exclusive of GST
-            <InfoBtn infoKey="cq_dpc_exclusive" />
-          </button>
+      )}
+
+      {/* TCS info note */}
+      {calc && calc.tcsApplicable && (
+        <div className="cq-calc-warning" style={{ background: '#eff6ff', borderColor: '#bfdbfe', marginTop: 16 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" style={{ flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>TCS @5% applies (international + 2+ services). TCS is adjustable against customer's income tax.</span>
         </div>
-        <input
-          type="number"
-          className="cq-p4-input"
-          style={{ marginTop: 10 }}
-          placeholder="Display processing charge amount"
-          value={data.displayProcessingCharge || ''}
-          onChange={e => setField('displayProcessingCharge', e.target.value, { processingCharge: e.target.value })}
-        />
-      </div>
+      )}
     </div>
   );
 };
 
 // ─── Step 5: Review ───────────────────────────────────────────────────────────
-const Step5Review = ({ data, onChange, editMode, isPrefilled, prefilledCustomer }) => {
+const Step5Review = ({ data, onChange, editMode, isPrefilled, prefilledCustomer, calc }) => {
   const activeServices = SERVICE_LIST.filter(s => (data.services || {})[s.key]);
-  const serviceCosts = data.serviceCosts || {};
-  const totalPayable = parseFloat(data.totalQuoteAmount) || (
-    Object.values(serviceCosts).reduce((s, v) => s + (parseFloat(v) || 0), 0) +
-    (parseFloat(data.hiddenMarkup) || 0) +
-    (parseFloat(data.processingCharge) || 0)
-  );
+  const totalPayable = calc ? calc.totalPayable : 0;
 
   const customerName = (isPrefilled && prefilledCustomer?.name) ||
     data.customerSearch || data.newCustomerName || '—';
@@ -1395,6 +2236,42 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
 
   const updateFormData = (patch) => setFormData(prev => ({ ...prev, ...patch }));
 
+  // Compute costOfServices and totalServiceMargin
+  const costOfServices = useMemo(() => {
+    const sc = formData.serviceCosts || {};
+    return Object.values(sc).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+  }, [formData.serviceCosts]);
+
+  const totalServiceMargin = useMemo(() => {
+    const details = formData.serviceDetails || {};
+    return Object.values(details).reduce((s, d) => s + (parseFloat(d?.margin) || 0), 0);
+  }, [formData.serviceDetails]);
+
+  const serviceCount = useMemo(() => {
+    return Object.values(formData.services || {}).filter(Boolean).length;
+  }, [formData.services]);
+
+  // Full calculation via shared engine
+  const calcResult = useMemo(() => calculate({
+    costOfServices,
+    billingModel: formData.billingModel || 'pure-agent',
+    pricingMode: formData.pricingMode || 'set-margin',
+    totalQuoteAmount: formData.totalQuoteAmount,
+    marginAmount: formData.marginAmount || formData.hiddenMarkup,
+    totalServiceMargin,
+    vendorCommission: formData.vendorCommission,
+    placeOfSupply: formData.placeOfSupply,
+    businessStateCode: '',
+    destType: formData.destType || 'domestic',
+    serviceCount,
+    dpcDisplay: formData.dpcDisplay,
+    displayProcessingCharge: formData.displayProcessingCharge,
+  }), [costOfServices, totalServiceMargin, serviceCount,
+    formData.billingModel, formData.pricingMode, formData.totalQuoteAmount,
+    formData.marginAmount, formData.hiddenMarkup, formData.vendorCommission,
+    formData.placeOfSupply, formData.destType, formData.dpcDisplay,
+    formData.displayProcessingCharge]);
+
   const handleBack = () => {
     if (currentStep > firstStep) {
       setCurrentStep(s => s - 1);
@@ -1421,8 +2298,8 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
       case 1: return <Step1Customer data={formData} onChange={updateFormData} />;
       case 2: return <Step2Trip data={formData} onChange={updateFormData} />;
       case 3: return <Step3Services data={formData} onChange={updateFormData} />;
-      case 4: return <Step4Pricing data={formData} onChange={updateFormData} />;
-      case 5: return <Step5Review data={formData} onChange={updateFormData} editMode={editMode} isPrefilled={isPrefilled} prefilledCustomer={prefilledCustomer} />;
+      case 4: return <Step4Pricing data={formData} onChange={updateFormData} calc={calcResult} />;
+      case 5: return <Step5Review data={formData} onChange={updateFormData} editMode={editMode} isPrefilled={isPrefilled} prefilledCustomer={prefilledCustomer} calc={calcResult} />;
       case 6: return <Step6Itinerary data={formData} onChange={updateFormData} editMode={editMode} onOpenDesigner={() => { const qId = editMode ? (formData._editQuoteId || 'WL-Q-0001') : 'WL-Q-0001'; openDesigner(qId, formData, 'create-quote'); }} />;
       default: return null;
     }
@@ -1543,7 +2420,7 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
 
         {/* Live Calculation sidebar */}
         <div className="cq-sidebar">
-          <LiveCalculation mode={calcMode} onModeChange={setCalcMode} pricing={formData} />
+          <LiveCalculation mode={calcMode} onModeChange={setCalcMode} calc={calcResult} />
         </div>
       </div>
 

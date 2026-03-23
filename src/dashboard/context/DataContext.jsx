@@ -271,6 +271,11 @@ export const DataProvider = ({ children }) => {
     return result;
   }, [service, refreshInvoices]);
 
+  const deleteInvoice = useCallback((id) => {
+    service.deleteInvoice(id);
+    refreshInvoices();
+  }, [service, refreshInvoices]);
+
   // ─── Convert Quote → Booking + Invoice ────────────────────
   const convertQuote = useCallback((quoteId, customerEdits = {}) => {
     const quote = service.getQuoteById(quoteId);
@@ -403,6 +408,7 @@ export const DataProvider = ({ children }) => {
     // Invoice CRUD
     addInvoice,
     updateInvoice,
+    deleteInvoice,
     getInvoiceById: service.getInvoiceById,
     convertQuote,
 

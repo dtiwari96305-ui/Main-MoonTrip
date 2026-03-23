@@ -441,6 +441,48 @@
   text-decoration: underline;
 }
 
+/* === InfoBtn — light variant (white popup) === */
+.info-popup-portal--light {
+  background-color: #fff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  max-width: 280px;
+  animation: fadeInPopLight 0.15s ease;
+}
+@keyframes fadeInPopLight {
+  from { opacity: 0; transform: translate(-50%, calc(-100% + 8px)); }
+  to   { opacity: 1; transform: translate(-50%, -100%); }
+}
+.info-popup-portal--light::after {
+  border-color: #fff transparent transparent transparent;
+}
+.info-popup-portal--light .ip-heading {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+}
+.info-popup-portal--light .ip-content {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.55;
+  font-weight: 400;
+  margin-bottom: 10px;
+}
+.ip-learn-more--light {
+  color: #16a34a;
+  font-size: 13px;
+}
+.ip-learn-more--light:hover {
+  color: #15803d;
+  background: rgba(22, 163, 74, 0.06);
+  border-radius: 4px;
+  padding: 2px 4px;
+  text-decoration: none;
+}
+
 /* === Overflow Fix for Search Bars & Tables === */
 .page-search-bar {
   display: flex;
@@ -2425,6 +2467,32 @@
   margin-left: 4px;
 }
 .qd-btn-share:hover { background: var(--accent-hover); }
+.qd-btn-backtosent {
+  border: 1.5px solid #94a3b8; background: transparent; color: #475569;
+}
+.qd-btn-backtosent:hover { background: #f8fafc; }
+.qd-btn-convert {
+  border: 1.5px solid #22c55e; background: #f0fdf4; color: #16a34a; font-weight: 600;
+}
+.qd-btn-convert:hover { background: #dcfce7; }
+.qd-btn-reopen {
+  border: 1.5px solid #f59e0b; background: transparent; color: #d97706;
+}
+.qd-btn-reopen:hover { background: #fffbeb; }
+.qd-btn-viewbooking {
+  border: 1.5px solid #818cf8; background: #eef2ff; color: #4f46e5; font-weight: 600;
+}
+.qd-btn-viewbooking:hover { background: #e0e7ff; }
+.qd-itin-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 20px; gap: 8px; text-align: center;
+}
+.qd-itin-empty-text {
+  font-size: 14px; font-weight: 600; color: var(--text-secondary); margin: 4px 0 0;
+}
+.qd-itin-empty-sub {
+  font-size: 12px; color: var(--text-muted); margin: 0; max-width: 320px;
+}
 
 /* ── Generic Card ── */
 .qd-card {
@@ -2624,11 +2692,19 @@
   border-radius: 10px; padding: 14px 18px;
   border: 1px solid rgba(0,0,0,0.04);
 }
+.qd-itin-item-row {
+  border-radius: 10px; padding: 12px 16px;
+  border: 1px solid rgba(0,0,0,0.04);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.qd-itin-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.qd-itin-name { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+.qd-itin-sub  { font-size: 0.78rem; color: var(--text-muted); }
 .qd-itin-title {
   display: flex; align-items: center; gap: 8px;
   font-size: 0.9rem; font-weight: 700; margin-bottom: 12px;
 }
-.qd-itin-icon { display: flex; align-items: center; flex-shrink: 0; }
+.qd-itin-icon { display: flex; align-items: center; flex-shrink: 0; border-radius: 8px; padding: 8px; }
 .qd-itin-fields {
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px;
 }
@@ -3475,4 +3551,133 @@
 /* Lift the active wrapper above siblings */
 .app-mode-real td:has(.status-dropdown) {
   z-index: 9999;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   CUSTOMER PROFILE — Extended Panels
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Financial Progress Bar ── */
+.cp-fin-progress-wrap { margin-top: 14px; }
+.cp-fin-progress-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.82rem; font-weight: 500; color: var(--text-secondary);
+  margin-bottom: 7px;
+}
+.cp-fin-progress-label span:last-child { font-weight: 700; color: var(--text-primary); }
+.cp-fin-progress-bar {
+  height: 8px; border-radius: 4px; background: #f1f5f9; overflow: hidden;
+}
+.cp-fin-progress-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent, #f97316), #fb923c);
+  transition: width 0.6s ease;
+}
+
+/* ── Top Destinations Panel ── */
+.cp-dest-section { margin-bottom: 20px; }
+.cp-dest-card {
+  background: #fff; border-radius: 12px; border: 1px solid #e2e8f0;
+  padding: 20px 24px;
+}
+.cp-dest-header { margin-bottom: 16px; }
+.cp-dest-icon-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.cp-dest-icon-wrap {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.cp-dest-icon-wrap-orange { background: #fff7ed; color: var(--accent, #f97316); }
+.cp-dest-icon-wrap-blue { background: #eff6ff; color: #3b82f6; }
+.cp-dest-title-col { display: flex; flex-direction: column; gap: 1px; }
+.cp-dest-title { font-size: 0.97rem; font-weight: 700; color: var(--text-primary); }
+.cp-dest-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+.cp-dest-layout {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;
+}
+.cp-dest-map { border-radius: 8px; overflow: hidden; }
+.cp-dest-list { display: flex; flex-direction: column; }
+.cp-dest-list-label {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase;
+}
+.cp-dest-item {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+}
+.cp-dest-item:last-child { margin-bottom: 0; }
+.cp-dest-rank {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem; font-weight: 700; color: #fff;
+  background: var(--accent, #f97316); flex-shrink: 0;
+}
+.cp-dest-rank-blue { background: #3b82f6; }
+.cp-dest-info { flex: 1; min-width: 0; }
+.cp-dest-name {
+  display: block; font-size: 0.9rem; font-weight: 700;
+  color: var(--text-primary); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.cp-dest-trips { font-size: 0.75rem; color: var(--text-muted); }
+
+/* ── Ledger Table — Debit / Credit / Balance coloring ── */
+.cp-td-debit { color: #dc2626; font-weight: 600; text-align: right; }
+.cp-td-bal-dr { color: #dc2626; font-weight: 700; text-align: right; white-space: nowrap; }
+.cp-td-bal-cr { color: #16a34a; font-weight: 700; text-align: right; white-space: nowrap; }
+.cp-td-bal-zero { color: var(--text-muted); font-weight: 600; text-align: right; }
+.cp-ref-debit {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: var(--accent, #f97316); font-weight: 600; font-size: 0.85rem;
+  cursor: pointer; transition: color 0.15s;
+}
+.cp-ref-debit:hover { color: #c2410c; text-decoration: underline; }
+.cp-ref-credit {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: #16a34a; font-weight: 600; font-size: 0.85rem;
+  cursor: pointer; transition: color 0.15s;
+}
+.cp-ref-credit:hover { color: #15803d; text-decoration: underline; }
+.cp-ledger-totals td {
+  background: #f8fafc; font-weight: 700; font-size: 0.83rem;
+  border-top: 1.5px solid #e2e8f0 !important;
+  border-bottom: none !important;
+}
+.cp-ledger-totals-label { font-weight: 700; color: var(--text-primary); }
+.cp-ledger-due {
+  background: #fff7f0;
+}
+.cp-ledger-due td {
+  border-top: 2px solid #fed7aa !important;
+  border-bottom: none !important;
+  padding: 10px 12px !important;
+}
+.cp-ledger-due-label {
+  font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);
+}
+.cp-ledger-due-amount {
+  font-size: 1.05rem; font-weight: 800; color: #dc2626;
+  text-align: right;
+}
+
+/* ── Bookings Table — Payment columns ── */
+.payment-pending { background: #fff7ed; color: #c2410c; }
+.cp-bk-payable { font-weight: 600; color: var(--text-primary); text-align: right; }
+.cp-bk-paid { font-weight: 700; color: #16a34a; text-align: right; }
+.cp-bk-paid-zero { font-weight: 600; color: var(--text-muted); text-align: right; }
+
+/* ── Payment History Row ── */
+.cp-pay-ref-row { display: flex; align-items: baseline; gap: 8px; }
+.cp-pay-ref-link {
+  font-weight: 600; color: var(--accent, #f97316); font-size: 0.88rem;
+  cursor: pointer; transition: color 0.15s;
+}
+.cp-pay-ref-link:hover { color: #c2410c; text-decoration: underline; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .cp-dest-layout { grid-template-columns: 1fr; }
+  .cp-dest-map { max-height: 200px; }
 }

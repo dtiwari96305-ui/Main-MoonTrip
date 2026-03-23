@@ -509,14 +509,42 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
           </div>
 
           <div className="qd-action-bar">
-            <button className="qd-btn qd-btn-approve" onClick={demo}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Approve
-            </button>
-            <button className="qd-btn qd-btn-reject" onClick={demo}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-              Reject
-            </button>
+            {(quoteStatus === 'draft' || quoteStatus === 'sent') && (<>
+              <button className="qd-btn qd-btn-approve" onClick={demo}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Approve
+              </button>
+              <button className="qd-btn qd-btn-reject" onClick={demo}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                Reject
+              </button>
+            </>)}
+            {quoteStatus === 'approved' && (<>
+              <button className="qd-btn qd-btn-backtosent" onClick={demo}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+                Back to Sent
+              </button>
+              <button className="qd-btn qd-btn-reject" onClick={demo}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                Reject
+              </button>
+              <button className="qd-btn qd-btn-convert" onClick={demo}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Convert to Booking
+              </button>
+            </>)}
+            {quoteStatus === 'rejected' && (
+              <button className="qd-btn qd-btn-reopen" onClick={demo}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+                Reopen as Draft
+              </button>
+            )}
+            {quoteStatus === 'converted' && (
+              <button className="qd-btn qd-btn-viewbooking" onClick={demo}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                View Booking
+              </button>
+            )}
             <button className="qd-btn qd-btn-edit" onClick={handleEditQuote}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
               Edit Quote
@@ -735,7 +763,10 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
             <div className="qd-fin-agent-label" style={{marginTop:16}}>CUSTOMER INVOICE</div>
             <div className="qd-fin-rows">
               <div className="qd-fin-row">
-                <span>Package Price</span><span>{fin.packagePrice}</span>
+                <span>Cost of Travel Reimbursement</span><span>{fin.costOfTravel}</span>
+              </div>
+              <div className="qd-fin-row">
+                <span>Processing / Service Charge <span style={{fontSize:'10px',opacity:0.6}}>SAC:998551</span></span><span>{fin.processingCustomer}</span>
               </div>
               <div className="qd-fin-row">
                 <span>CGST @9%</span><span>{fin.custCgst}</span>
@@ -767,7 +798,7 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
         </div>
 
         {/* ── Itinerary ── */}
-        {detail.itinerary && detail.itinerary.length > 0 && (
+        {true && (
           <div className="qd-card">
             <div className="qd-itin-card-header">
               <div className="qd-card-title" style={{color:'var(--accent)'}}>
@@ -787,6 +818,7 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
             </div>
 
             {itinView === 'simple' ? (
+              detail.itinerary && detail.itinerary.length > 0 ? (
               <div className="qd-itin-list">
                 {detail.itinerary.map((dayGroup, di) => (
                   <div key={di} className="qd-day-group">
@@ -802,6 +834,13 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
                   </div>
                 ))}
               </div>
+              ) : (
+              <div className="qd-itin-empty">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <p className="qd-itin-empty-text">No itinerary added yet</p>
+                <p className="qd-itin-empty-sub">Use the Edit Quote button to add day-by-day itinerary details.</p>
+              </div>
+              )
             ) : (
               <div className="qd-designed-panel">
                 <div className="qd-designed-icon">

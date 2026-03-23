@@ -33,7 +33,9 @@
       "Bash(sed -i \"s|from ''\\\\.\\\\./utils/authGuard''|from ''../shared/utils/authGuard''|g\" routes/AppRouter.jsx)",
       "Bash(grep -n \"const initialQuotes\\\\|const initialBookings\\\\|const allBookings\\\\|const profileData\\\\|const quoteDetailData\\\\|const activities\\\\|const customers\\\\b\" pages/*.jsx components/*.jsx --include=\"*.jsx\")",
       "Bash(node -e \"const d = require\\(''./src/shared/data/demoData.js''\\); console.log\\(''Exports:'', Object.keys\\(d\\).join\\('', ''\\)\\); console.log\\(''Customers:'', d.demoCustomers.length\\); console.log\\(''Quotes:'', d.demoQuotes.length\\); console.log\\(''Bookings:'', d.demoBookings.length\\); console.log\\(''Payments:'', d.demoPayments.length\\); console.log\\(''QuoteDetails:'', Object.keys\\(d.demoQuoteDetailData\\).length\\); console.log\\(''ProfileData:'', Object.keys\\(d.demoProfileData\\).length\\); console.log\\(''Activities:'', d.demoActivities.length\\); console.log\\(''TopCustomers:'', d.demoTopCustomers.length\\); console.log\\(''ProfileQuotes:'', d.demoProfileQuotes.length\\);\")",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(npx react-scripts:*)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }
