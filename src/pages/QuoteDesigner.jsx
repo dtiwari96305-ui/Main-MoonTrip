@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { DemoLogButton } from '../demo/components/DemoLogButton';
 import ReactDOM from 'react-dom';
 import { useDemoPopup } from '../context/DemoContext';
+import { openBilling } from '../utils/billingNav';
 import jsPDF from 'jspdf';
 
 const TEMPLATES = [
@@ -26,9 +28,12 @@ const hexToRgb = (hex) => {
   return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
 };
 
+// ─── Logs Popup ──────────────────────────────────────────────────────────────
+
+
 export const QuoteDesigner = ({ quoteId, quoteData, fromView, onBack }) => {
   const openDemo = useDemoPopup();
-
+  
   const [selectedTemplate, setSelectedTemplate] = useState('wanderlust');
   const [accentColor, setAccentColor]           = useState('#16A34A');
   const [showPreview, setShowPreview]           = useState(false);
@@ -322,10 +327,18 @@ export const QuoteDesigner = ({ quoteId, quoteData, fromView, onBack }) => {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export PDF
           </button>
-          <button className="qds-top-btn qds-top-btn-save" onClick={openDemo}>
+          <button className="qds-top-btn qds-top-btn-save" onClick={onBack}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Save
           </button>
+          <DemoLogButton />
+          <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+            <div className="header-user-avatar">DA</div>
+            <div className="header-user-info">
+              <span className="header-user-name">Demo Admin</span>
+              <span className="header-user-role"><span className="role-dot"></span> Pro</span>
+            </div>
+          </div>
         </div>
       </div>
 

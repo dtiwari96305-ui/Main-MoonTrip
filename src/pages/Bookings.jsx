@@ -5,6 +5,8 @@ import { demoCustomers } from '../shared/data/demoData';
 import { useDemoPopup } from '../context/DemoContext';
 import { TableSkeleton } from '../shared/components/PageSkeleton';
 import { ExportDropdown } from '../shared/components/ExportDropdown';
+import { useDemoData } from '../context/DemoContext';
+import { CancelBookingModal } from '../dashboard/components/CancelBookingModal';
 
 const BOOKINGS_COLUMNS = [
   { header: 'Booking #',   key: 'id' },
@@ -15,11 +17,7 @@ const BOOKINGS_COLUMNS = [
   { header: 'Status',      key: 'status' },
 ];
 
-const initialBookings = [
-  { id: 'WL-B-0002', customerName: 'Rahul Sharma', destination: 'Bali, Indonesia', amount: '₹1,40,952', profit: '₹18,000', paymentStatus: 'paid', paymentText: '₹1,40,952 / ₹1,40,952', remaining: '—', status: 'confirmed', date: '09 Mar 2026' },
-  { id: 'WL-B-0001', customerName: 'Vikram Iyer', destination: 'Goa', amount: '₹4,69,900', profit: '₹55,000', paymentStatus: 'partial', paymentText: '₹2,35,000 / ₹4,69,900', remaining: '₹2,34,900', status: 'confirmed', date: '09 Mar 2026' },
-  { id: 'WL-B-0003', customerName: 'Rajesh Patel', destination: 'Srinagar - Gulmarg - Pahalgam', amount: '₹1,56,880', profit: '₹16,000', paymentStatus: 'paid', paymentText: '₹1,56,880 / ₹1,56,880', remaining: '—', status: 'completed', date: '01 Mar 2026' }
-];
+
 
 const tabs = [
   { id: 'all', label: 'All' },
@@ -29,18 +27,20 @@ const tabs = [
 ];
 
 export const Bookings = () => {
+  const { bookings, customers, updateBooking } = useDemoData();
   const triggerDemoPopup = useDemoPopup();
   const [activeFilter, setActiveFilter] = useState(() => sessionStorage.getItem('bookings_activeFilter') || 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [cancelModalBooking, setCancelModalBooking] = useState(null);
 
   // Persist filter changes
   useEffect(() => {
     sessionStorage.setItem('bookings_activeFilter', activeFilter);
   }, [activeFilter]);
 
-  const filteredBookings = initialBookings.filter(b => {
+  const filteredBookings = bookings.filter(b => {
     const matchesFilter = activeFilter === 'all' || b.status === activeFilter;
     const matchesSearch = searchQuery === '' || 
       b.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,6 +57,29 @@ export const Bookings = () => {
       setRefreshKey(prev => prev + 1);
       setIsRefreshing(false);
     }, 800);
+  };
+
+  const handleBookingAction = (actionType, bookingId) => {
+    switch (actionType) {
+      case 'in-progress':
+      case 'mark-in-progress':
+        updateBooking(bookingId, { status: 'in_progress' });
+        break;
+      case 'complete':
+      case 'completed':
+      case 'mark-completed':
+        updateBooking(bookingId, { status: 'completed' });
+        break;
+      case 'reopen':
+        updateBooking(bookingId, { status: 'confirmed' });
+        break;
+      case 'cancel':
+        const bk = bookings.find(b => b.id === bookingId);
+        if (bk) setCancelModalBooking(bk);
+        break;
+      default:
+        triggerDemoPopup();
+    }
   };
 
   return (
@@ -102,7 +125,7 @@ export const Bookings = () => {
       {isRefreshing ? (
         <TableSkeleton rows={3} cols={9} />
       ) : filteredBookings.length > 0 ? (
-        <BookingsTable key={refreshKey} bookings={filteredBookings} customers={demoCustomers} onAction={triggerDemoPopup} />
+        <BookingsTable key={refreshKey} bookings={filteredBookings} customers={customers} onAction={handleBookingAction} />
       ) : activeFilter === 'cancelled' ? (
         <div className="data-table-card">
           <table className="data-table">
@@ -137,6 +160,16 @@ export const Bookings = () => {
           <h3 className="empty-state-title">No bookings found</h3>
           <p className="empty-state-desc">Try adjusting your search or filters to find what you're looking for.</p>
         </div>
+      )}
+
+      {cancelModalBooking && (
+        <CancelBookingModal
+          booking={cancelModalBooking}
+          invoices={[]}
+          onClose={() => setCancelModalBooking(null)}
+          onCancelNote={() => { updateBooking(cancelModalBooking.id, { status: 'cancelled' }); setCancelModalBooking(null); }}
+          onVoid={() => { updateBooking(cancelModalBooking.id, { status: 'cancelled' }); setCancelModalBooking(null); }}
+        />
       )}
     </div>
   );

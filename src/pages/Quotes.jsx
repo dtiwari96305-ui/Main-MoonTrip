@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '../shared/components/Header';
 import { QuotesSearchBar } from '../shared/components/QuotesSearchBar';
 import { QuotesTable } from '../shared/components/QuotesTable';
-import { demoCustomers, demoQuoteDetailData } from '../shared/data/demoData';
 import { buildEditFormData } from '../shared/utils/buildEditFormData';
-import { useDemoPopup } from '../context/DemoContext';
+import { useDemoPopup, useDemoData } from '../context/DemoContext';
 import { TableSkeleton } from '../shared/components/PageSkeleton';
 import { ExportDropdown } from '../shared/components/ExportDropdown';
 
@@ -18,18 +17,9 @@ const QUOTES_COLUMNS = [
   { header: 'Status',       key: 'status' },
 ];
 
-const initialQuotes = [
-  { id: 'WL-Q-0001', customerName: 'Rahul Sharma', customerPhone: '+91 99876 54321', destName: 'Bali, Indonesia', destType: 'international', amount: '₹1,40,952', profit: '₹18,000', status: 'converted', tripDate: '15 Apr 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
-  { id: 'WL-Q-0002', customerName: 'Priya Mehta', customerPhone: '+91 98765 12345', destName: 'Jaipur - Udaipur - Jodhpur', destType: 'domestic', amount: '₹1,10,520', profit: '₹14,000', status: 'sent', tripDate: '01 May 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
-  { id: 'WL-Q-0003', customerName: 'Vikram Iyer', customerPhone: '+91 98456 78901', destName: 'Goa', destType: 'domestic', amount: '₹4,69,900', profit: '₹55,000', status: 'converted', tripDate: '20 Mar 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
-  { id: 'WL-Q-0004', customerName: 'Ananya Reddy', customerPhone: '+91 87654 32109', destName: 'Paris - Switzerland - Rome', destType: 'international', amount: '₹8,92,400', profit: '₹1,05,000', status: 'draft', tripDate: '10 Jun 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
-  { id: 'WL-Q-0005', customerName: 'Rajesh Patel', customerPhone: '+91 97654 32100', destName: 'Srinagar - Gulmarg - Pahalgam', destType: 'domestic', amount: '₹1,56,880', profit: '₹16,000', status: 'converted', tripDate: '05 Apr 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
-  { id: 'WL-Q-0006', customerName: 'Arjun Singh', customerPhone: '+91 91234 56789', destName: 'Leh - Ladakh', destType: 'domestic', amount: '₹78,500', profit: '₹9,500', status: 'approved', tripDate: '22 May 2026', createdDate: '10 Mar 2026', createdTime: '02:45 pm' },
-  { id: 'WL-Q-0007', customerName: 'Kavita Sharma', customerPhone: '+91 99988 77766', destName: 'Dubai', destType: 'international', amount: '₹2,45,000', profit: '₹22,000', status: 'rejected', tripDate: '10 Apr 2026', createdDate: '08 Mar 2026', createdTime: '11:30 am' }
-];
-
 export const Quotes = ({ onViewChange }) => {
   const triggerDemoPopup = useDemoPopup();
+  const { quotes, updateQuote, convertQuote, customers, quoteDetailData } = useDemoData();
   const [activeFilter, setActiveFilter] = useState(() => sessionStorage.getItem('quotes_activeFilter') || 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -40,7 +30,29 @@ export const Quotes = ({ onViewChange }) => {
     sessionStorage.setItem('quotes_activeFilter', activeFilter);
   }, [activeFilter]);
 
-  const filteredQuotes = initialQuotes.filter(q => {
+  const handleQuoteAction = (actionType, quoteId) => {
+    switch (actionType) {
+      case 'approve':
+        updateQuote(quoteId, { status: 'approved' });
+        break;
+      case 'reject':
+        updateQuote(quoteId, { status: 'rejected' });
+        break;
+      case 'back-to-sent':
+        updateQuote(quoteId, { status: 'sent' });
+        break;
+      case 'reopen':
+        updateQuote(quoteId, { status: 'draft' });
+        break;
+      case 'convert':
+        convertQuote(quoteId);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const filteredQuotes = quotes.filter(q => {
     const matchesFilter = activeFilter === 'all' || q.status === activeFilter;
     const matchesSearch = searchQuery === '' || 
       q.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -87,10 +99,10 @@ export const Quotes = ({ onViewChange }) => {
         <QuotesTable
           key={refreshKey}
           quotes={filteredQuotes}
-          customers={demoCustomers}
-          quoteDetailData={demoQuoteDetailData}
+          customers={customers}
+          quoteDetailData={quoteDetailData}
           buildEditFormData={buildEditFormData}
-          onAction={triggerDemoPopup}
+          onAction={handleQuoteAction}
         />
       ) : (
 

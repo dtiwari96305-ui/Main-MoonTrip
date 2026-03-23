@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { DemoLogButton } from '../demo/components/DemoLogButton';
 import { InfoBtn } from '../shared/components/InfoBtn';
 import { TableSkeleton } from '../shared/components/PageSkeleton';
 import { ExportDropdown } from '../shared/components/ExportDropdown';
 import { openBilling } from '../utils/billingNav';
+import { useDemoData } from '../context/DemoContext';
 
 const INVOICES_COLUMNS = [
   { header: 'Invoice #',   key: 'id' },
@@ -13,28 +15,7 @@ const INVOICES_COLUMNS = [
   { header: 'Date',        key: 'date' },
 ];
 
-const LogsPopup = ({ onClose }) => {
-  const popupRef = useRef(null);
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (popupRef.current && !popupRef.current.contains(event.target)) onClose();
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
 
-  return (
-    <div className="logs-popup-container" ref={popupRef}>
-      <div className="logs-popup-header"><h3>Logs</h3></div>
-      <div className="logs-popup-body">
-        <div className="logs-empty">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.2, marginBottom: 12 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          <p>No logs yet</p>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const FunnelIcon = ({ active, onClick }) => (
   <span 
@@ -52,9 +33,9 @@ export const SalesInvoices = () => {
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('salesinvoices_activeTab') || 'active');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredInvoices, setFilteredInvoices] = useState([]);
-  const [isLogsOpen, setIsLogsOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const { invoices, bookings } = useDemoData();
 
   // Customer funnel search state
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
@@ -65,14 +46,22 @@ export const SalesInvoices = () => {
     sessionStorage.setItem('salesinvoices_activeTab', activeTab);
   }, [activeTab]);
 
-  const invoices = [
-    { id: 'WL-B-0002', type: 'Primary', amount: '₹1,34,240', customer: 'Rahul Sharma', destination: 'Bali, Indonesia', status: 'Active', date: '05 Mar 2026' },
-    { id: 'WL-B-0001', type: 'Primary', amount: '₹4,69,900', customer: 'Vikram Iyer', destination: 'Goa', status: 'Active', date: '10 Mar 2026' },
-    { id: 'WL-B-0003', type: 'Primary', amount: '₹1,56,880', customer: 'Rajesh Patel', destination: 'Srinagar - Gulmarg - Pahalgam', status: 'Active', date: '01 Mar 2026' },
-  ];
+
 
   useEffect(() => {
-    let result = invoices;
+    const enhancedInvoices = invoices.map(inv => {
+      const b = bookings.find(x => x.id === inv.bookingId);
+      return {
+        ...inv,
+        type: 'Primary',
+        customer: b?.customerName || 'Unknown',
+        destination: b?.destination || 'Unknown',
+        status: b?.status === 'cancelled' ? 'Cancelled' : 'Active',
+        date: inv.createdDate
+      };
+    });
+
+    let result = enhancedInvoices;
     
     if (activeTab === 'active') {
       result = result.filter(inv => inv.status === 'Active');
@@ -120,12 +109,7 @@ export const SalesInvoices = () => {
             <p className="page-subtitle">{filteredInvoices.length} invoices</p>
           </div>
           <div className="dash-header-right">
-            <div style={{ position: 'relative' }}>
-              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              </button>
-              {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
-            </div>
+            <DemoLogButton />
             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">

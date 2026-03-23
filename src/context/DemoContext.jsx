@@ -1,2 +1,1 @@
-// Re-export from canonical location in demo/
-export { DemoProvider, useDemoPopup } from '../demo/context/DemoContext';
+export { DemoProvider, useDemoPopup, useDemoData } from '../demo/context/DemoContext';

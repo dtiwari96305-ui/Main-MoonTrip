@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { RealLogButton } from '../components/RealLogButton';
 import { jsPDF } from 'jspdf';
 import { openBilling } from '../../utils/billingNav';
 import { openDesigner } from '../../utils/designerNav';
@@ -481,17 +482,13 @@ const Step1Customer = ({ data, onChange, customers, onCreateCustomer }) => {
       {/* Search mode */}
       {mode === 'search' && !selectedCustomer && (
         <div style={{ position: 'relative' }}>
-          <div className="cq-search-field">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search customers by name, email, or phone..."
-              value={data.customerSearch || ''}
-              onChange={e => handleSearch(e.target.value)}
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Search by name, email, phone or ID..."
+            value={data.customerSearch || ''}
+            onChange={e => handleSearch(e.target.value)}
+            autoFocus
+          />
           {searchResults.length > 0 && (
             <div className="rcq-search-dropdown">
               {searchResults.map(c => (
@@ -2751,7 +2748,7 @@ export const RealCreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) 
   const [currentStep, setCurrentStep] = useState(firstStep);
   const [calcMode, setCalcMode] = useState('agent');
   const [shakeNext, setShakeNext] = useState(false);
-  const [formData, setFormData] = useState(() => {
+      const [formData, setFormData] = useState(() => {
     const base = { services: {}, serviceCosts: {}, destType: 'domestic', gstMode: 'pure-agent', tcsMode: 'na', adults: '1', children: '0', infants: '0' };
     if (editMode) {
       return { ...base, ...editQuote };
@@ -2934,8 +2931,9 @@ export const RealCreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) 
             <p className="page-subtitle">{editMode ? 'Edit all quote details across steps' : 'Build a new travel quotation'}</p>
           </div>
           <div className="dash-header-right">
+            <RealLogButton />
             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
-              <div className="header-user-avatar">{(settings?.userName || 'A').slice(0, 2).toUpperCase()}</div>
+              <div className="header-user-avatar">{(settings?.userName || 'A').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}</div>
               <div className="header-user-info">
                 <span className="header-user-name">{settings?.userName || 'Admin'}</span>
                 <span className="header-user-role"><span className="role-dot"></span> {settings?.userRole || 'admin'}</span>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { DemoLogButton } from '../demo/components/DemoLogButton';
 import { openBilling } from '../utils/billingNav';
 import { useDemoPopup } from '../context/DemoContext';
 
@@ -98,9 +99,12 @@ const XIcon = () => (
 );
 
 // ─── Main Billing Component ───────────────────────────────────────────────────
+// ─── Logs Popup ──────────────────────────────────────────────────────────────
+
+
 export const Billing = ({ fromView, onBack }) => {
   const triggerDemoPopup = useDemoPopup();
-  const [billingPeriod, setBillingPeriod] = useState('monthly');
+    const [billingPeriod, setBillingPeriod] = useState('monthly');
 
   const fmtPrice = (n) => n.toLocaleString('en-IN');
 
@@ -139,6 +143,8 @@ export const Billing = ({ fromView, onBack }) => {
               </button>
               <span className="bl-bell-badge">2</span>
             </div>
+            {/* Log button */}
+            <DemoLogButton />
             {/* User block */}
             <div className="header-user bl-user-clickable" onClick={triggerDemoPopup}>
               <div className="header-user-avatar">DA</div>

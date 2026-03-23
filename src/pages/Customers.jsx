@@ -5,9 +5,7 @@ import { CustomersTable } from '../shared/components/CustomersTable';
 import { TableSkeleton } from '../shared/components/PageSkeleton';
 import { ExportDropdown } from '../shared/components/ExportDropdown';
 import { CustomerSidePanel } from '../shared/components/CustomerSidePanel';
-import { useDemoPopup } from '../context/DemoContext';
-import { profileData } from './CustomerProfile';
-import { demoCustomers } from '../shared/data/demoData';
+import { useDemoPopup, useDemoData } from '../context/DemoContext';
 
 const CUSTOMERS_COLUMNS = [
   { header: 'Customer #', key: 'id' },
@@ -21,10 +19,11 @@ const CUSTOMERS_COLUMNS = [
 
 export const Customers = () => {
   const triggerDemoPopup = useDemoPopup();
+  const { customers, addCustomer, updateCustomer, profileData } = useDemoData();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [filteredCustomers, setFilteredCustomers] = useState(demoCustomers);
+  const [filteredCustomers, setFilteredCustomers] = useState(customers);
 
   // Side panel state
   const [panelOpen, setPanelOpen] = useState(false);
@@ -46,6 +45,15 @@ export const Customers = () => {
     setPanelOpen(true);
   };
 
+  const handleSaveCustomer = (formData) => {
+    if (panelMode === 'add') {
+      addCustomer(formData);
+    } else if (panelMode === 'edit' && panelCustomer) {
+      updateCustomer(panelCustomer.id, formData);
+    }
+    setPanelOpen(false);
+  };
+
   const handleRefresh = () => {
     setSearchQuery('');
     setIsRefreshing(true);
@@ -59,7 +67,7 @@ export const Customers = () => {
     <div id="view-customers" className="fade-in">
       <Header
         title="Customers"
-        subtitle="6 total customers"
+        subtitle={`${customers.length} total customers`}
         buttonLabel="Add Customer"
         onNewQuote={openAddPanel}
       />
@@ -91,7 +99,7 @@ export const Customers = () => {
       ) : (
         <CustomersTable
           key={refreshKey}
-          customers={demoCustomers}
+          customers={customers}
           searchQuery={searchQuery}
           onFilteredChange={setFilteredCustomers}
           onEdit={openEditPanel}
@@ -104,7 +112,7 @@ export const Customers = () => {
         customer={panelCustomer}
         profileExt={panelProfileExt}
         onClose={() => setPanelOpen(false)}
-        onSave={triggerDemoPopup}
+        onSave={handleSaveCustomer}
       />
     </div>
   );

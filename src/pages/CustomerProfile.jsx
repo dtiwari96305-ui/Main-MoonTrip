@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { demoCustomers as customers } from '../shared/data/demoData';
+import React, { useState, useRef, useEffect } from 'react';
+import { DemoLogButton } from '../demo/components/DemoLogButton';
 import { openQuoteDetail } from '../utils/quoteNav';
 import { openBookingDetail } from '../utils/bookingNav';
 import { openCreateQuoteWithCustomer } from '../utils/createQuoteNav';
@@ -10,79 +10,7 @@ import { RecordPaymentModal } from '../shared/components/RecordPaymentModal';
 import { PaymentDetailModal } from '../shared/components/PaymentDetailModal';
 import { IndiaMapD3 } from '../shared/components/IndiaMapD3';
 import { WorldMapD3 } from '../shared/components/WorldMapD3';
-import { useDemoPopup } from '../context/DemoContext';
-import { getDemoPaymentById } from '../shared/data/demoData';
-
-// ─── Extended profile data per customer ───────────────────────────────────────
-export const profileData = {
-  'WL-C-0001': {
-    city: 'Mumbai', state: 'Maharashtra', country: 'India',
-    emailOverride: 'rahul.sharma@email.com',
-    tags: ['international', 'solo'],
-    pan: '', gstin: '', company: '',
-    payments: [
-      { id: 'REC-0001', date: '09 Mar 2026', method: 'cash', amount: 140952, bookingId: 'WL-B-0002' },
-    ],
-  },
-  'WL-C-0002': {
-    city: 'New Delhi', state: 'Delhi', country: 'India',
-    emailOverride: 'priya.mehta@email.com',
-    tags: ['domestic', 'family'],
-    pan: '', gstin: '', company: '',
-    payments: [
-      { id: 'REC-0005', date: '07 Mar 2026', method: 'upi', amount: 25000, bookingId: '' },
-    ],
-  },
-  'WL-C-0003': {
-    city: 'Bangalore', state: 'Karnataka', country: 'India',
-    emailOverride: 'vikram.iyer@email.com',
-    tags: ['domestic', 'corporate', 'group'],
-    pan: 'AABCV1234D', gstin: '29AABCV1234D1Z5', company: 'Iyer Enterprises Pvt. Ltd.',
-    payments: [
-      { id: 'REC-0002', date: '09 Mar 2026', method: 'bank', amount: 235000, bookingId: 'WL-B-0001' },
-    ],
-  },
-  'WL-C-0004': {
-    city: 'Hyderabad', state: 'Telangana', country: 'India',
-    emailOverride: 'ananya.reddy@email.com',
-    tags: ['international', 'honeymoon'],
-    pan: '', gstin: '', company: '',
-    payments: [],
-  },
-  'WL-C-0005': {
-    city: 'Ahmedabad', state: 'Gujarat', country: 'India',
-    emailOverride: 'rajesh.patel@email.com',
-    tags: ['domestic', 'corporate', 'family'],
-    pan: 'ABCPR9876F', gstin: '24ABCPR9876F1ZP', company: 'Patel Group of Companies',
-    payments: [
-      { id: 'REC-0003', date: '01 Mar 2026', method: 'card', amount: 156880, bookingId: 'WL-B-0003' },
-    ],
-  },
-  'WL-C-0006': {
-    city: 'Jaipur', state: 'Rajasthan', country: 'India',
-    emailOverride: 'arjun.singh@email.com',
-    tags: ['domestic', 'adventure'],
-    pan: '', gstin: '', company: '',
-    payments: [],
-  },
-};
-
-// ─── Booking data ─────────────────────────────────────────────────────────────
-const allBookings = [
-  { id: 'WL-B-0002', customerName: 'Rahul Sharma',  destination: 'Bali, Indonesia',              destType: 'international', amount: '₹1,40,952', profit: '₹18,000', paymentStatus: 'paid',    paymentText: '₹1,40,952 / ₹1,40,952', remaining: '₹0',       status: 'confirmed',  date: '09 Mar 2026' },
-  { id: 'WL-B-0001', customerName: 'Vikram Iyer',   destination: 'Goa',                          destType: 'domestic',      amount: '₹4,69,900', profit: '₹55,000', paymentStatus: 'partial', paymentText: '₹2,35,000 / ₹4,69,900', remaining: '₹2,34,900', status: 'confirmed',  date: '09 Mar 2026' },
-  { id: 'WL-B-0003', customerName: 'Rajesh Patel',  destination: 'Srinagar - Gulmarg - Pahalgam', destType: 'domestic',      amount: '₹1,56,880', profit: '₹16,000', paymentStatus: 'paid',    paymentText: '₹1,56,880 / ₹1,56,880', remaining: '₹0',       status: 'completed',  date: '01 Mar 2026' },
-];
-
-// ─── Quote data ───────────────────────────────────────────────────────────────
-const allQuotes = [
-  { id: 'WL-Q-0001', customerName: 'Rahul Sharma', destName: 'Bali, Indonesia',             destType: 'international', amount: '₹1,40,952', profit: '₹18,000', status: 'converted', tripDate: '15 Apr 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0002', customerName: 'Priya Mehta',  destName: 'Jaipur - Udaipur - Jodhpur', destType: 'domestic',      amount: '₹1,10,520', profit: '₹14,000', status: 'sent',      tripDate: '01 May 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0003', customerName: 'Vikram Iyer',  destName: 'Goa',                        destType: 'domestic',      amount: '₹4,69,900', profit: '₹55,000', status: 'converted', tripDate: '20 Mar 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0004', customerName: 'Ananya Reddy', destName: 'Paris - Switzerland - Rome', destType: 'international', amount: '₹8,92,400', profit: '₹1,05,000',status: 'draft',     tripDate: '10 Jun 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0005', customerName: 'Rajesh Patel', destName: 'Srinagar - Gulmarg - Pahalgam', destType: 'domestic',  amount: '₹1,56,880', profit: '₹16,000', status: 'converted', tripDate: '05 Apr 2026', createdDate: '09 Mar 2026' },
-  { id: 'WL-Q-0006', customerName: 'Arjun Singh',  destName: 'Leh - Ladakh',              destType: 'domestic',      amount: '₹78,500',   profit: '₹9,500',  status: 'approved',  tripDate: '22 May 2026', createdDate: '10 Mar 2026' },
-];
+import { useDemoPopup, useDemoData } from '../context/DemoContext';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtAmount = (n) => `₹${Math.round(n).toLocaleString('en-IN')}`;
@@ -157,9 +85,13 @@ const buildLedger = (myBookings, myPayments) => {
 };
 
 // ─── Main CustomerProfile Component ──────────────────────────────────────────
+// ─── Logs Popup ──────────────────────────────────────────────────────────────
+
+
 export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) => {
   const triggerDemoPopup = useDemoPopup();
-  const [editPanelOpen, setEditPanelOpen] = useState(false);
+  const { customers, profileData, bookings: allBookings, quotes: allQuotes, getPaymentById } = useDemoData();
+    const [editPanelOpen, setEditPanelOpen] = useState(false);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [paymentDetailId, setPaymentDetailId] = useState(null);
 
@@ -238,6 +170,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
             <button className="icon-btn" onClick={triggerDemoPopup} title="Export">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </button>
+            <DemoLogButton />
             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">
@@ -692,7 +625,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
         <PaymentDetailModal
           paymentId={paymentDetailId}
           onClose={() => setPaymentDetailId(null)}
-          getPaymentById={getDemoPaymentById}
+          getPaymentById={getPaymentById}
           onSave={triggerDemoPopup}
         />
       )}
@@ -711,7 +644,14 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
         onClose={() => setRecordPaymentOpen(false)}
         preselectedCustomer={customer}
         customers={customers}
-        onSave={triggerDemoPopup}
+        onSave={(data) => {
+          addPayment({
+            ...data,
+            customerName: customer.name,
+            customerId: customer.id,
+          });
+          setRecordPaymentOpen(false);
+        }}
       />
     </div>
   );

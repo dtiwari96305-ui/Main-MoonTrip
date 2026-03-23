@@ -1,7 +1,8 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { DemoLogButton } from '../demo/components/DemoLogButton';
 import { openBilling } from '../utils/billingNav';
 import { openDesigner } from '../utils/designerNav';
-import { useDemoPopup } from '../context/DemoContext';
+import { useDemoPopup, useDemoData } from '../context/DemoContext';
 import { InfoBtn } from '../shared/components/InfoBtn';
 import { calculate, extractGstinState } from '../shared/utils/calculationEngine';
 
@@ -2208,14 +2209,18 @@ const PrefilledCustomerBanner = ({ customer }) => (
   </div>
 );
 
+// ─── Logs Popup ──────────────────────────────────────────────────────────────
+
+
 // ─── Main CreateQuote Component ───────────────────────────────────────────────
 export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
   const editMode    = Boolean(editQuote);
   const isPrefilled = Boolean(prefilledCustomer) && !editMode;
   const firstStep   = editMode ? (editQuote._startStep || 1) : isPrefilled ? 2 : 1;
 
+  const { addQuote, updateQuoteFromForm } = useDemoData();
   const triggerDemoPopup = useDemoPopup();
-  const [currentStep, setCurrentStep] = useState(firstStep);
+    const [currentStep, setCurrentStep] = useState(firstStep);
   const [calcMode, setCalcMode] = useState('agent');
   const [formData, setFormData] = useState(() => {
     const base = { services: {}, serviceCosts: {}, destType: 'domestic', gstMode: 'pure-agent', tcsMode: 'na', adults: '1', children: '0', infants: '0' };
@@ -2288,7 +2293,14 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
     if (currentStep < 6) {
       setCurrentStep(s => s + 1);
     } else {
-      const qId = editMode ? (formData._editQuoteId || 'WL-Q-0001') : 'WL-Q-0001';
+      let qId;
+      if (editMode) {
+        qId = formData._editQuoteId || 'WL-Q-0001';
+        updateQuoteFromForm(qId, formData, calcResult);
+      } else {
+        const result = addQuote(formData, calcResult);
+        qId = result.id;
+      }
       openDesigner(qId, formData, 'create-quote');
     }
   };
@@ -2300,7 +2312,17 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
       case 3: return <Step3Services data={formData} onChange={updateFormData} />;
       case 4: return <Step4Pricing data={formData} onChange={updateFormData} calc={calcResult} />;
       case 5: return <Step5Review data={formData} onChange={updateFormData} editMode={editMode} isPrefilled={isPrefilled} prefilledCustomer={prefilledCustomer} calc={calcResult} />;
-      case 6: return <Step6Itinerary data={formData} onChange={updateFormData} editMode={editMode} onOpenDesigner={() => { const qId = editMode ? (formData._editQuoteId || 'WL-Q-0001') : 'WL-Q-0001'; openDesigner(qId, formData, 'create-quote'); }} />;
+      case 6: return <Step6Itinerary data={formData} onChange={updateFormData} editMode={editMode} onOpenDesigner={() => {
+        let qId;
+        if (editMode) {
+          qId = formData._editQuoteId || 'WL-Q-0001';
+          updateQuoteFromForm(qId, formData, calcResult);
+        } else {
+          const result = addQuote(formData, calcResult);
+          qId = result.id;
+        }
+        openDesigner(qId, formData, 'create-quote');
+      }} />;
       default: return null;
     }
   };
@@ -2337,6 +2359,7 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
             <p className="page-subtitle">{editMode ? 'Edit all quote details across steps' : 'Build a new travel quotation'}</p>
           </div>
           <div className="dash-header-right">
+            <DemoLogButton />
             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">

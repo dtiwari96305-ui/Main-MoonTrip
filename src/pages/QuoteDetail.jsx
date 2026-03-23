@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { DemoLogButton } from '../demo/components/DemoLogButton';
 import { demoCustomers as customers } from '../shared/data/demoData';
 import { openCustomerProfile } from '../utils/customerNav';
 import { openBilling } from '../utils/billingNav';
 import { openEditQuote } from '../utils/editQuoteNav';
 import { openDesigner } from '../utils/designerNav';
-import { useDemoPopup } from '../context/DemoContext';
+import { useDemoPopup, useDemoData } from '../context/DemoContext';
 import { generateCustomerPDF, generateAgentPDF } from '../shared/utils/generateQuotePdf';
 import { InfoBtn } from '../shared/components/InfoBtn';
 import { buildEditFormData } from '../shared/utils/buildEditFormData';
@@ -406,9 +407,13 @@ const ItinItem = ({ item }) => {
 // Re-export for backward compat with files importing from QuoteDetail
 export { buildEditFormData } from '../shared/utils/buildEditFormData';
 
+// ─── Logs Popup ──────────────────────────────────────────────────────────────
+
+
 export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
   const demo = useDemoPopup();
-  const [itinView, setItinView] = useState('simple');
+  const { quotes, updateQuote, convertQuote } = useDemoData();
+    const [itinView, setItinView] = useState('simple');
   const [showItinDrop, setShowItinDrop] = useState(false);
   const itinDropRef = useRef(null);
 
@@ -444,17 +449,8 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
     rejected:  'status-rejected',
   };
 
-  // Determine quote status from the global quotes data
-  const initialQuotes = [
-    { id: 'WL-Q-0001', status: 'converted' },
-    { id: 'WL-Q-0002', status: 'sent' },
-    { id: 'WL-Q-0003', status: 'converted' },
-    { id: 'WL-Q-0004', status: 'draft' },
-    { id: 'WL-Q-0005', status: 'converted' },
-    { id: 'WL-Q-0006', status: 'approved' },
-    { id: 'WL-Q-0007', status: 'rejected' },
-  ];
-  const quoteStatus = initialQuotes.find(q => q.id === quoteId)?.status || 'draft';
+  // Determine quote status from context quotes data
+  const quoteStatus = quotes.find(q => q.id === quoteId)?.status || 'draft';
 
   return (
     <div id="view-quote-detail" className="fade-in">
@@ -474,6 +470,7 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
             <button className="icon-btn" onClick={demo} title="Export">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </button>
+            <DemoLogButton />
             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>
               <div className="header-user-info">
@@ -510,31 +507,31 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
 
           <div className="qd-action-bar">
             {(quoteStatus === 'draft' || quoteStatus === 'sent') && (<>
-              <button className="qd-btn qd-btn-approve" onClick={demo}>
+              <button className="qd-btn qd-btn-approve" onClick={() => updateQuote(quoteId, { status: 'approved' })}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 Approve
               </button>
-              <button className="qd-btn qd-btn-reject" onClick={demo}>
+              <button className="qd-btn qd-btn-reject" onClick={() => updateQuote(quoteId, { status: 'rejected' })}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                 Reject
               </button>
             </>)}
             {quoteStatus === 'approved' && (<>
-              <button className="qd-btn qd-btn-backtosent" onClick={demo}>
+              <button className="qd-btn qd-btn-backtosent" onClick={() => updateQuote(quoteId, { status: 'sent' })}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
                 Back to Sent
               </button>
-              <button className="qd-btn qd-btn-reject" onClick={demo}>
+              <button className="qd-btn qd-btn-reject" onClick={() => updateQuote(quoteId, { status: 'rejected' })}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                 Reject
               </button>
-              <button className="qd-btn qd-btn-convert" onClick={demo}>
+              <button className="qd-btn qd-btn-convert" onClick={() => convertQuote(quoteId)}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 Convert to Booking
               </button>
             </>)}
             {quoteStatus === 'rejected' && (
-              <button className="qd-btn qd-btn-reopen" onClick={demo}>
+              <button className="qd-btn qd-btn-reopen" onClick={() => updateQuote(quoteId, { status: 'draft' })}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
                 Reopen as Draft
               </button>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { RealLogButton } from '../components/RealLogButton';
 import { useData } from '../context/DataContext';
 import { openCustomerProfile } from '../../utils/customerNav';
 import { openBilling } from '../../utils/billingNav';
@@ -128,6 +129,9 @@ export const RealQuoteDetail = ({ quoteId, fromView, onBack }) => {
   const [showItinDrop, setShowItinDrop]   = useState(false);
   const [showConvert, setShowConvert]     = useState(false);
   const itinDropRef                        = useRef(null);
+    const userInitials = (settings?.userName || 'A').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const displayName = settings?.userName || 'Admin';
+  const displayRole = settings?.userRole || 'Admin';
 
   useEffect(() => {
     if (!showItinDrop) return;
@@ -246,11 +250,12 @@ export const RealQuoteDetail = ({ quoteId, fromView, onBack }) => {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
               Back
             </button>
+            <RealLogButton />
             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
-              <div className="header-user-avatar" style={{background:'linear-gradient(135deg,#6366f1,#4f46e5)'}}>A</div>
+              <div className="header-user-avatar">{userInitials}</div>
               <div className="header-user-info">
-                <span className="header-user-name">{settings?.agentName || 'Agent'}</span>
-                <span className="header-user-role"><span className="role-dot"></span> Pro</span>
+                <span className="header-user-name">{displayName}</span>
+                <span className="header-user-role"><span className="role-dot"></span> {displayRole}</span>
               </div>
             </div>
           </div>

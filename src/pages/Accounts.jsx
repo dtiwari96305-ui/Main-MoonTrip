@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { DemoLogButton } from '../demo/components/DemoLogButton';
 import ReactDOM from 'react-dom';
 import { openBilling } from '../utils/billingNav';
 import { useDemoPopup } from '../context/DemoContext';
@@ -23,10 +24,13 @@ const EmptyState = ({ icon, title, desc }) => (
   </div>
 );
 
+// ─── Logs Popup ──────────────────────────────────────────────────────────────
+
+
 // ─── Main Accounts Component ──────────────────────────────────────────────────
 export const Accounts = () => {
   const triggerDemoPopup = useDemoPopup();
-  const [activeTab, setActiveTab] = useState('adjustments');
+    const [activeTab, setActiveTab] = useState('adjustments');
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [invoiceAmount, setInvoiceAmount] = useState('');
   const [billedTo, setBilledTo] = useState('');
@@ -186,6 +190,8 @@ export const Accounts = () => {
               </svg>
             </button>
 
+            {/* Log button */}
+            <DemoLogButton />
             {/* User avatar */}
             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
               <div className="header-user-avatar">DA</div>

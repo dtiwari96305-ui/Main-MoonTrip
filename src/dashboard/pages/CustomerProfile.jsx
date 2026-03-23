@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { RealLogButton } from '../components/RealLogButton';
 import { useData } from '../context/DataContext';
 import { openQuoteDetail } from '../../utils/quoteNav';
 import { openBookingDetail } from '../../utils/bookingNav';
@@ -10,6 +11,7 @@ import { PaymentDetailModal } from '../../shared/components/PaymentDetailModal';
 import { RealIndiaMapD3 } from '../components/RealIndiaMapD3';
 import { RealWorldMapD3 } from '../components/RealWorldMapD3';
 import { EmptyState } from '../components/EmptyState';
+import { openBilling } from '../../utils/billingNav';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const parseRs = (s) => Math.round(parseFloat((s || '0').replace(/[₹,\s]/g, '')) || 0);
@@ -106,13 +108,16 @@ const buildLedger = (myBookings, myPayments, invoices) => {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export const RealCustomerProfile = ({ customerId, fromView, onBack, onViewChange }) => {
-  const { customers, bookings, payments, invoices, quotes, getCustomerById, getProfileData, updateCustomer, addPayment, getPaymentById } = useData();
+  const { customers, bookings, payments, invoices, quotes, getCustomerById, getProfileData, updateCustomer, addPayment, getPaymentById, settings } = useData();
   const customer = getCustomerById(customerId);
   const ext = getProfileData(customerId) || {};
 
   const [editPanelOpen, setEditPanelOpen] = useState(false);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [paymentDetailId, setPaymentDetailId] = useState(null);
+      const userInitials = (settings.userName || 'A').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const displayName = settings.userName || 'Admin';
+  const displayRole = settings.userRole || 'Admin';
 
   if (!customer) {
     return (
@@ -211,6 +216,14 @@ export const RealCustomerProfile = ({ customerId, fromView, onBack, onViewChange
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
               Edit
             </button>
+            <RealLogButton />
+            <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+              <div className="header-user-avatar">{userInitials}</div>
+              <div className="header-user-info">
+                <span className="header-user-name">{displayName}</span>
+                <span className="header-user-role"><span className="role-dot"></span> {displayRole}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

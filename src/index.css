@@ -1724,6 +1724,51 @@
 .bd-hist-ref    { display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
 .bd-hist-detail { font-size: 0.75rem; color: var(--text-muted); }
 .bd-hist-amount { font-size: 0.9rem; font-weight: 700; color: #16a34a; flex-shrink: 0; }
+.bd-hist-empty  { font-size: 0.84rem; color: var(--text-muted); padding: 12px 0; }
+
+/* ── BookingDetail extra classes ─────────────────────────────────────────── */
+.bd-status-in_progress { background: #dbeafe; color: #2563eb; }
+.bd-pay-partial  { background: #dbeafe; color: #1d4ed8; }
+.bd-pay-unpaid   { background: #fff7ed; color: #d97706; }
+.bd-pay-overpaid { background: #f5f3ff; color: #7c3aed; }
+
+.bd-action-progress { border-color: #2563eb; color: #2563eb; }
+.bd-action-progress:hover { background: #eff6ff; }
+.bd-action-reopen { border-color: var(--accent); color: var(--accent); }
+.bd-action-reopen:hover { background: #f5f3ff; }
+.bd-action-record-pay {
+  background: var(--accent); color: #fff !important; border-color: var(--accent); font-weight: 700;
+}
+.bd-action-record-pay:hover { opacity: 0.88; }
+
+.bd-notif-wrap {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+  background: var(--bg-secondary); border: 1.5px solid var(--border-color);
+  color: var(--text-muted); flex-shrink: 0;
+}
+.bd-notif-wrap:hover { border-color: var(--accent); color: var(--accent); }
+.bd-notif-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: #dc2626; color: #fff; font-size: 0.55rem; font-weight: 800;
+  min-width: 16px; height: 16px; border-radius: 99px; padding: 0 3px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--card-bg);
+}
+
+.bd-fin-label-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.bd-sac-tag {
+  font-size: 0.68rem; font-weight: 600; color: var(--text-muted);
+  background: #f3f4f6; border-radius: 4px; padding: 1px 5px;
+}
+.bd-empty-svc { font-size: 0.84rem; color: var(--text-muted); padding: 12px 0; }
+
+.bd-total-payable-highlight {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #f5f3ff; border-radius: 8px; padding: 10px 12px; margin-top: 6px;
+}
+.bd-total-payable-highlight span:first-child { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+.bd-total-payable-highlight span:last-child  { font-size: 1.05rem; font-weight: 800; color: var(--accent); }
 
 /* ── Step 4: Pricing & Billing ── */
 .cq-p4-section-label {

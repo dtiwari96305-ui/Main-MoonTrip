@@ -1,0 +1,2706 @@
+﻿diff --git a/.claude/settings.local.json b/.claude/settings.local.json
+index 0fb3fcf..c37bac3 100644
+--- a/.claude/settings.local.json
++++ b/.claude/settings.local.json
+@@ -35,7 +35,8 @@
+       "Bash(node -e \"const d = require\\(''./src/shared/data/demoData.js''\\); console.log\\(''Exports:'', Object.keys\\(d\\).join\\('', ''\\)\\); console.log\\(''Customers:'', d.demoCustomers.length\\); console.log\\(''Quotes:'', d.demoQuotes.length\\); console.log\\(''Bookings:'', d.demoBookings.length\\); console.log\\(''Payments:'', d.demoPayments.length\\); console.log\\(''QuoteDetails:'', Object.keys\\(d.demoQuoteDetailData\\).length\\); console.log\\(''ProfileData:'', Object.keys\\(d.demoProfileData\\).length\\); console.log\\(''Activities:'', d.demoActivities.length\\); console.log\\(''TopCustomers:'', d.demoTopCustomers.length\\); console.log\\(''ProfileQuotes:'', d.demoProfileQuotes.length\\);\")",
+       "Bash(xargs grep:*)",
+       "Bash(npx react-scripts:*)",
+-      "Bash(echo \"EXIT: $?\")"
++      "Bash(echo \"EXIT: $?\")",
++      "Bash(npm start:*)"
+     ]
+   }
+ }
+diff --git a/src/App.jsx b/src/App.jsx
+index 87f6eb2..f4b02d8 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -2,6 +2,7 @@ import React, { useState } from 'react';
+ import { LandingScreen } from './pages/LandingScreen';
+ import { DemoRouter } from './demo/routes/DemoRouter';
+ import { DashboardRouter } from './dashboard/routes/DashboardRouter';
++import { clearDemoSession } from './demo/context/DemoContext';
+ import './index.css';
+ 
+ function App() {
+@@ -13,6 +14,7 @@ function App() {
+   };
+ 
+   const handleSwitchMode = () => {
++    clearDemoSession();
+     sessionStorage.removeItem('appMode');
+     setAppMode(null);
+   };
+diff --git a/src/components/Header.jsx b/src/components/Header.jsx
+index a01af97..8d06f62 100644
+--- a/src/components/Header.jsx
++++ b/src/components/Header.jsx
+@@ -83,33 +83,29 @@ export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, bu
+           
+           {children}
+ 
+-          {!children && (
+-            <>
+-              {showNewQuote && (
+-                <button className="new-quote-btn" id="newQuoteBtn" onClick={onNewQuote}>
+-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+-                  {buttonLabel}
+-                </button>
+-              )}
+-              <div style={{ position: 'relative' }}>
+-                <button 
+-                  className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} 
+-                  id="logBtnMain"
+-                  onClick={() => setIsLogsOpen(!isLogsOpen)}
+-                >
+-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+-                </button>
+-                {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
+-              </div>
+-              <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+-                <div className="header-user-avatar">DA</div>
+-                <div className="header-user-info">
+-                  <span className="header-user-name">Demo Admin</span>
+-                  <span className="header-user-role"><span className="role-dot"></span> Pro</span>
+-                </div>
+-              </div>
+-            </>
++          {!children && showNewQuote && (
++            <button className="new-quote-btn" id="newQuoteBtn" onClick={onNewQuote}>
++              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
++              {buttonLabel}
++            </button>
+           )}
++          <div style={{ position: 'relative' }}>
++            <button
++              className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`}
++              id="logBtnMain"
++              onClick={() => setIsLogsOpen(!isLogsOpen)}
++            >
++              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++            </button>
++            {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
++          </div>
++          <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
++            <div className="header-user-avatar">DA</div>
++            <div className="header-user-info">
++              <span className="header-user-name">Demo Admin</span>
++              <span className="header-user-role"><span className="role-dot"></span> Pro</span>
++            </div>
++          </div>
+         </div>
+       </div>
+     </div>
+diff --git a/src/dashboard/components/RealHeader.jsx b/src/dashboard/components/RealHeader.jsx
+index f33bc60..a984e53 100644
+--- a/src/dashboard/components/RealHeader.jsx
++++ b/src/dashboard/components/RealHeader.jsx
+@@ -63,45 +63,41 @@ export const RealHeader = ({ title, subtitle, showDateFilter = false, onNewQuote
+ 
+           {children}
+ 
+-          {!children && (
+-            <>
+-              {showNewQuote && (
+-                <button className="new-quote-btn" id="newQuoteBtn" onClick={onNewQuote}>
+-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+-                  {buttonLabel}
+-                </button>
+-              )}
+-              <div style={{ position: 'relative' }}>
+-                <button
+-                  className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`}
+-                  id="logBtnMain"
+-                  onClick={() => setIsLogsOpen(!isLogsOpen)}
+-                >
+-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+-                  {unreadCount > 0 && (
+-                    <span style={{
+-                      position: 'absolute', top: -4, right: -4,
+-                      background: '#ef4444', color: '#fff',
+-                      fontSize: '0.65rem', fontWeight: 700,
+-                      width: 18, height: 18, borderRadius: '50%',
+-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+-                      border: '2px solid #fff',
+-                    }}>
+-                      {unreadCount > 9 ? '9+' : unreadCount}
+-                    </span>
+-                  )}
+-                </button>
+-                {isLogsOpen && <RealLogsPopup onClose={() => setIsLogsOpen(false)} />}
+-              </div>
+-              <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+-                <div className="header-user-avatar">{initials}</div>
+-                <div className="header-user-info">
+-                  <span className="header-user-name">{displayName}</span>
+-                  <span className="header-user-role"><span className="role-dot"></span> {displayRole}</span>
+-                </div>
+-              </div>
+-            </>
++          {!children && showNewQuote && (
++            <button className="new-quote-btn" id="newQuoteBtn" onClick={onNewQuote}>
++              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
++              {buttonLabel}
++            </button>
+           )}
++          <div style={{ position: 'relative' }}>
++            <button
++              className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`}
++              id="logBtnMain"
++              onClick={() => setIsLogsOpen(!isLogsOpen)}
++            >
++              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++              {unreadCount > 0 && (
++                <span style={{
++                  position: 'absolute', top: -4, right: -4,
++                  background: '#ef4444', color: '#fff',
++                  fontSize: '0.65rem', fontWeight: 700,
++                  width: 18, height: 18, borderRadius: '50%',
++                  display: 'flex', alignItems: 'center', justifyContent: 'center',
++                  border: '2px solid #fff',
++                }}>
++                  {unreadCount > 9 ? '9+' : unreadCount}
++                </span>
++              )}
++            </button>
++            {isLogsOpen && <RealLogsPopup onClose={() => setIsLogsOpen(false)} />}
++          </div>
++          <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
++            <div className="header-user-avatar">{initials}</div>
++            <div className="header-user-info">
++              <span className="header-user-name">{displayName}</span>
++              <span className="header-user-role"><span className="role-dot"></span> {displayRole}</span>
++            </div>
++          </div>
+         </div>
+       </div>
+     </div>
+diff --git a/src/dashboard/pages/BookingDetail.jsx b/src/dashboard/pages/BookingDetail.jsx
+index 122d068..caa4adb 100644
+--- a/src/dashboard/pages/BookingDetail.jsx
++++ b/src/dashboard/pages/BookingDetail.jsx
+@@ -1,6 +1,523 @@
+-import React from 'react';
+-import { BookingDetail as DemoBookingDetail } from '../../pages/BookingDetail';
++import React, { useState, useMemo } from 'react';
++import { useData } from '../context/DataContext';
++import { openQuoteDetail } from '../../utils/quoteNav';
++import { openCustomerProfile } from '../../utils/customerNav';
++import { InfoBtn } from '../../shared/components/InfoBtn';
++import { InvoiceDetailModal } from '../components/InvoiceDetailModal';
++import { RecordPaymentModal } from '../../shared/components/RecordPaymentModal';
++import { CancelBookingModal } from '../components/CancelBookingModal';
++import { RealLogsPopup, useUnreadLogCount } from '../components/RealLogsPopup';
++import { openBilling } from '../../utils/billingNav';
+ 
+-// Re-uses the demo BookingDetail component.
+-// useDemoPopup() returns a no-op outside DemoProvider.
+-export const RealBookingDetail = (props) => <DemoBookingDetail {...props} />;
++// ΓöÇΓöÇ Service icons & colors ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const SVC_ICONS = {
++  flight: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 19-7z"/></svg>),
++  hotel: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>),
++  activities: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>),
++  fooding: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>),
++  transport: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>),
++};
++
++const SVC_COLORS = {
++  flight: '#16A34A', hotel: '#3b82f6', activities: '#8b5cf6', fooding: '#ec4899', transport: '#f59e0b',
++};
++
++// ΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const STATUS_LABEL = {
++  confirmed: 'Confirmed', in_progress: 'In Progress', completed: 'Completed', cancelled: 'Cancelled',
++};
++const PAY_LABEL = { paid: 'Paid', partial: 'Partial', unpaid: 'Unpaid', overpaid: 'Overpaid' };
++
++const fmtINR = (n) => `Γé╣${Number(n || 0).toLocaleString('en-IN')}`;
++const parseINR = (s) => {
++  if (!s || s === 'ΓÇö') return 0;
++  return parseInt(String(s).replace(/[Γé╣,\s]/g, ''), 10) || 0;
++};
++
++const getAvatarColor = (name) => {
++  const colors = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#2563eb', '#db2777'];
++  if (!name) return colors[0];
++  let h = 0;
++  for (let i = 0; i < name.length; i++) h = (h + name.charCodeAt(i)) % colors.length;
++  return colors[h];
++};
++
++// ΓöÇΓöÇ Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++export const RealBookingDetail = ({ bookingId, onBack }) => {
++  const {
++    bookings, payments, invoices, customers, settings,
++    updateBooking, addPayment, updateInvoice, getQuoteDetail,
++  } = useData();
++
++  const [invoiceOpen, setInvoiceOpen]   = useState(false);
++  const [recordPayOpen, setRecordPayOpen] = useState(false);
++  const [cancelOpen, setCancelOpen]     = useState(false);
++  const [isLogsOpen, setIsLogsOpen]     = useState(false);
++  const unreadCount = useUnreadLogCount();
++
++  const booking = useMemo(() => bookings.find(b => b.id === bookingId), [bookings, bookingId]);
++
++  const customer = useMemo(() => {
++    if (!booking) return null;
++    return customers.find(c => c.name === booking.customerName) || { name: booking.customerName, phone: '', email: '' };
++  }, [customers, booking]);
++
++  const invoice = useMemo(() => invoices.find(i => i.bookingId === bookingId), [invoices, bookingId]);
++
++  const quoteDetail = useMemo(() => {
++    if (!booking?.quoteId) return null;
++    try { return getQuoteDetail(booking.quoteId); } catch { return null; }
++  }, [booking?.quoteId, getQuoteDetail]);
++
++  // Services list ΓÇö stored on booking as array, or fall back to quote detail snapshot.
++  // quoteDetail.services is a boolean map {hotel:true,...}, not an array ΓÇö always guard.
++  const services = useMemo(() => {
++    const s = booking?.services ?? quoteDetail?.services;
++    return Array.isArray(s) ? s : [];
++  }, [booking, quoteDetail]);
++  const totalServiceCost = booking?.totalServiceCost || quoteDetail?.totalServiceCost || booking?.amount || 'Γé╣0';
++
++  // Financial values ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++  const travelCost   = invoice?.travelCost   ?? parseINR(booking?.amount) ?? 0;
++  const serviceFee   = invoice?.serviceFee   ?? 200;
++  const cgstVal      = invoice?.cgst         ?? 0;
++  const sgstVal      = invoice?.sgst         ?? 0;
++  const invoiceValue = invoice?.invoiceValue ?? (travelCost + serviceFee + cgstVal + sgstVal);
++
++  // Agent view fields
++  const agentTotalCost = parseINR(booking?.totalCost) || travelCost;
++  const hiddenMarkup   = parseINR(booking?.hiddenMarkup) || 0;
++  const profitTotal    = parseINR(booking?.profit) || serviceFee;
++  const profitPct      = booking?.profitPct
++    ?? (invoiceValue > 0 ? ((profitTotal / (agentTotalCost || invoiceValue)) * 100).toFixed(1) : '0');
++
++  // Payments ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++  const bookingPayments = useMemo(
++    () => payments.filter(p => p.against === bookingId || p.bookingId === bookingId),
++    [payments, bookingId]
++  );
++  const amountPaid  = bookingPayments.reduce((sum, p) => sum + parseINR(p.amount), 0);
++  const remaining   = Math.max(0, invoiceValue - amountPaid);
++  const progressPct = invoiceValue > 0 ? Math.min(100, Math.round((amountPaid / invoiceValue) * 100)) : 0;
++  const progressColor = progressPct >= 100 ? '#16a34a' : progressPct > 0 ? '#f59e0b' : '#dc2626';
++
++  // Handlers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++  const handleStatusChange = (newStatus) => {
++    updateBooking(bookingId, { status: newStatus });
++  };
++
++  const handleCancelNote = () => {
++    updateBooking(bookingId, { status: 'cancelled' });
++    if (invoice?.id) updateInvoice(invoice.id, { status: 'Cancelled' });
++    setCancelOpen(false);
++  };
++
++  const handleVoid = () => {
++    updateBooking(bookingId, { status: 'cancelled' });
++    if (invoice?.id) updateInvoice(invoice.id, { status: 'Void' });
++    setCancelOpen(false);
++  };
++
++  const handleRecordPayment = (formData) => {
++    addPayment({
++      ...formData,
++      customerName: booking.customerName,
++      against: bookingId,
++      bookingId,
++      againstType: 'booking',
++    });
++    setRecordPayOpen(false);
++  };
++
++  // Not-found guard ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++  if (!booking) {
++    return (
++      <div className="fade-in bd-page">
++        <div className="page-header-strip">
++          <div className="dash-header">
++            <div className="dash-header-left">
++              <h1 className="page-title">{bookingId || 'Booking'}</h1>
++              <p className="page-subtitle">Booking not found</p>
++            </div>
++            <div className="dash-header-right">
++              <button className="bd-back-btn" onClick={onBack}>
++                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
++                Back
++              </button>
++            </div>
++          </div>
++        </div>
++        <div className="bd-not-found">No booking data found for {bookingId}.</div>
++      </div>
++    );
++  }
++
++  const avatarColor  = getAvatarColor(booking.customerName);
++  const avatarLetter = (booking.customerName || '?').charAt(0).toUpperCase();
++  const userName     = settings?.userName || 'Admin';
++  const userInitials = userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
++
++  const invoiceModalData = {
++    id: invoice?.id || booking.id,
++    date: invoice?.date || booking.date || booking.createdDate,
++    customerName: booking.customerName,
++    customerPhone: customer?.phone || '',
++    customerEmail: customer?.email || '',
++    customerPan:   invoice?.customerPan   || customer?.pan   || '',
++    customerGstin: invoice?.customerGstin || customer?.gstin || '',
++    destination: booking.destination,
++    destType:    booking.destType || 'domestic',
++    travelers:   invoice?.travelers || booking.pax || 1,
++    duration:    invoice?.duration  || booking.duration || '',
++    travelDate:  invoice?.travelDate || booking.travelDate || '',
++    travelCost, serviceFee, cgst: cgstVal, sgst: sgstVal, invoiceValue,
++    status: progressPct >= 100 ? 'Paid' : 'Unpaid',
++  };
++
++  // Action buttons ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++  const renderActionButtons = () => {
++    const btns = [];
++
++    if (booking.status === 'confirmed') {
++      btns.push(
++        <button key="prog" className="bd-action-btn bd-action-progress" onClick={() => handleStatusChange('in_progress')}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
++          Mark In Progress
++        </button>,
++        <button key="cancel" className="bd-action-btn bd-action-cancel" onClick={() => setCancelOpen(true)}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
++          Cancel
++        </button>
++      );
++    } else if (booking.status === 'in_progress') {
++      btns.push(
++        <button key="comp" className="bd-action-btn bd-action-complete" onClick={() => handleStatusChange('completed')}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 15.5 10.5"/></svg>
++          Mark Completed
++        </button>,
++        <button key="cancel" className="bd-action-btn bd-action-cancel" onClick={() => setCancelOpen(true)}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
++          Cancel
++        </button>
++      );
++    } else if (booking.status === 'completed') {
++      btns.push(
++        <button key="reopen" className="bd-action-btn bd-action-reopen" onClick={() => handleStatusChange('confirmed')}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
++          Reopen
++        </button>
++      );
++    }
++
++    btns.push(
++      <button key="inv" className="bd-action-btn bd-action-invoice" onClick={() => setInvoiceOpen(true)}>
++        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
++        Tax Invoice
++      </button>
++    );
++
++    if (booking.quoteId) {
++      btns.push(
++        <button key="quote" className="bd-action-btn bd-action-quote" onClick={() => openQuoteDetail(booking.quoteId, 'booking-detail')}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
++          View Quote
++        </button>
++      );
++    }
++
++    if (booking.status !== 'cancelled' && (booking.status !== 'completed' || progressPct < 100)) {
++      btns.push(
++        <button key="pay" className="bd-action-btn bd-action-record-pay" onClick={() => setRecordPayOpen(true)}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
++          Record Payment
++        </button>
++      );
++    }
++
++    return btns;
++  };
++
++  const destTypeLabel = booking.destType === 'international' ? 'International' : 'Domestic';
++
++  return (
++    <div className="fade-in bd-page">
++      {/* ΓöÇΓöÇ Page header ΓöÇΓöÇ */}
++      <div className="page-header-strip">
++        <div className="dash-header">
++          <div className="dash-header-left">
++            <h1 className="page-title">{booking.id}</h1>
++            <p className="page-subtitle">Booked on {booking.date || booking.createdDate}</p>
++          </div>
++          <div className="dash-header-right">
++            <button className="bd-back-btn" onClick={onBack}>
++              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
++              Back
++            </button>
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++                {unreadCount > 0 && (
++                  <span style={{position:'absolute',top:-4,right:-4,background:'#ef4444',color:'#fff',fontSize:'0.65rem',fontWeight:700,width:18,height:18,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid #fff'}}>
++                    {unreadCount > 9 ? '9+' : unreadCount}
++                  </span>
++                )}
++              </button>
++              {isLogsOpen && <RealLogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
++            <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
++              <div className="header-user-avatar">{userInitials}</div>
++              <div className="header-user-info">
++                <span className="header-user-name">{userName}</span>
++                <span className="header-user-role"><span className="role-dot"></span> {settings?.userRole || 'admin'}</span>
++              </div>
++            </div>
++          </div>
++        </div>
++      </div>
++
++      {/* ΓöÇΓöÇ Booking Summary Bar ΓöÇΓöÇ */}
++      <div className="bd-hero-card">
++        <div className="bd-hero-left">
++          <div className="bd-hero-icon">
++            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
++              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
++              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
++              <line x1="3" y1="10" x2="21" y2="10"/>
++            </svg>
++          </div>
++          <div>
++            <div className="bd-hero-id-row">
++              <span className="bd-hero-id">{booking.id}</span>
++              <span className={`bd-status-badge bd-status-${booking.status}`}>{STATUS_LABEL[booking.status] || booking.status}</span>
++              <span className={`bd-pay-badge bd-pay-${booking.paymentStatus}`}>{PAY_LABEL[booking.paymentStatus] || booking.paymentStatus}</span>
++            </div>
++            <div className="bd-hero-dest">{destTypeLabel} ┬╖ {booking.destination}</div>
++          </div>
++        </div>
++        <div className="bd-hero-actions">
++          {renderActionButtons()}
++        </div>
++      </div>
++
++      {/* ΓöÇΓöÇ Customer + Travel Details ΓöÇΓöÇ */}
++      <div className="bd-grid-2" style={{ marginTop: 20 }}>
++        <div className="bd-card">
++          <div className="bd-card-title">
++            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
++            CUSTOMER
++          </div>
++          <div className="bd-cust-body">
++            <div className="bd-cust-name-row">
++              <div className="bd-cust-avatar" style={{ background: avatarColor }}>{avatarLetter}</div>
++              <span
++                className="bd-cust-name cp-name-link"
++                onClick={() => customer?.id && openCustomerProfile(customer.id, 'booking-detail')}
++              >
++                {booking.customerName}
++              </span>
++            </div>
++            <div className="bd-cust-contacts">
++              <div className="bd-cust-contact">
++                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 5.5 5.5l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92"/></svg>
++                {customer?.phone || 'N/A'}
++              </div>
++              <div className="bd-cust-contact">
++                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
++                {customer?.email || 'N/A'}
++              </div>
++            </div>
++          </div>
++        </div>
++
++        <div className="bd-card">
++          <div className="bd-card-title">
++            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 1 8 8c0 5.4-8 13-8 13S4 15.4 4 10a8 8 0 0 1 8-8z"/></svg>
++            TRAVEL DETAILS
++          </div>
++          <div className="bd-travel-grid">
++            <div className="bd-travel-item">
++              <span className="bd-travel-label">DESTINATION</span>
++              <span className="bd-travel-value">{booking.destination || 'N/A'}</span>
++            </div>
++            <div className="bd-travel-item">
++              <span className="bd-travel-label">TYPE</span>
++              <span className="bd-travel-value">{destTypeLabel}</span>
++            </div>
++            {booking.travelDate && (
++              <div className="bd-travel-item">
++                <span className="bd-travel-label">TRAVEL DATE</span>
++                <span className="bd-travel-value">{booking.travelDate}</span>
++              </div>
++            )}
++            <div className="bd-travel-item">
++              <span className="bd-travel-label">TRAVELERS</span>
++              <span className="bd-travel-value">{booking.pax || 1} Pax</span>
++            </div>
++          </div>
++        </div>
++      </div>
++
++      {/* ΓöÇΓöÇ Services & Financial Summary ΓöÇΓöÇ */}
++      <div className="bd-grid-2" style={{ marginTop: 16 }}>
++        <div className="bd-card">
++          <div className="bd-card-title">
++            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
++            SERVICES &amp; COSTS
++          </div>
++          <div className="bd-services-list">
++            {services.length === 0 ? (
++              <div className="bd-empty-svc">No services recorded</div>
++            ) : services.map((svc, i) => (
++              <div key={i} className="bd-service-row">
++                <div className="bd-service-icon-wrap" style={{ background: (SVC_COLORS[svc.icon] || '#6b7280') + '18', color: SVC_COLORS[svc.icon] || '#6b7280' }}>
++                  {SVC_ICONS[svc.icon] || SVC_ICONS.activities}
++                </div>
++                <div className="bd-service-info">
++                  <span className="bd-service-name">{svc.name}</span>
++                  {svc.vendor && <span className="bd-service-vendor">Vendor: {svc.vendor}</span>}
++                </div>
++                <span className="bd-service-cost">{svc.cost}</span>
++              </div>
++            ))}
++            <div className="bd-total-service-row">
++              <span>Total Service Cost</span>
++              <span>{totalServiceCost}</span>
++            </div>
++          </div>
++        </div>
++
++        <div className="bd-card">
++          <div className="bd-card-title">
++            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
++            FINANCIAL SUMMARY
++          </div>
++
++          <div className="bd-fin-section-lbl">
++            ACTUAL (AGENT VIEW) <InfoBtn infoKey="bd_actual_agent_view" />
++          </div>
++          {[
++            { label: 'Total Cost',                     value: fmtINR(agentTotalCost) },
++            { label: 'Hidden Markup',                  value: fmtINR(hiddenMarkup)   },
++            { label: 'Processing Charge (excl GST)',   value: fmtINR(serviceFee)     },
++            { label: 'Cost of Travel (customer sees)', value: 'Γé╣0'                   },
++          ].map(({ label, value }) => (
++            <div key={label} className="bd-fin-row">
++              <span className="bd-fin-label">{label}</span>
++              <span className="bd-fin-value">{value}</span>
++            </div>
++          ))}
++          <div className="bd-profit-card">
++            <div>
++              <div className="bd-profit-label">Total Profit ({profitPct}%)</div>
++              <div className="bd-profit-value">{fmtINR(profitTotal)}</div>
++            </div>
++            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
++          </div>
++
++          <div className="bd-fin-section-lbl" style={{ marginTop: 16 }}>CUSTOMER INVOICE</div>
++          <div className="bd-fin-row">
++            <span className="bd-fin-label bd-fin-label-row">
++              Cost of Travel (Reimbursement) <InfoBtn infoKey="bd_cost_of_travel_reimb" />
++            </span>
++            <span className="bd-fin-value">{fmtINR(travelCost)}</span>
++          </div>
++          <div className="bd-fin-row">
++            <span className="bd-fin-label bd-fin-label-row">
++              <strong>Processing / Service Charge</strong>
++              <span className="bd-sac-tag">SAC: 998551</span>
++              <InfoBtn infoKey="bd_processing_charge" />
++            </span>
++            <span className="bd-fin-value"><strong>{fmtINR(serviceFee)}</strong></span>
++          </div>
++          <div className="bd-fin-row">
++            <span className="bd-fin-label">CGST @9% (on service charge)</span>
++            <span className="bd-fin-value">{fmtINR(cgstVal)}</span>
++          </div>
++          <div className="bd-fin-row">
++            <span className="bd-fin-label">SGST @9% (on service charge)</span>
++            <span className="bd-fin-value">{fmtINR(sgstVal)}</span>
++          </div>
++          <div className="bd-fin-row">
++            <span className="bd-fin-label"><strong>Invoice Value</strong></span>
++            <span className="bd-fin-value"><strong>{fmtINR(invoiceValue)}</strong></span>
++          </div>
++          <div className="bd-total-payable-highlight">
++            <span>Total Payable</span>
++            <span>{fmtINR(invoiceValue)}</span>
++          </div>
++        </div>
++      </div>
++
++      {/* ΓöÇΓöÇ Payment Status ΓöÇΓöÇ */}
++      <div className="bd-card" style={{ marginTop: 16 }}>
++        <div className="bd-card-title">
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
++          PAYMENT STATUS
++        </div>
++        <div className="bd-payment-stats">
++          <div className="bd-pay-stat bd-pay-stat-blue">
++            <span className="bd-pay-stat-label">Total Payable</span>
++            <span className="bd-pay-stat-value">{fmtINR(invoiceValue)}</span>
++          </div>
++          <div className="bd-pay-stat bd-pay-stat-green">
++            <span className="bd-pay-stat-label">Amount Paid</span>
++            <span className="bd-pay-stat-value">{fmtINR(amountPaid)}</span>
++          </div>
++          <div className="bd-pay-stat bd-pay-stat-orange">
++            <span className="bd-pay-stat-label">Remaining</span>
++            <span className="bd-pay-stat-value">{fmtINR(remaining)}</span>
++          </div>
++        </div>
++        <div className="bd-progress-wrap">
++          <span className="bd-progress-label">Payment Progress</span>
++          <span className="bd-progress-pct">{progressPct}%</span>
++        </div>
++        <div className="bd-progress-track">
++          <div className="bd-progress-fill" style={{ width: `${progressPct}%`, background: progressColor }} />
++        </div>
++
++        <div className="bd-hist-label">PAYMENT HISTORY</div>
++        {bookingPayments.length === 0 ? (
++          <div className="bd-hist-empty">No payments recorded yet</div>
++        ) : bookingPayments.map((rec, i) => (
++          <div key={i} className="bd-hist-row">
++            <div>
++              <span className="bd-hist-ref">{rec.id}</span>
++              <span className="bd-hist-detail">{rec.date} ┬╖ {rec.modeLabel || rec.modeType}</span>
++            </div>
++            <span className="bd-hist-amount">+{rec.amount}</span>
++          </div>
++        ))}
++      </div>
++
++      {/* ΓöÇΓöÇ Modals ΓöÇΓöÇ */}
++      {invoiceOpen && (
++        <InvoiceDetailModal
++          invoice={invoiceModalData}
++          settings={settings}
++          onClose={() => setInvoiceOpen(false)}
++        />
++      )}
++
++      {recordPayOpen && (
++        <RecordPaymentModal
++          isOpen={recordPayOpen}
++          onClose={() => setRecordPayOpen(false)}
++          preselectedCustomer={customer}
++          customers={customers}
++          onSave={handleRecordPayment}
++        />
++      )}
++
++      {cancelOpen && (
++        <CancelBookingModal
++          booking={booking}
++          invoices={invoices}
++          onClose={() => setCancelOpen(false)}
++          onCancelNote={handleCancelNote}
++          onVoid={handleVoid}
++        />
++      )}
++    </div>
++  );
++};
+diff --git a/src/dashboard/pages/CreateQuote.jsx b/src/dashboard/pages/CreateQuote.jsx
+index 76a7ce5..a38d76d 100644
+--- a/src/dashboard/pages/CreateQuote.jsx
++++ b/src/dashboard/pages/CreateQuote.jsx
+@@ -6,6 +6,7 @@ import { openQuoteDetail } from '../../utils/quoteNav';
+ import { InfoBtn } from '../../shared/components/InfoBtn';
+ import { useData } from '../context/DataContext';
+ import { calculate, extractGstinState } from '../../shared/utils/calculationEngine';
++import { RealLogsPopup, useUnreadLogCount } from '../components/RealLogsPopup';
+ 
+ // ΓöÇΓöÇΓöÇ Constants ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ const STEPS = [
+@@ -2751,6 +2752,8 @@ export const RealCreateQuote = ({ onViewChange, prefilledCustomer, editQuote })
+   const [currentStep, setCurrentStep] = useState(firstStep);
+   const [calcMode, setCalcMode] = useState('agent');
+   const [shakeNext, setShakeNext] = useState(false);
++  const [isLogsOpen, setIsLogsOpen] = useState(false);
++  const unreadCount = useUnreadLogCount();
+   const [formData, setFormData] = useState(() => {
+     const base = { services: {}, serviceCosts: {}, destType: 'domestic', gstMode: 'pure-agent', tcsMode: 'na', adults: '1', children: '0', infants: '0' };
+     if (editMode) {
+@@ -2934,8 +2937,19 @@ export const RealCreateQuote = ({ onViewChange, prefilledCustomer, editQuote })
+             <p className="page-subtitle">{editMode ? 'Edit all quote details across steps' : 'Build a new travel quotation'}</p>
+           </div>
+           <div className="dash-header-right">
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++                {unreadCount > 0 && (
++                  <span style={{position:'absolute',top:-4,right:-4,background:'#ef4444',color:'#fff',fontSize:'0.65rem',fontWeight:700,width:18,height:18,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid #fff'}}>
++                    {unreadCount > 9 ? '9+' : unreadCount}
++                  </span>
++                )}
++              </button>
++              {isLogsOpen && <RealLogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
+             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+-              <div className="header-user-avatar">{(settings?.userName || 'A').slice(0, 2).toUpperCase()}</div>
++              <div className="header-user-avatar">{(settings?.userName || 'A').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}</div>
+               <div className="header-user-info">
+                 <span className="header-user-name">{settings?.userName || 'Admin'}</span>
+                 <span className="header-user-role"><span className="role-dot"></span> {settings?.userRole || 'admin'}</span>
+diff --git a/src/dashboard/pages/CustomerProfile.jsx b/src/dashboard/pages/CustomerProfile.jsx
+index 4fbb8b6..67df8f2 100644
+--- a/src/dashboard/pages/CustomerProfile.jsx
++++ b/src/dashboard/pages/CustomerProfile.jsx
+@@ -10,6 +10,8 @@ import { PaymentDetailModal } from '../../shared/components/PaymentDetailModal';
+ import { RealIndiaMapD3 } from '../components/RealIndiaMapD3';
+ import { RealWorldMapD3 } from '../components/RealWorldMapD3';
+ import { EmptyState } from '../components/EmptyState';
++import { RealLogsPopup, useUnreadLogCount } from '../components/RealLogsPopup';
++import { openBilling } from '../../utils/billingNav';
+ 
+ // ΓöÇΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ const parseRs = (s) => Math.round(parseFloat((s || '0').replace(/[Γé╣,\s]/g, '')) || 0);
+@@ -106,13 +108,18 @@ const buildLedger = (myBookings, myPayments, invoices) => {
+ 
+ // ΓöÇΓöÇΓöÇ Main Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ export const RealCustomerProfile = ({ customerId, fromView, onBack, onViewChange }) => {
+-  const { customers, bookings, payments, invoices, quotes, getCustomerById, getProfileData, updateCustomer, addPayment, getPaymentById } = useData();
++  const { customers, bookings, payments, invoices, quotes, getCustomerById, getProfileData, updateCustomer, addPayment, getPaymentById, settings } = useData();
+   const customer = getCustomerById(customerId);
+   const ext = getProfileData(customerId) || {};
+ 
+   const [editPanelOpen, setEditPanelOpen] = useState(false);
+   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+   const [paymentDetailId, setPaymentDetailId] = useState(null);
++  const [isLogsOpen, setIsLogsOpen] = useState(false);
++  const unreadCount = useUnreadLogCount();
++  const userInitials = (settings.userName || 'A').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
++  const displayName = settings.userName || 'Admin';
++  const displayRole = settings.userRole || 'Admin';
+ 
+   if (!customer) {
+     return (
+@@ -211,6 +218,24 @@ export const RealCustomerProfile = ({ customerId, fromView, onBack, onViewChange
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+               Edit
+             </button>
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++                {unreadCount > 0 && (
++                  <span style={{position:'absolute',top:-4,right:-4,background:'#ef4444',color:'#fff',fontSize:'0.65rem',fontWeight:700,width:18,height:18,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid #fff'}}>
++                    {unreadCount > 9 ? '9+' : unreadCount}
++                  </span>
++                )}
++              </button>
++              {isLogsOpen && <RealLogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
++            <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
++              <div className="header-user-avatar">{userInitials}</div>
++              <div className="header-user-info">
++                <span className="header-user-name">{displayName}</span>
++                <span className="header-user-role"><span className="role-dot"></span> {displayRole}</span>
++              </div>
++            </div>
+           </div>
+         </div>
+       </div>
+diff --git a/src/dashboard/pages/QuoteDetail.jsx b/src/dashboard/pages/QuoteDetail.jsx
+index 4278123..13f0d86 100644
+--- a/src/dashboard/pages/QuoteDetail.jsx
++++ b/src/dashboard/pages/QuoteDetail.jsx
+@@ -11,6 +11,7 @@ import { calculate } from '../../shared/utils/calculationEngine';
+ import { InfoBtn } from '../../shared/components/InfoBtn';
+ import { ConvertToBookingModal } from '../components/ConvertToBookingModal';
+ import ReactDOM from 'react-dom';
++import { RealLogsPopup, useUnreadLogCount } from '../components/RealLogsPopup';
+ 
+ // ΓöÇΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ const fmtINR = (n) => 'Γé╣' + Math.round(n || 0).toLocaleString('en-IN');
+@@ -127,7 +128,12 @@ export const RealQuoteDetail = ({ quoteId, fromView, onBack }) => {
+   const [itinView, setItinView]           = useState('simple');
+   const [showItinDrop, setShowItinDrop]   = useState(false);
+   const [showConvert, setShowConvert]     = useState(false);
++  const [isLogsOpen, setIsLogsOpen]       = useState(false);
+   const itinDropRef                        = useRef(null);
++  const unreadCount = useUnreadLogCount();
++  const userInitials = (settings?.userName || 'A').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
++  const displayName = settings?.userName || 'Admin';
++  const displayRole = settings?.userRole || 'Admin';
+ 
+   useEffect(() => {
+     if (!showItinDrop) return;
+@@ -246,11 +252,22 @@ export const RealQuoteDetail = ({ quoteId, fromView, onBack }) => {
+               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+               Back
+             </button>
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++                {unreadCount > 0 && (
++                  <span style={{position:'absolute',top:-4,right:-4,background:'#ef4444',color:'#fff',fontSize:'0.65rem',fontWeight:700,width:18,height:18,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid #fff'}}>
++                    {unreadCount > 9 ? '9+' : unreadCount}
++                  </span>
++                )}
++              </button>
++              {isLogsOpen && <RealLogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
+             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+-              <div className="header-user-avatar" style={{background:'linear-gradient(135deg,#6366f1,#4f46e5)'}}>A</div>
++              <div className="header-user-avatar">{userInitials}</div>
+               <div className="header-user-info">
+-                <span className="header-user-name">{settings?.agentName || 'Agent'}</span>
+-                <span className="header-user-role"><span className="role-dot"></span> Pro</span>
++                <span className="header-user-name">{displayName}</span>
++                <span className="header-user-role"><span className="role-dot"></span> {displayRole}</span>
+               </div>
+             </div>
+           </div>
+diff --git a/src/demo/context/DemoContext.jsx b/src/demo/context/DemoContext.jsx
+index c324ecc..461bd08 100644
+--- a/src/demo/context/DemoContext.jsx
++++ b/src/demo/context/DemoContext.jsx
+@@ -1,20 +1,494 @@
+-import React, { createContext, useContext, useState } from 'react';
++import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+ import { DemoModal } from '../components/DemoModal';
++import {
++  demoCustomers, demoQuotes, demoBookings, demoPayments,
++  demoProfileData, demoQuoteDetailData, demoActivities,
++} from '../../shared/data/demoData';
+ 
+-const DemoContext = createContext(null);
++// ΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const AVATAR_GRADIENTS = [
++  'linear-gradient(135deg, #f093fb, #f5576c)',
++  'linear-gradient(135deg, #667eea, #764ba2)',
++  'linear-gradient(135deg, #4facfe, #00f2fe)',
++  'linear-gradient(135deg, #43e97b, #38f9d7)',
++  'linear-gradient(135deg, #fa709a, #fee140)',
++  'linear-gradient(135deg, #a18cd1, #fbc2eb)',
++  'linear-gradient(135deg, #f6d365, #fda085)',
++  'linear-gradient(135deg, #fccb90, #d57eeb)',
++];
++
++const generateInitials = (name) => {
++  if (!name) return 'NA';
++  const words = name.trim().split(/\s+/);
++  if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
++  return name.slice(0, 2).toUpperCase();
++};
++
++const generateGradient = (name) => {
++  let hash = 0;
++  for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
++  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
++};
++
++const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
++
++const formatINR = (num) => 'Γé╣' + Number(num).toLocaleString('en-IN');
++
++const parseINR = (s) => {
++  if (!s || s === 'ΓÇö') return 0;
++  return parseInt(String(s).replace(/[Γé╣,\s]/g, ''), 10) || 0;
++};
++
++const nextId = (arr, prefix) => {
++  let max = 0;
++  arr.forEach(item => {
++    const m = item.id.match(/(\d+)$/);
++    if (m) max = Math.max(max, parseInt(m[1], 10));
++  });
++  return `${prefix}${String(max + 1).padStart(4, '0')}`;
++};
++
++const todayStr = () => {
++  const d = new Date();
++  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
++  return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
++};
++
++const nowTime = () => {
++  const d = new Date();
++  let h = d.getHours();
++  const ampm = h >= 12 ? 'pm' : 'am';
++  h = h % 12 || 12;
++  return `${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`;
++};
++
++const SS_KEY = 'demo_session_data';
++
++const loadSession = () => {
++  try {
++    const raw = sessionStorage.getItem(SS_KEY);
++    if (raw) return JSON.parse(raw);
++  } catch { /* ignore */ }
++  return null;
++};
++
++// ΓöÇΓöÇ Contexts ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const DemoPopupContext = createContext(null);
++const DemoDataContext = createContext(null);
+ 
+ export const DemoProvider = ({ children }) => {
+   const [isOpen, setIsOpen] = useState(false);
++  const triggerDemoPopup = useCallback(() => setIsOpen(true), []);
++
++  // ΓöÇΓöÇ Load initial state ΓöÇΓöÇ
++  const init = loadSession();
++  const [customers, setCustomers] = useState(() => init?.customers || deepClone(demoCustomers));
++  const [quotes, setQuotes] = useState(() => init?.quotes || deepClone(demoQuotes));
++  const [bookings, setBookings] = useState(() => init?.bookings || deepClone(demoBookings));
++  const [payments, setPayments] = useState(() => init?.payments || deepClone(demoPayments));
++  const [invoices, setInvoices] = useState(() => init?.invoices || []);
++  const [profileData, setProfileData] = useState(() => init?.profileData || deepClone(demoProfileData));
++  const [quoteDetailData, setQuoteDetailData] = useState(() => init?.quoteDetailData || deepClone(demoQuoteDetailData));
++  const [activities, setActivities] = useState(() => init?.activities || deepClone(demoActivities));
++
++  // ΓöÇΓöÇ Persist to sessionStorage ΓöÇΓöÇ
++  useEffect(() => {
++    try {
++      sessionStorage.setItem(SS_KEY, JSON.stringify({
++        customers, quotes, bookings, payments,
++        invoices, profileData, quoteDetailData, activities,
++      }));
++    } catch { /* ignore */ }
++  }, [customers, quotes, bookings, payments, invoices, profileData, quoteDetailData, activities]);
++
++  // ΓöÇΓöÇ Activity logging ΓöÇΓöÇ
++  const logActivity = useCallback((entry) => {
++    setActivities(prev => [{
++      ...entry,
++      date: todayStr(),
++      colorClass: entry.colorClass || 'ai-green',
++    }, ...prev].slice(0, 50));
++  }, []);
++
++  // ΓöÇΓöÇ Customer CRUD ΓöÇΓöÇ
++  const addCustomer = useCallback((data) => {
++    const id = nextId(customers, 'WL-C-');
++    const newCustomer = {
++      id,
++      name: data.fullName,
++      phone: `+91 ${data.phone}`,
++      email: data.email || '',
++      location: data.city || '',
++      type: data.customerType || 'Individual',
++      joined: todayStr(),
++      gradient: generateGradient(data.fullName),
++      initials: generateInitials(data.fullName),
++    };
++    setCustomers(prev => [...prev, newCustomer]);
++    setProfileData(prev => ({
++      ...prev,
++      [id]: {
++        city: data.city || '', state: data.state || '', country: data.country || 'India',
++        emailOverride: data.email || '',
++        tags: data.tags ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
++        pan: data.panNumber || '', gstin: data.gstin || '', company: data.companyName || '',
++        ledger: [], payments: [],
++      },
++    }));
++    logActivity({
++      id, type: 'customers', amount: '',
++      status: 'added', statusLabel: 'Added',
++      customer: data.fullName, colorClass: 'ai-green',
++    });
++    return newCustomer;
++  }, [customers, logActivity]);
++
++  const updateCustomer = useCallback((id, data) => {
++    setCustomers(prev => prev.map(c => {
++      if (c.id !== id) return c;
++      return {
++        ...c,
++        name: data.fullName || c.name,
++        phone: data.phone ? `+91 ${data.phone}` : c.phone,
++        email: data.email || c.email,
++        location: data.city || c.location,
++        type: data.customerType || c.type,
++        gradient: data.fullName ? generateGradient(data.fullName) : c.gradient,
++        initials: data.fullName ? generateInitials(data.fullName) : c.initials,
++      };
++    }));
++    setProfileData(prev => ({
++      ...prev,
++      [id]: {
++        ...(prev[id] || {}),
++        city: data.city ?? prev[id]?.city ?? '',
++        state: data.state ?? prev[id]?.state ?? '',
++        country: data.country ?? prev[id]?.country ?? 'India',
++        emailOverride: data.email ?? prev[id]?.emailOverride ?? '',
++        tags: data.tags
++          ? data.tags.split(',').map(t => t.trim()).filter(Boolean)
++          : (prev[id]?.tags || []),
++        pan: data.panNumber ?? prev[id]?.pan ?? '',
++        gstin: data.gstin ?? prev[id]?.gstin ?? '',
++        company: data.companyName ?? prev[id]?.company ?? '',
++        ledger: prev[id]?.ledger || [],
++        payments: prev[id]?.payments || [],
++      },
++    }));
++    logActivity({
++      id, type: 'customers', amount: '',
++      status: 'updated', statusLabel: 'Updated',
++      customer: data.fullName || '', colorClass: 'ai-blue',
++    });
++  }, [logActivity]);
++
++  // ΓöÇΓöÇ Quote CRUD ΓöÇΓöÇ
++  const addQuote = useCallback((formData, calcResult) => {
++    const id = nextId(quotes, 'WL-Q-');
++    const customerName = formData.customerSearch || formData.newCustomerName || 'Customer';
++    const customerPhone = formData.newCustomerPhone ? `+91 ${formData.newCustomerPhone}` : '';
++    const amount = calcResult?.packagePriceCustomer ? formatINR(calcResult.packagePriceCustomer) : 'Γé╣0';
++    const profit = calcResult?.totalProfit ? formatINR(calcResult.totalProfit) : 'Γé╣0';
++
++    const newQuote = {
++      id,
++      customerName,
++      customerPhone,
++      destName: formData.destination || '',
++      destType: (formData.destType || 'domestic').toLowerCase(),
++      amount,
++      profit,
++      status: 'draft',
++      tripDate: formData.startDate ? new Date(formData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
++      createdDate: todayStr(),
++      createdTime: nowTime(),
++    };
++    setQuotes(prev => [newQuote, ...prev]);
+ 
+-  const triggerDemoPopup = () => setIsOpen(true);
++    // Save quote detail
++    const detail = buildQuoteDetail(formData, calcResult, id);
++    setQuoteDetailData(prev => ({ ...prev, [id]: detail }));
++
++    logActivity({
++      id, type: 'quotes', amount,
++      status: 'draft', statusLabel: 'Draft',
++      customer: customerName, colorClass: 'ai-orange',
++    });
++    return { id, quote: newQuote };
++  }, [quotes, logActivity]);
++
++  const updateQuote = useCallback((id, updates) => {
++    setQuotes(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q));
++    if (updates.status) {
++      const q = quotes.find(q => q.id === id);
++      logActivity({
++        id, type: 'quotes', amount: q?.amount || '',
++        status: updates.status,
++        statusLabel: updates.status.charAt(0).toUpperCase() + updates.status.slice(1),
++        customer: q?.customerName || '', colorClass:
++          updates.status === 'approved' ? 'ai-green' :
++          updates.status === 'rejected' ? 'ai-orange' :
++          updates.status === 'converted' ? 'ai-purple' : 'ai-blue',
++      });
++    }
++  }, [quotes, logActivity]);
++
++  const updateQuoteFromForm = useCallback((id, formData, calcResult) => {
++    const customerName = formData.customerSearch || formData.newCustomerName || 'Customer';
++    const customerPhone = formData.newCustomerPhone ? `+91 ${formData.newCustomerPhone}` : '';
++    const amount = calcResult?.packagePriceCustomer ? formatINR(calcResult.packagePriceCustomer) : undefined;
++    const profit = calcResult?.totalProfit ? formatINR(calcResult.totalProfit) : undefined;
++
++    const updates = { customerName, customerPhone };
++    if (formData.destination) updates.destName = formData.destination;
++    if (formData.destType) updates.destType = formData.destType.toLowerCase();
++    if (amount) updates.amount = amount;
++    if (profit) updates.profit = profit;
++    if (formData.startDate) {
++      updates.tripDate = new Date(formData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
++    }
++
++    setQuotes(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q));
++
++    const detail = buildQuoteDetail(formData, calcResult, id);
++    setQuoteDetailData(prev => ({ ...prev, [id]: detail }));
++
++    logActivity({
++      id, type: 'quotes', amount: amount || '',
++      status: 'updated', statusLabel: 'Updated',
++      customer: customerName, colorClass: 'ai-blue',
++    });
++  }, [logActivity]);
++
++  const saveQuoteDetail = useCallback((id, detail) => {
++    setQuoteDetailData(prev => ({ ...prev, [id]: detail }));
++  }, []);
++
++  // ΓöÇΓöÇ Booking CRUD ΓöÇΓöÇ
++  const updateBooking = useCallback((id, updates) => {
++    setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b));
++    if (updates.status) {
++      const b = bookings.find(b => b.id === id);
++      logActivity({
++        id, type: 'bookings', amount: b?.amount || '',
++        status: updates.status,
++        statusLabel: updates.status === 'in_progress' ? 'In Progress' :
++          updates.status.charAt(0).toUpperCase() + updates.status.slice(1),
++        customer: b?.customerName || '', colorClass:
++          updates.status === 'completed' ? 'ai-green' :
++          updates.status === 'cancelled' ? 'ai-orange' :
++          updates.status === 'in_progress' ? 'ai-blue' : 'ai-blue',
++      });
++    }
++  }, [bookings, logActivity]);
++
++  // ΓöÇΓöÇ Payment CRUD ΓöÇΓöÇ
++  const addPayment = useCallback((data) => {
++    const id = nextId(payments, 'REC-');
++    const newPayment = {
++      id,
++      against: data.allocateTo === 'advance' ? 'Advance' : (data.allocateTo || 'Advance'),
++      customerName: data.customerName || '',
++      amount: formatINR(data.amount),
++      amountNum: Number(data.amount) || 0,
++      modeType: data.mode || 'cash',
++      modeLabel: ({ cash: 'Cash', upi: 'UPI', bank: 'Bank Transfer', cheque: 'Cheque', card: 'Card' })[data.mode] || 'Cash',
++      ref: data.reference || 'ΓÇö',
++      bankName: data.bankName || '',
++      remarks: data.notes || '',
++      date: data.date ? new Date(data.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : todayStr(),
++      againstType: data.allocateTo === 'advance' ? 'advance' : 'normal',
++      badge: data.allocateTo === 'advance' ? 'Advance' : 'Payment',
++      createdDate: todayStr(),
++    };
++    setPayments(prev => [newPayment, ...prev]);
++
++    // Update booking payment status if allocated to a booking
++    if (data.allocateTo && data.allocateTo !== 'advance') {
++      const bookingId = data.allocateTo;
++      setBookings(prev => prev.map(b => {
++        if (b.id !== bookingId) return b;
++        const totalAmount = parseINR(b.amount);
++        const currentPaid = parseINR(b.paymentText?.split('/')[0]);
++        const newPaid = currentPaid + (Number(data.amount) || 0);
++        const remaining = totalAmount - newPaid;
++        const paymentStatus = remaining <= 0 ? 'paid' : 'partial';
++        return {
++          ...b,
++          paymentStatus,
++          paymentText: `${formatINR(Math.min(newPaid, totalAmount))} / ${formatINR(totalAmount)}`,
++          remaining: remaining <= 0 ? 'ΓÇö' : formatINR(remaining),
++        };
++      }));
++    }
++
++    // Update customer profile
++    if (data.customerId) {
++      setProfileData(prev => {
++        const profile = prev[data.customerId] || { ledger: [], payments: [] };
++        return {
++          ...prev,
++          [data.customerId]: {
++            ...profile,
++            payments: [
++              ...profile.payments,
++              { id, badge: newPayment.badge, date: newPayment.date, method: data.mode || 'cash', amount: Number(data.amount) || 0 },
++            ],
++            ledger: [
++              ...profile.ledger,
++              { id, date: newPayment.date, desc: `${newPayment.modeLabel}(${newPayment.badge}) - ${newPayment.ref}`, credit: Number(data.amount) || 0, balance: 0 },
++            ],
++          },
++        };
++      });
++    }
++
++    logActivity({
++      id, type: 'payments', amount: formatINR(data.amount),
++      status: 'recorded', statusLabel: 'Recorded',
++      customer: data.customerName || '', colorClass: 'ai-green',
++    });
++    return newPayment;
++  }, [payments, logActivity]);
++
++  // ΓöÇΓöÇ Convert Quote to Booking ΓöÇΓöÇ
++  const convertQuote = useCallback((quoteId) => {
++    const quote = quotes.find(q => q.id === quoteId);
++    if (!quote) return null;
++
++    // Mark quote as converted
++    setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'converted' } : q));
++
++    // Create booking
++    const bookingId = nextId(bookings, 'WL-B-');
++    const totalAmount = parseINR(quote.amount);
++    const newBooking = {
++      id: bookingId,
++      customerName: quote.customerName,
++      destination: quote.destName,
++      amount: quote.amount,
++      profit: quote.profit,
++      paymentStatus: 'unpaid',
++      paymentText: `Γé╣0 / ${quote.amount}`,
++      remaining: quote.amount,
++      status: 'confirmed',
++      date: todayStr(),
++      quoteId,
++    };
++    setBookings(prev => [newBooking, ...prev]);
++
++    // Create invoice
++    const invoiceId = `INV-${String(invoices.length + 1).padStart(3, '0')}`;
++    const newInvoice = {
++      id: invoiceId,
++      bookingId,
++      quoteId,
++      customerName: quote.customerName,
++      destination: quote.destName,
++      amount: quote.amount,
++      status: 'Unpaid',
++      date: todayStr(),
++      type: 'Tax Invoice',
++    };
++    setInvoices(prev => [newInvoice, ...prev]);
++
++    logActivity({
++      id: quoteId, type: 'quotes', amount: quote.amount,
++      status: 'converted', statusLabel: 'Converted',
++      customer: quote.customerName, colorClass: 'ai-purple',
++    });
++
++    return { booking: newBooking, invoice: newInvoice };
++  }, [quotes, bookings, invoices, logActivity]);
++
++  // ΓöÇΓöÇ Getters ΓöÇΓöÇ
++  const getCustomerById = useCallback((id) => customers.find(c => c.id === id), [customers]);
++  const getQuoteById = useCallback((id) => quotes.find(q => q.id === id), [quotes]);
++  const getBookingById = useCallback((id) => bookings.find(b => b.id === id), [bookings]);
++  const getPaymentById = useCallback((id) => payments.find(p => p.id === id), [payments]);
++
++  // ΓöÇΓöÇ Data context value ΓöÇΓöÇ
++  const dataValue = {
++    // Data arrays
++    customers, quotes, bookings, payments, invoices, profileData, quoteDetailData, activities,
++    // Customer
++    addCustomer, updateCustomer, getCustomerById,
++    // Quote
++    addQuote, updateQuote, updateQuoteFromForm, saveQuoteDetail, getQuoteById,
++    // Booking
++    updateBooking, getBookingById,
++    // Payment
++    addPayment, getPaymentById,
++    // Conversion
++    convertQuote,
++    // Activity
++    logActivity,
++  };
+ 
+   return (
+-    <DemoContext.Provider value={triggerDemoPopup}>
+-      {children}
+-      {isOpen && <DemoModal onClose={() => setIsOpen(false)} />}
+-    </DemoContext.Provider>
++    <DemoPopupContext.Provider value={triggerDemoPopup}>
++      <DemoDataContext.Provider value={dataValue}>
++        {children}
++        {isOpen && <DemoModal onClose={() => setIsOpen(false)} />}
++      </DemoDataContext.Provider>
++    </DemoPopupContext.Provider>
+   );
+ };
+ 
++// ΓöÇΓöÇ Hooks ΓöÇΓöÇ
+ const noop = () => {};
+-export const useDemoPopup = () => useContext(DemoContext) || noop;
++export const useDemoPopup = () => useContext(DemoPopupContext) || noop;
++export const useDemoData = () => useContext(DemoDataContext);
++
++// ΓöÇΓöÇ Reset helper (call when navigating back to landing) ΓöÇΓöÇ
++export const clearDemoSession = () => {
++  try { sessionStorage.removeItem(SS_KEY); } catch { /* ignore */ }
++};
++
++// ΓöÇΓöÇ Build quote detail from form data ΓöÇΓöÇ
++function buildQuoteDetail(formData, calcResult, quoteId) {
++  const customerName = formData.customerSearch || formData.newCustomerName || 'Customer';
++  return {
++    customerName,
++    customerId: formData._customerId || null,
++    customerPhone: formData.newCustomerPhone ? `+91 ${formData.newCustomerPhone}` : '',
++    customerEmail: formData.newCustomerEmail || '',
++    destination: formData.destination || '',
++    destType: (formData.destType || 'domestic').charAt(0).toUpperCase() + (formData.destType || 'domestic').slice(1),
++    tripDate: formData.startDate || '',
++    duration: formData.duration || '',
++    departure: formData.startDate || 'N/A',
++    returnDate: formData.endDate || 'N/A',
++    travelers: formData.numTravelers ? `${formData.numTravelers} Pax` : '1 Pax',
++    createdDate: todayStr(),
++    services: Object.entries(formData.serviceDetails || {}).map(([key, svc]) => ({
++      type: key.includes('hotel') ? 'hotel' : key.includes('transport') || key.includes('cab') ? 'transport' : key.includes('activity') || key.includes('activities') ? 'activity' : 'admission',
++      name: svc.name || key,
++      vendor: svc.vendor || '',
++      cost: formatINR(formData.serviceCosts?.[key] || 0),
++    })).filter(s => parseINR(s.cost) > 0),
++    totalServiceCost: calcResult?.costOfServices ? formatINR(calcResult.costOfServices) : 'Γé╣0',
++    fin: {
++      costOfServices: calcResult?.costOfServices ? formatINR(calcResult.costOfServices) : 'Γé╣0',
++      hiddenMarkup: calcResult?.hiddenMarkup ? formatINR(calcResult.hiddenMarkup) : 'Γé╣0',
++      processingCharge: calcResult?.processingCharge ? formatINR(calcResult.processingCharge) : 'Γé╣0',
++      costOfTravel: calcResult?.costOfServices ? formatINR(calcResult.costOfServices) : 'Γé╣0',
++      processingCustomer: calcResult?.processingCharge ? formatINR(calcResult.processingCharge) : 'Γé╣0',
++      gstRate: '18.00%',
++      gstAmount: calcResult?.gstOnMargin ? formatINR(calcResult.gstOnMargin) : 'Γé╣0',
++      cgst: calcResult?.cgst ? formatINR(calcResult.cgst) : 'Γé╣0',
++      sgst: calcResult?.sgst ? formatINR(calcResult.sgst) : 'Γé╣0',
++      invoiceValue: calcResult?.invoiceValueAgent ? formatINR(calcResult.invoiceValueAgent) : 'Γé╣0',
++      profitTotal: calcResult?.totalProfit ? formatINR(calcResult.totalProfit) : 'Γé╣0',
++      profitPct: calcResult?.profitPct || '0%',
++      packagePrice: calcResult?.packagePriceCustomer ? formatINR(calcResult.packagePriceCustomer) : 'Γé╣0',
++      totalPayable: calcResult?.packagePriceCustomer ? formatINR(calcResult.packagePriceCustomer) : 'Γé╣0',
++      inputMode: 'Margin',
++      billingModel: formData.billingModel || 'pure_agent',
++      quoteDate: todayStr(),
++    },
++    itinerary: formData.itDays || [],
++    inclusions: formData.inclusions || [],
++    exclusions: formData.exclusions || [],
++  };
++}
+diff --git a/src/index.css b/src/index.css
+index 762604e..379d299 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -1724,6 +1724,51 @@
+ .bd-hist-ref    { display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+ .bd-hist-detail { font-size: 0.75rem; color: var(--text-muted); }
+ .bd-hist-amount { font-size: 0.9rem; font-weight: 700; color: #16a34a; flex-shrink: 0; }
++.bd-hist-empty  { font-size: 0.84rem; color: var(--text-muted); padding: 12px 0; }
++
++/* ΓöÇΓöÇ BookingDetail extra classes ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
++.bd-status-in_progress { background: #dbeafe; color: #2563eb; }
++.bd-pay-partial  { background: #dbeafe; color: #1d4ed8; }
++.bd-pay-unpaid   { background: #fff7ed; color: #d97706; }
++.bd-pay-overpaid { background: #f5f3ff; color: #7c3aed; }
++
++.bd-action-progress { border-color: #2563eb; color: #2563eb; }
++.bd-action-progress:hover { background: #eff6ff; }
++.bd-action-reopen { border-color: var(--accent); color: var(--accent); }
++.bd-action-reopen:hover { background: #f5f3ff; }
++.bd-action-record-pay {
++  background: var(--accent); color: #fff !important; border-color: var(--accent); font-weight: 700;
++}
++.bd-action-record-pay:hover { opacity: 0.88; }
++
++.bd-notif-wrap {
++  position: relative; display: flex; align-items: center; justify-content: center;
++  width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
++  background: var(--bg-secondary); border: 1.5px solid var(--border-color);
++  color: var(--text-muted); flex-shrink: 0;
++}
++.bd-notif-wrap:hover { border-color: var(--accent); color: var(--accent); }
++.bd-notif-badge {
++  position: absolute; top: -4px; right: -4px;
++  background: #dc2626; color: #fff; font-size: 0.55rem; font-weight: 800;
++  min-width: 16px; height: 16px; border-radius: 99px; padding: 0 3px;
++  display: flex; align-items: center; justify-content: center;
++  border: 2px solid var(--card-bg);
++}
++
++.bd-fin-label-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; flex: 1; min-width: 0; }
++.bd-sac-tag {
++  font-size: 0.68rem; font-weight: 600; color: var(--text-muted);
++  background: #f3f4f6; border-radius: 4px; padding: 1px 5px;
++}
++.bd-empty-svc { font-size: 0.84rem; color: var(--text-muted); padding: 12px 0; }
++
++.bd-total-payable-highlight {
++  display: flex; justify-content: space-between; align-items: center;
++  background: #f5f3ff; border-radius: 8px; padding: 10px 12px; margin-top: 6px;
++}
++.bd-total-payable-highlight span:first-child { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
++.bd-total-payable-highlight span:last-child  { font-size: 1.05rem; font-weight: 800; color: var(--accent); }
+ 
+ /* ΓöÇΓöÇ Step 4: Pricing & Billing ΓöÇΓöÇ */
+ .cq-p4-section-label {
+diff --git a/src/pages/Accounts.jsx b/src/pages/Accounts.jsx
+index ee5d699..443a354 100644
+--- a/src/pages/Accounts.jsx
++++ b/src/pages/Accounts.jsx
+@@ -1,4 +1,4 @@
+-import React, { useState, useRef } from 'react';
++import React, { useState, useRef, useEffect } from 'react';
+ import ReactDOM from 'react-dom';
+ import { openBilling } from '../utils/billingNav';
+ import { useDemoPopup } from '../context/DemoContext';
+@@ -23,9 +23,33 @@ const EmptyState = ({ icon, title, desc }) => (
+   </div>
+ );
+ 
++// ΓöÇΓöÇΓöÇ Logs Popup ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const LogsPopup = ({ onClose }) => {
++  const popupRef = useRef(null);
++  useEffect(() => {
++    const handleClickOutside = (event) => {
++      if (popupRef.current && !popupRef.current.contains(event.target)) onClose();
++    };
++    document.addEventListener('mousedown', handleClickOutside);
++    return () => document.removeEventListener('mousedown', handleClickOutside);
++  }, [onClose]);
++  return (
++    <div className="logs-popup-container" ref={popupRef}>
++      <div className="logs-popup-header"><h3>Logs</h3></div>
++      <div className="logs-popup-body">
++        <div className="logs-empty">
++          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.2, marginBottom: 12 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++          <p>No logs yet</p>
++        </div>
++      </div>
++    </div>
++  );
++};
++
+ // ΓöÇΓöÇΓöÇ Main Accounts Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ export const Accounts = () => {
+   const triggerDemoPopup = useDemoPopup();
++  const [isLogsOpen, setIsLogsOpen] = useState(false);
+   const [activeTab, setActiveTab] = useState('adjustments');
+   const [showConvertModal, setShowConvertModal] = useState(false);
+   const [invoiceAmount, setInvoiceAmount] = useState('');
+@@ -186,6 +210,13 @@ export const Accounts = () => {
+               </svg>
+             </button>
+ 
++            {/* Log button */}
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++              </button>
++              {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
+             {/* User avatar */}
+             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+               <div className="header-user-avatar">DA</div>
+diff --git a/src/pages/Billing.jsx b/src/pages/Billing.jsx
+index bb85e96..8208f82 100644
+--- a/src/pages/Billing.jsx
++++ b/src/pages/Billing.jsx
+@@ -1,4 +1,4 @@
+-import React, { useState } from 'react';
++import React, { useState, useRef, useEffect } from 'react';
+ import { openBilling } from '../utils/billingNav';
+ import { useDemoPopup } from '../context/DemoContext';
+ 
+@@ -98,8 +98,32 @@ const XIcon = () => (
+ );
+ 
+ // ΓöÇΓöÇΓöÇ Main Billing Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++// ΓöÇΓöÇΓöÇ Logs Popup ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const LogsPopup = ({ onClose }) => {
++  const popupRef = useRef(null);
++  useEffect(() => {
++    const handleClickOutside = (event) => {
++      if (popupRef.current && !popupRef.current.contains(event.target)) onClose();
++    };
++    document.addEventListener('mousedown', handleClickOutside);
++    return () => document.removeEventListener('mousedown', handleClickOutside);
++  }, [onClose]);
++  return (
++    <div className="logs-popup-container" ref={popupRef}>
++      <div className="logs-popup-header"><h3>Logs</h3></div>
++      <div className="logs-popup-body">
++        <div className="logs-empty">
++          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.2, marginBottom: 12 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++          <p>No logs yet</p>
++        </div>
++      </div>
++    </div>
++  );
++};
++
+ export const Billing = ({ fromView, onBack }) => {
+   const triggerDemoPopup = useDemoPopup();
++  const [isLogsOpen, setIsLogsOpen] = useState(false);
+   const [billingPeriod, setBillingPeriod] = useState('monthly');
+ 
+   const fmtPrice = (n) => n.toLocaleString('en-IN');
+@@ -139,6 +163,13 @@ export const Billing = ({ fromView, onBack }) => {
+               </button>
+               <span className="bl-bell-badge">2</span>
+             </div>
++            {/* Log button */}
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++              </button>
++              {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
+             {/* User block */}
+             <div className="header-user bl-user-clickable" onClick={triggerDemoPopup}>
+               <div className="header-user-avatar">DA</div>
+diff --git a/src/pages/BookingDetail.jsx b/src/pages/BookingDetail.jsx
+index 1e0337e..69f57cf 100644
+--- a/src/pages/BookingDetail.jsx
++++ b/src/pages/BookingDetail.jsx
+@@ -1,76 +1,97 @@
+-import React from 'react';
++import React, { useState, useRef, useEffect } from 'react';
+ import { openQuoteDetail } from '../utils/quoteNav';
+ import { openCustomerProfile } from '../utils/customerNav';
+-import { useDemoPopup } from '../context/DemoContext';
++import { useDemoPopup, useDemoData } from '../context/DemoContext';
++import { RecordPaymentModal } from '../shared/components/RecordPaymentModal';
+ import { openBilling } from '../utils/billingNav';
+ import { InfoBtn } from '../shared/components/InfoBtn';
++import { InvoiceDetailModal } from '../dashboard/components/InvoiceDetailModal';
+ 
+-// ΓöÇΓöÇ Mock detailed booking data ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const DEMO_SETTINGS = {
++  companyName: 'Wanderlust Travels',
++  address: '301, Trade Center, BKC, Mumbai',
++  phone: '+91 98765 43210',
++  email: 'demo@touridoo.in',
++};
++
++// ΓöÇΓöÇ Service icons & colors ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const SVC_ICONS = {
++  flight: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 19-7z"/></svg>),
++  hotel: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>),
++  activities: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>),
++  fooding: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>),
++  transport: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>),
++};
++
++const SVC_COLORS = {
++  flight: '#16A34A', hotel: '#3b82f6', activities: '#8b5cf6', fooding: '#ec4899', transport: '#f59e0b',
++};
++
++// ΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const STATUS_LABEL = {
++  confirmed: 'Confirmed', in_progress: 'In Progress', completed: 'Completed', cancelled: 'Cancelled',
++};
++const PAY_LABEL = { paid: 'Paid', partial: 'Partial', unpaid: 'Unpaid', overpaid: 'Overpaid' };
++
++const parseINR = (s) => {
++  if (!s || s === 'ΓÇö') return 0;
++  return parseInt(String(s).replace(/[Γé╣,\s]/g, ''), 10) || 0;
++};
++
++// ΓöÇΓöÇ Mock booking detail data ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ const bookingDetailData = {
+   'WL-B-0001': {
+-    id: 'WL-B-0001',
+-    bookedOn: '10 Mar 2026',
+-    status: 'confirmed',
+-    paymentStatus: 'partial',
+-    type: 'Domestic',
+-    destination: 'Goa',
++    id: 'WL-B-0001', bookedOn: '10 Mar 2026', status: 'confirmed', paymentStatus: 'partial',
++    type: 'Domestic', destination: 'Goa',
+     customer: { name: 'Vikram Iyer', avatar: 'V', avatarColor: '#7c3aed', phone: '+91 9845678901', email: 'vikram@globaltech.co.in', customerId: 'WL-C-0001' },
+-    travel: { destination: 'Goa', type: 'Domestic', duration: '3 Nights / 4 Days', travelers: '15 Pax' },
++    travel: { destination: 'Goa', type: 'Domestic', duration: '3 Nights / 4 Days', travelers: '15 Pax', departure: '12 Mar 2026', returnDate: '15 Mar 2026' },
+     services: [
+-      { icon: 'flight',      name: 'Flight',         vendor: 'IndiGo',            cost: 'Γé╣1,20,000' },
+-      { icon: 'hotel',       name: 'Hotel',           vendor: 'Novotel Goa Resort', cost: 'Γé╣1,80,000' },
+-      { icon: 'activities',  name: 'Activities',      vendor: 'Goa Adventures',    cost: 'Γé╣45,000' },
+-      { icon: 'fooding',     name: 'Fooding',         vendor: 'Hotel catering',    cost: 'Γé╣60,000' },
++      { icon: 'flight',     name: 'Flight',     vendor: 'IndiGo',             cost: 'Γé╣1,20,000' },
++      { icon: 'hotel',      name: 'Hotel',       vendor: 'Novotel Goa Resort', cost: 'Γé╣1,80,000' },
++      { icon: 'activities', name: 'Activities',  vendor: 'Goa Adventures',     cost: 'Γé╣45,000'   },
++      { icon: 'fooding',    name: 'Fooding',     vendor: 'Hotel Catering',     cost: 'Γé╣60,000'   },
+     ],
+     totalServiceCost: 'Γé╣4,05,000',
+     financial: {
+       totalCost: 'Γé╣4,05,000', hiddenMarkup: 'Γé╣0', processingCharge: 'Γé╣55,000',
+-      costOfTravel: 'Γé╣4,05,000', totalProfit: 'Γé╣55,000', profitPct: '13.6%',
+-      packagePrice: 'Γé╣4,60,000', cgst: 'Γé╣4,950', sgst: 'Γé╣4,950',
++      costOfTravelCustomer: 'Γé╣0', totalProfit: 'Γé╣55,000', profitPct: '13.6',
++      costOfTravel: 'Γé╣4,05,000', cgst: 'Γé╣4,950', sgst: 'Γé╣4,950',
+       invoiceValue: 'Γé╣4,69,900', totalPayable: 'Γé╣4,69,900',
+     },
+     payment: {
+       totalPayable: 'Γé╣4,69,900', amountPaid: 'Γé╣2,35,000', remaining: 'Γé╣2,34,900', progressPct: 50,
+-      history: [{ id: 'REC-0001', date: '10 Mar 2026', method: 'bank transfer', ref: 'NEFT/2026/03/HDFC123456', amount: '+Γé╣2,35,000' }],
++      history: [{ id: 'REC-0001', date: '10 Mar 2026', method: 'bank transfer', amount: '+Γé╣2,35,000' }],
+     },
+     linkedQuoteId: 'WL-Q-0001',
+   },
+   'WL-B-0002': {
+-    id: 'WL-B-0002',
+-    bookedOn: '09 Mar 2026',
+-    status: 'confirmed',
+-    paymentStatus: 'paid',
+-    type: 'International',
+-    destination: 'Bali, Indonesia',
++    id: 'WL-B-0002', bookedOn: '09 Mar 2026', status: 'in_progress', paymentStatus: 'paid',
++    type: 'International', destination: 'Bali, Indonesia',
+     customer: { name: 'Rahul Sharma', avatar: 'R', avatarColor: '#0891b2', phone: '+91 9812345678', email: 'rahul@sharma.co.in', customerId: 'WL-C-0002' },
+-    travel: { destination: 'Bali, Indonesia', type: 'International', duration: '5 Nights / 6 Days', travelers: '2 Pax' },
++    travel: { destination: 'Bali, Indonesia', type: 'International', duration: '5 Nights / 6 Days', travelers: '2 Pax', departure: '09 Mar 2026', returnDate: '15 Mar 2026' },
+     services: [
+-      { icon: 'flight',     name: 'Flight',     vendor: 'Air Asia',         cost: 'Γé╣60,000' },
+-      { icon: 'hotel',      name: 'Hotel',      vendor: 'The Layar Bali',   cost: 'Γé╣55,000' },
+-      { icon: 'activities', name: 'Activities', vendor: 'Bali Tours',       cost: 'Γé╣15,952' },
++      { icon: 'flight',     name: 'Flight',     vendor: 'Air Asia',       cost: 'Γé╣60,000' },
++      { icon: 'hotel',      name: 'Hotel',       vendor: 'The Layar Bali', cost: 'Γé╣55,000' },
++      { icon: 'activities', name: 'Activities',  vendor: 'Bali Tours',     cost: 'Γé╣15,952' },
+     ],
+     totalServiceCost: 'Γé╣1,30,952',
+     financial: {
+       totalCost: 'Γé╣1,30,952', hiddenMarkup: 'Γé╣0', processingCharge: 'Γé╣10,000',
+-      costOfTravel: 'Γé╣1,30,952', totalProfit: 'Γé╣18,000', profitPct: '12.8%',
+-      packagePrice: 'Γé╣1,40,952', cgst: 'Γé╣0', sgst: 'Γé╣0',
++      costOfTravelCustomer: 'Γé╣0', totalProfit: 'Γé╣10,000', profitPct: '7.6',
++      costOfTravel: 'Γé╣1,30,952', cgst: 'Γé╣0', sgst: 'Γé╣0',
+       invoiceValue: 'Γé╣1,40,952', totalPayable: 'Γé╣1,40,952',
+     },
+     payment: {
+-      totalPayable: 'Γé╣1,40,952', amountPaid: 'Γé╣1,40,952', remaining: 'ΓÇö', progressPct: 100,
+-      history: [{ id: 'REC-0003', date: '09 Mar 2026', method: 'online transfer', ref: 'TXN/2026/03/456789', amount: '+Γé╣1,40,952' }],
++      totalPayable: 'Γé╣1,40,952', amountPaid: 'Γé╣1,40,952', remaining: 'Γé╣0', progressPct: 100,
++      history: [{ id: 'REC-0003', date: '09 Mar 2026', method: 'online transfer', amount: '+Γé╣1,40,952' }],
+     },
+     linkedQuoteId: 'WL-Q-0002',
+   },
+   'WL-B-0003': {
+-    id: 'WL-B-0003',
+-    bookedOn: '01 Mar 2026',
+-    status: 'completed',
+-    paymentStatus: 'paid',
+-    type: 'Domestic',
+-    destination: 'Srinagar - Gulmarg - Pahalgam',
++    id: 'WL-B-0003', bookedOn: '01 Mar 2026', status: 'completed', paymentStatus: 'paid',
++    type: 'Domestic', destination: 'Srinagar - Gulmarg - Pahalgam',
+     customer: { name: 'Rajesh Patel', avatar: 'R', avatarColor: '#059669', phone: '+91 9876543210', email: 'rajesh@patel.co.in', customerId: 'WL-C-0003' },
+-    travel: { destination: 'Srinagar - Gulmarg - Pahalgam', type: 'Domestic', duration: '4 Nights / 5 Days', travelers: '4 Pax' },
++    travel: { destination: 'Srinagar - Gulmarg - Pahalgam', type: 'Domestic', duration: '4 Nights / 5 Days', travelers: '4 Pax', departure: '01 Mar 2026', returnDate: '05 Mar 2026' },
+     services: [
+       { icon: 'flight',    name: 'Flight',         vendor: 'IndiGo',               cost: 'Γé╣40,000' },
+       { icon: 'hotel',     name: 'Hotel',           vendor: 'Hotel Grand Srinagar', cost: 'Γé╣85,000' },
+@@ -79,70 +100,66 @@ const bookingDetailData = {
+     totalServiceCost: 'Γé╣1,45,000',
+     financial: {
+       totalCost: 'Γé╣1,45,000', hiddenMarkup: 'Γé╣0', processingCharge: 'Γé╣11,880',
+-      costOfTravel: 'Γé╣1,45,000', totalProfit: 'Γé╣16,000', profitPct: '10.2%',
+-      packagePrice: 'Γé╣1,56,880', cgst: 'Γé╣0', sgst: 'Γé╣0',
++      costOfTravelCustomer: 'Γé╣0', totalProfit: 'Γé╣11,880', profitPct: '8.2',
++      costOfTravel: 'Γé╣1,45,000', cgst: 'Γé╣0', sgst: 'Γé╣0',
+       invoiceValue: 'Γé╣1,56,880', totalPayable: 'Γé╣1,56,880',
+     },
+     payment: {
+-      totalPayable: 'Γé╣1,56,880', amountPaid: 'Γé╣1,56,880', remaining: 'ΓÇö', progressPct: 100,
+-      history: [{ id: 'REC-0002', date: '01 Mar 2026', method: 'cash', ref: 'CASH/2026/03/001', amount: '+Γé╣1,56,880' }],
++      totalPayable: 'Γé╣1,56,880', amountPaid: 'Γé╣1,56,880', remaining: 'Γé╣0', progressPct: 100,
++      history: [{ id: 'REC-0002', date: '01 Mar 2026', method: 'cash', amount: '+Γé╣1,56,880' }],
+     },
+     linkedQuoteId: null,
+   },
+ };
+ 
+-// ΓöÇΓöÇ Service icon map ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+-const SVC_ICONS = {
+-  flight: (
+-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+-      <path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 19-7z"/>
+-    </svg>
+-  ),
+-  hotel: (
+-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+-      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+-    </svg>
+-  ),
+-  activities: (
+-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+-      <circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/>
+-    </svg>
+-  ),
+-  fooding: (
+-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+-      <path d="M3 11l19-9-9 19-2-8-8-2z"/>
+-    </svg>
+-  ),
+-  transport: (
+-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+-      <rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+-    </svg>
+-  ),
+-};
+-
+-const SVC_COLORS = {
+-  flight: '#16A34A', hotel: '#3b82f6', activities: '#8b5cf6', fooding: '#ec4899', transport: '#f59e0b',
++// ΓöÇΓöÇ Main component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++// ΓöÇΓöÇΓöÇ Logs Popup ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const LogsPopup = ({ onClose }) => {
++  const popupRef = useRef(null);
++  useEffect(() => {
++    const handleClickOutside = (event) => {
++      if (popupRef.current && !popupRef.current.contains(event.target)) onClose();
++    };
++    document.addEventListener('mousedown', handleClickOutside);
++    return () => document.removeEventListener('mousedown', handleClickOutside);
++  }, [onClose]);
++  return (
++    <div className="logs-popup-container" ref={popupRef}>
++      <div className="logs-popup-header"><h3>Logs</h3></div>
++      <div className="logs-popup-body">
++        <div className="logs-empty">
++          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.2, marginBottom: 12 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++          <p>No logs yet</p>
++        </div>
++      </div>
++    </div>
++  );
+ };
+ 
+-// ΓöÇΓöÇ Status helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+-const STATUS_LABEL = { confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled' };
+-const PAY_LABEL    = { paid: 'Paid', partial: 'Partial' };
+-
+-export const BookingDetail = ({ bookingId, fromView, onBack }) => {
++export const BookingDetail = ({ bookingId, onBack }) => {
+   const triggerDemoPopup = useDemoPopup();
++  const { bookings, updateBooking, addPayment, payments, customers } = useDemoData();
++  const [isLogsOpen, setIsLogsOpen] = useState(false);
++  const [invoiceOpen, setInvoiceOpen] = useState(false);
++  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+   const detail = bookingDetailData[bookingId];
++  const currentStatus = bookings.find(b => b.id === bookingId)?.status || detail?.status;
+ 
+   if (!detail) {
+     return (
+       <div className="fade-in bd-page">
+-        <div className="bd-page-header">
+-          <button className="bd-back-btn" onClick={onBack}>
+-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+-            Back
+-          </button>
+-          <div>
+-            <h1 className="bd-page-title">{bookingId || 'Booking'}</h1>
+-            <p className="bd-page-subtitle">Booking not found</p>
++        <div className="page-header-strip">
++          <div className="dash-header">
++            <div className="dash-header-left">
++              <h1 className="page-title">{bookingId || 'Booking'}</h1>
++              <p className="page-subtitle">Booking not found</p>
++            </div>
++            <div className="dash-header-right">
++              <button className="bd-back-btn" onClick={onBack}>
++                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
++                Back
++              </button>
++            </div>
+           </div>
+         </div>
+         <div className="bd-not-found">No booking data found for {bookingId}.</div>
+@@ -152,10 +169,79 @@ export const BookingDetail = ({ bookingId, fromView, onBack }) => {
+ 
+   const { customer, travel, services, financial, payment } = detail;
+ 
+-  const handleViewQuote = () => {
++  const invoiceData = {
++    id: detail.id, date: detail.bookedOn,
++    customerName: customer.name, customerPhone: customer.phone, customerEmail: customer.email,
++    destination: travel.destination, destType: detail.type,
++    travelers: parseInt(travel.travelers) || 1, duration: travel.duration, travelDate: travel.departure,
++    travelCost: parseINR(financial.costOfTravel), serviceFee: parseINR(financial.processingCharge),
++    cgst: parseINR(financial.cgst), sgst: parseINR(financial.sgst),
++    invoiceValue: parseINR(financial.invoiceValue),
++    status: detail.paymentStatus === 'paid' ? 'Paid' : 'Unpaid',
++  };
++
++  const progressColor = payment.progressPct >= 100 ? '#16a34a' : payment.progressPct > 0 ? '#f59e0b' : '#dc2626';
++
++  const renderActionButtons = () => {
++    const btns = [];
++
++    if (currentStatus === 'confirmed') {
++      btns.push(
++        <button key="prog" className="bd-action-btn bd-action-progress" onClick={() => updateBooking(bookingId, { status: 'in_progress' })}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
++          Mark In Progress
++        </button>,
++        <button key="cancel" className="bd-action-btn bd-action-cancel" onClick={() => updateBooking(bookingId, { status: 'cancelled' })}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
++          Cancel
++        </button>
++      );
++    } else if (currentStatus === 'in_progress') {
++      btns.push(
++        <button key="comp" className="bd-action-btn bd-action-complete" onClick={() => updateBooking(bookingId, { status: 'completed' })}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 15.5 10.5"/></svg>
++          Mark Completed
++        </button>,
++        <button key="cancel" className="bd-action-btn bd-action-cancel" onClick={() => updateBooking(bookingId, { status: 'cancelled' })}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
++          Cancel
++        </button>
++      );
++    } else if (currentStatus === 'completed') {
++      btns.push(
++        <button key="reopen" className="bd-action-btn bd-action-reopen" onClick={() => updateBooking(bookingId, { status: 'confirmed' })}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
++          Reopen
++        </button>
++      );
++    }
++
++    btns.push(
++      <button key="inv" className="bd-action-btn bd-action-invoice" onClick={() => setInvoiceOpen(true)}>
++        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
++        Tax Invoice
++      </button>
++    );
++
+     if (detail.linkedQuoteId) {
+-      openQuoteDetail(detail.linkedQuoteId, 'booking-detail');
++      btns.push(
++        <button key="quote" className="bd-action-btn bd-action-quote" onClick={() => openQuoteDetail(detail.linkedQuoteId, 'booking-detail')}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
++          View Quote
++        </button>
++      );
++    }
++
++    if (currentStatus !== 'cancelled' && (currentStatus !== 'completed' || payment.progressPct < 100)) {
++      btns.push(
++        <button key="pay" className="bd-action-btn bd-action-record-pay" onClick={() => setRecordPaymentOpen(true)}>
++          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
++          Record Payment
++        </button>
++      );
+     }
++
++    return btns;
+   };
+ 
+   return (
+@@ -164,14 +250,24 @@ export const BookingDetail = ({ bookingId, fromView, onBack }) => {
+       <div className="page-header-strip">
+         <div className="dash-header">
+           <div className="dash-header-left">
+-            <button className="bd-back-btn" onClick={onBack}>
+-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+-              Back
+-            </button>
+             <h1 className="page-title">{detail.id}</h1>
+             <p className="page-subtitle">Booked on {detail.bookedOn}</p>
+           </div>
+           <div className="dash-header-right">
++            <button className="bd-back-btn" onClick={onBack}>
++              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
++              Back
++            </button>
++            <div className="bd-notif-wrap">
++              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
++              <span className="bd-notif-badge">9+</span>
++            </div>
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++              </button>
++              {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
+             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+               <div className="header-user-avatar">DA</div>
+               <div className="header-user-info">
+@@ -183,48 +279,32 @@ export const BookingDetail = ({ bookingId, fromView, onBack }) => {
+         </div>
+       </div>
+ 
+-      {/* ΓöÇΓöÇ Hero card ΓöÇΓöÇ */}
++      {/* ΓöÇΓöÇ Booking Summary Bar ΓöÇΓöÇ */}
+       <div className="bd-hero-card">
+         <div className="bd-hero-left">
+           <div className="bd-hero-icon">
+-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
++            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
++              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
++              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
++              <line x1="3" y1="10" x2="21" y2="10"/>
++            </svg>
+           </div>
+           <div>
+             <div className="bd-hero-id-row">
+               <span className="bd-hero-id">{detail.id}</span>
+-              <span className={`bd-status-badge bd-status-${detail.status}`}>{STATUS_LABEL[detail.status]}</span>
+-              <span className={`bd-pay-badge bd-pay-${detail.paymentStatus}`}>{PAY_LABEL[detail.paymentStatus]}</span>
++              <span className={`bd-status-badge bd-status-${currentStatus}`}>{STATUS_LABEL[currentStatus] || currentStatus}</span>
++              <span className={`bd-pay-badge bd-pay-${detail.paymentStatus}`}>{PAY_LABEL[detail.paymentStatus] || detail.paymentStatus}</span>
+             </div>
+             <div className="bd-hero-dest">{detail.type} ┬╖ {detail.destination}</div>
+           </div>
+         </div>
+         <div className="bd-hero-actions">
+-          <button className="bd-action-btn bd-action-complete" onClick={triggerDemoPopup}>
+-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 15.5 10.5"/></svg>
+-            Mark Completed
+-          </button>
+-          <button className="bd-action-btn bd-action-cancel" onClick={triggerDemoPopup}>
+-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+-            Cancel
+-          </button>
+-          <button className="bd-action-btn bd-action-invoice" onClick={triggerDemoPopup}>
+-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+-            Tax Invoice
+-          </button>
+-          <button
+-            className={`bd-action-btn bd-action-quote${!detail.linkedQuoteId ? ' bd-action-disabled' : ''}`}
+-            onClick={handleViewQuote}
+-            title={detail.linkedQuoteId ? '' : 'No quote linked to this booking'}
+-          >
+-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+-            View Quote
+-          </button>
++          {renderActionButtons()}
+         </div>
+       </div>
+ 
+-      {/* ΓöÇΓöÇ Customer + Travel Details grid ΓöÇΓöÇ */}
++      {/* ΓöÇΓöÇ Customer + Travel Details ΓöÇΓöÇ */}
+       <div className="bd-grid-2" style={{ marginTop: 20 }}>
+-        {/* Customer card */}
+         <div className="bd-card">
+           <div className="bd-card-title">
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+@@ -233,10 +313,9 @@ export const BookingDetail = ({ bookingId, fromView, onBack }) => {
+           <div className="bd-cust-body">
+             <div className="bd-cust-name-row">
+               <div className="bd-cust-avatar" style={{ background: customer.avatarColor }}>{customer.avatar}</div>
+-              <span
+-                className="bd-cust-name cp-name-link"
+-                onClick={() => customer.customerId && openCustomerProfile(customer.customerId, 'booking-detail')}
+-              >{customer.name}</span>
++              <span className="bd-cust-name cp-name-link" onClick={() => customer.customerId && openCustomerProfile(customer.customerId, 'booking-detail')}>
++                {customer.name}
++              </span>
+             </div>
+             <div className="bd-cust-contacts">
+               <div className="bd-cust-contact">
+@@ -251,38 +330,51 @@ export const BookingDetail = ({ bookingId, fromView, onBack }) => {
+           </div>
+         </div>
+ 
+-        {/* Travel Details card */}
+         <div className="bd-card">
+           <div className="bd-card-title">
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 1 8 8c0 5.4-8 13-8 13S4 15.4 4 10a8 8 0 0 1 8-8z"/></svg>
+             TRAVEL DETAILS
+           </div>
+           <div className="bd-travel-grid">
+-            {[
+-              { label: 'DESTINATION', value: travel.destination },
+-              { label: 'TYPE',        value: travel.type },
+-              { label: 'DURATION',    value: travel.duration },
+-              { label: 'TRAVELERS',   value: travel.travelers },
+-            ].map(({ label, value }) => (
+-              <div key={label} className="bd-travel-item">
+-                <span className="bd-travel-label">{label}</span>
+-                <span className="bd-travel-value">{value}</span>
++            <div className="bd-travel-item">
++              <span className="bd-travel-label">DESTINATION</span>
++              <span className="bd-travel-value">{travel.destination}</span>
++            </div>
++            <div className="bd-travel-item">
++              <span className="bd-travel-label">TYPE</span>
++              <span className="bd-travel-value">{travel.type}</span>
++            </div>
++            {travel.departure && (
++              <div className="bd-travel-item">
++                <span className="bd-travel-label">DEPARTURE</span>
++                <span className="bd-travel-value">{travel.departure}</span>
+               </div>
+-            ))}
++            )}
++            {travel.returnDate && (
++              <div className="bd-travel-item">
++                <span className="bd-travel-label">RETURN</span>
++                <span className="bd-travel-value">{travel.returnDate}</span>
++              </div>
++            )}
++            <div className="bd-travel-item">
++              <span className="bd-travel-label">TRAVELERS</span>
++              <span className="bd-travel-value">{travel.travelers}</span>
++            </div>
+           </div>
+         </div>
+       </div>
+ 
+-      {/* ΓöÇΓöÇ Services & Financial ΓöÇΓöÇ */}
++      {/* ΓöÇΓöÇ Services & Financial Summary ΓöÇΓöÇ */}
+       <div className="bd-grid-2" style={{ marginTop: 16 }}>
+-        {/* Services & Costs */}
+         <div className="bd-card">
+           <div className="bd-card-title">
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+             SERVICES &amp; COSTS
+           </div>
+           <div className="bd-services-list">
+-            {services.map((svc, i) => (
++            {services.length === 0 ? (
++              <div className="bd-empty-svc">No services added</div>
++            ) : services.map((svc, i) => (
+               <div key={i} className="bd-service-row">
+                 <div className="bd-service-icon-wrap" style={{ background: (SVC_COLORS[svc.icon] || '#6b7280') + '18', color: SVC_COLORS[svc.icon] || '#6b7280' }}>
+                   {SVC_ICONS[svc.icon] || SVC_ICONS.activities}
+@@ -301,23 +393,20 @@ export const BookingDetail = ({ bookingId, fromView, onBack }) => {
+           </div>
+         </div>
+ 
+-        {/* Financial Summary */}
+         <div className="bd-card">
+           <div className="bd-card-title">
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+             FINANCIAL SUMMARY
+           </div>
+ 
+-          {/* Agent view */}
+           <div className="bd-fin-section-lbl">
+-            ACTUAL (AGENT VIEW)
+-            <InfoBtn infoKey="bd_actual_agent_view" />
++            ACTUAL (AGENT VIEW) <InfoBtn infoKey="bd_actual_agent_view" />
+           </div>
+           {[
+-            { label: 'Total Cost',                      value: financial.totalCost },
+-            { label: 'Hidden Markup',                   value: financial.hiddenMarkup },
+-            { label: 'Processing Charge (excl GST)',    value: financial.processingCharge },
+-            { label: 'Cost of Travel (customer sees)',  value: financial.costOfTravel },
++            { label: 'Total Cost',                     value: financial.totalCost },
++            { label: 'Hidden Markup',                  value: financial.hiddenMarkup },
++            { label: 'Processing Charge (excl GST)',   value: financial.processingCharge },
++            { label: 'Cost of Travel (customer sees)', value: financial.costOfTravelCustomer || 'Γé╣0' },
+           ].map(({ label, value }) => (
+             <div key={label} className="bd-fin-row">
+               <span className="bd-fin-label">{label}</span>
+@@ -326,26 +415,40 @@ export const BookingDetail = ({ bookingId, fromView, onBack }) => {
+           ))}
+           <div className="bd-profit-card">
+             <div>
+-              <div className="bd-profit-label">Total Profit ({financial.profitPct})</div>
++              <div className="bd-profit-label">Total Profit ({financial.profitPct}%)</div>
+               <div className="bd-profit-value">{financial.totalProfit}</div>
+             </div>
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+           </div>
+ 
+-          {/* Customer Invoice */}
+           <div className="bd-fin-section-lbl" style={{ marginTop: 16 }}>CUSTOMER INVOICE</div>
+-          {[
+-            { label: 'Package Price',  value: financial.packagePrice },
+-            { label: 'CGST @9%',       value: financial.cgst },
+-            { label: 'SGST @9%',       value: financial.sgst },
+-            { label: 'Invoice Value',  value: financial.invoiceValue },
+-          ].map(({ label, value }) => (
+-            <div key={label} className="bd-fin-row">
+-              <span className="bd-fin-label">{label}</span>
+-              <span className="bd-fin-value">{value}</span>
+-            </div>
+-          ))}
+-          <div className="bd-total-payable-row">
++          <div className="bd-fin-row">
++            <span className="bd-fin-label bd-fin-label-row">
++              Cost of Travel (Reimbursement) <InfoBtn infoKey="bd_cost_of_travel_reimb" />
++            </span>
++            <span className="bd-fin-value">{financial.costOfTravel}</span>
++          </div>
++          <div className="bd-fin-row">
++            <span className="bd-fin-label bd-fin-label-row">
++              <strong>Processing / Service Charge</strong>
++              <span className="bd-sac-tag">SAC: 998551</span>
++              <InfoBtn infoKey="bd_processing_charge" />
++            </span>
++            <span className="bd-fin-value"><strong>{financial.processingCharge}</strong></span>
++          </div>
++          <div className="bd-fin-row">
++            <span className="bd-fin-label">CGST @9% (on service charge)</span>
++            <span className="bd-fin-value">{financial.cgst}</span>
++          </div>
++          <div className="bd-fin-row">
++            <span className="bd-fin-label">SGST @9% (on service charge)</span>
++            <span className="bd-fin-value">{financial.sgst}</span>
++          </div>
++          <div className="bd-fin-row">
++            <span className="bd-fin-label"><strong>Invoice Value</strong></span>
++            <span className="bd-fin-value"><strong>{financial.invoiceValue}</strong></span>
++          </div>
++          <div className="bd-total-payable-highlight">
+             <span>Total Payable</span>
+             <span>{financial.totalPayable}</span>
+           </div>
+@@ -377,25 +480,48 @@ export const BookingDetail = ({ bookingId, fromView, onBack }) => {
+           <span className="bd-progress-pct">{payment.progressPct}%</span>
+         </div>
+         <div className="bd-progress-track">
+-          <div className="bd-progress-fill" style={{ width: payment.progressPct + '%' }} />
++          <div className="bd-progress-fill" style={{ width: `${payment.progressPct}%`, background: progressColor }} />
+         </div>
+ 
+-        {/* Payment History */}
+-        {payment.history.length > 0 && (
+-          <>
+-            <div className="bd-hist-label">PAYMENT HISTORY</div>
+-            {payment.history.map((rec, i) => (
+-              <div key={i} className="bd-hist-row">
+-                <div>
+-                  <span className="bd-hist-ref">{rec.id}</span>
+-                  <span className="bd-hist-detail">{rec.date} ┬╖ {rec.method} ┬╖ Ref: {rec.ref}</span>
+-                </div>
+-                <span className="bd-hist-amount">{rec.amount}</span>
+-              </div>
+-            ))}
+-          </>
+-        )}
++        <div className="bd-hist-label">PAYMENT HISTORY</div>
++        {payment.history.length === 0 ? (
++          <div className="bd-hist-empty">No payments recorded yet</div>
++        ) : payment.history.map((rec, i) => (
++          <div key={i} className="bd-hist-row">
++            <div>
++              <span className="bd-hist-ref">{rec.id}</span>
++              <span className="bd-hist-detail">{rec.date} ┬╖ {rec.method}</span>
++            </div>
++            <span className="bd-hist-amount">{rec.amount}</span>
++          </div>
++        ))}
+       </div>
++
++      {/* ΓöÇΓöÇ Tax Invoice modal ΓöÇΓöÇ */}
++      {invoiceOpen && (
++        <InvoiceDetailModal
++          invoice={invoiceData}
++          settings={DEMO_SETTINGS}
++          onClose={() => setInvoiceOpen(false)}
++        />
++      )}
++
++      {/* ΓöÇΓöÇ Record Payment modal ΓöÇΓöÇ */}
++      <RecordPaymentModal
++        isOpen={recordPaymentOpen}
++        onClose={() => setRecordPaymentOpen(false)}
++        preselectedCustomer={{ id: detail.customer?.customerId, name: detail.customer?.name, phone: detail.customer?.phone, email: detail.customer?.email }}
++        customers={customers}
++        onSave={(data) => {
++          addPayment({
++            ...data,
++            customerName: detail.customer?.name,
++            customerId: detail.customer?.customerId,
++            allocateTo: bookingId,
++          });
++          setRecordPaymentOpen(false);
++        }}
++      />
+     </div>
+   );
+ };
+diff --git a/src/pages/CreateQuote.jsx b/src/pages/CreateQuote.jsx
+index 0593615..5f6081e 100644
+--- a/src/pages/CreateQuote.jsx
++++ b/src/pages/CreateQuote.jsx
+@@ -1,4 +1,4 @@
+-import React, { useState, useRef, useMemo } from 'react';
++import React, { useState, useRef, useEffect, useMemo } from 'react';
+ import { openBilling } from '../utils/billingNav';
+ import { openDesigner } from '../utils/designerNav';
+ import { useDemoPopup } from '../context/DemoContext';
+@@ -2208,6 +2208,29 @@ const PrefilledCustomerBanner = ({ customer }) => (
+   </div>
+ );
+ 
++// ΓöÇΓöÇΓöÇ Logs Popup ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const LogsPopup = ({ onClose }) => {
++  const popupRef = useRef(null);
++  useEffect(() => {
++    const handleClickOutside = (event) => {
++      if (popupRef.current && !popupRef.current.contains(event.target)) onClose();
++    };
++    document.addEventListener('mousedown', handleClickOutside);
++    return () => document.removeEventListener('mousedown', handleClickOutside);
++  }, [onClose]);
++  return (
++    <div className="logs-popup-container" ref={popupRef}>
++      <div className="logs-popup-header"><h3>Logs</h3></div>
++      <div className="logs-popup-body">
++        <div className="logs-empty">
++          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.2, marginBottom: 12 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++          <p>No logs yet</p>
++        </div>
++      </div>
++    </div>
++  );
++};
++
+ // ΓöÇΓöÇΓöÇ Main CreateQuote Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
+   const editMode    = Boolean(editQuote);
+@@ -2215,6 +2238,7 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
+   const firstStep   = editMode ? (editQuote._startStep || 1) : isPrefilled ? 2 : 1;
+ 
+   const triggerDemoPopup = useDemoPopup();
++  const [isLogsOpen, setIsLogsOpen] = useState(false);
+   const [currentStep, setCurrentStep] = useState(firstStep);
+   const [calcMode, setCalcMode] = useState('agent');
+   const [formData, setFormData] = useState(() => {
+@@ -2337,6 +2361,12 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
+             <p className="page-subtitle">{editMode ? 'Edit all quote details across steps' : 'Build a new travel quotation'}</p>
+           </div>
+           <div className="dash-header-right">
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++              </button>
++              {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
+             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+               <div className="header-user-avatar">DA</div>
+               <div className="header-user-info">
+diff --git a/src/pages/CustomerProfile.jsx b/src/pages/CustomerProfile.jsx
+index 6eb3135..be6c807 100644
+--- a/src/pages/CustomerProfile.jsx
++++ b/src/pages/CustomerProfile.jsx
+@@ -1,4 +1,4 @@
+-import React, { useState } from 'react';
++import React, { useState, useRef, useEffect } from 'react';
+ import { demoCustomers as customers } from '../shared/data/demoData';
+ import { openQuoteDetail } from '../utils/quoteNav';
+ import { openBookingDetail } from '../utils/bookingNav';
+@@ -157,8 +157,32 @@ const buildLedger = (myBookings, myPayments) => {
+ };
+ 
+ // ΓöÇΓöÇΓöÇ Main CustomerProfile Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++// ΓöÇΓöÇΓöÇ Logs Popup ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const LogsPopup = ({ onClose }) => {
++  const popupRef = useRef(null);
++  useEffect(() => {
++    const handleClickOutside = (event) => {
++      if (popupRef.current && !popupRef.current.contains(event.target)) onClose();
++    };
++    document.addEventListener('mousedown', handleClickOutside);
++    return () => document.removeEventListener('mousedown', handleClickOutside);
++  }, [onClose]);
++  return (
++    <div className="logs-popup-container" ref={popupRef}>
++      <div className="logs-popup-header"><h3>Logs</h3></div>
++      <div className="logs-popup-body">
++        <div className="logs-empty">
++          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.2, marginBottom: 12 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++          <p>No logs yet</p>
++        </div>
++      </div>
++    </div>
++  );
++};
++
+ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) => {
+   const triggerDemoPopup = useDemoPopup();
++  const [isLogsOpen, setIsLogsOpen] = useState(false);
+   const [editPanelOpen, setEditPanelOpen] = useState(false);
+   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+   const [paymentDetailId, setPaymentDetailId] = useState(null);
+@@ -238,6 +262,12 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange })
+             <button className="icon-btn" onClick={triggerDemoPopup} title="Export">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+             </button>
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++              </button>
++              {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
+             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+               <div className="header-user-avatar">DA</div>
+               <div className="header-user-info">
+diff --git a/src/pages/Customers.jsx b/src/pages/Customers.jsx
+index e88aa16..aa195ec 100644
+--- a/src/pages/Customers.jsx
++++ b/src/pages/Customers.jsx
+@@ -5,9 +5,7 @@ import { CustomersTable } from '../shared/components/CustomersTable';
+ import { TableSkeleton } from '../shared/components/PageSkeleton';
+ import { ExportDropdown } from '../shared/components/ExportDropdown';
+ import { CustomerSidePanel } from '../shared/components/CustomerSidePanel';
+-import { useDemoPopup } from '../context/DemoContext';
+-import { profileData } from './CustomerProfile';
+-import { demoCustomers } from '../shared/data/demoData';
++import { useDemoPopup, useDemoData } from '../context/DemoContext';
+ 
+ const CUSTOMERS_COLUMNS = [
+   { header: 'Customer #', key: 'id' },
+@@ -21,10 +19,11 @@ const CUSTOMERS_COLUMNS = [
+ 
+ export const Customers = () => {
+   const triggerDemoPopup = useDemoPopup();
++  const { customers, addCustomer, updateCustomer, profileData } = useDemoData();
+   const [searchQuery, setSearchQuery] = useState('');
+   const [refreshKey, setRefreshKey] = useState(0);
+   const [isRefreshing, setIsRefreshing] = useState(false);
+-  const [filteredCustomers, setFilteredCustomers] = useState(demoCustomers);
++  const [filteredCustomers, setFilteredCustomers] = useState(customers);
+ 
+   // Side panel state
+   const [panelOpen, setPanelOpen] = useState(false);
+@@ -46,6 +45,15 @@ export const Customers = () => {
+     setPanelOpen(true);
+   };
+ 
++  const handleSaveCustomer = (formData) => {
++    if (panelMode === 'add') {
++      addCustomer(formData);
++    } else if (panelMode === 'edit' && panelCustomer) {
++      updateCustomer(panelCustomer.id, formData);
++    }
++    setPanelOpen(false);
++  };
++
+   const handleRefresh = () => {
+     setSearchQuery('');
+     setIsRefreshing(true);
+@@ -59,7 +67,7 @@ export const Customers = () => {
+     <div id="view-customers" className="fade-in">
+       <Header
+         title="Customers"
+-        subtitle="6 total customers"
++        subtitle={`${customers.length} total customers`}
+         buttonLabel="Add Customer"
+         onNewQuote={openAddPanel}
+       />
+@@ -91,7 +99,7 @@ export const Customers = () => {
+       ) : (
+         <CustomersTable
+           key={refreshKey}
+-          customers={demoCustomers}
++          customers={customers}
+           searchQuery={searchQuery}
+           onFilteredChange={setFilteredCustomers}
+           onEdit={openEditPanel}
+@@ -104,7 +112,7 @@ export const Customers = () => {
+         customer={panelCustomer}
+         profileExt={panelProfileExt}
+         onClose={() => setPanelOpen(false)}
+-        onSave={triggerDemoPopup}
++        onSave={handleSaveCustomer}
+       />
+     </div>
+   );
+diff --git a/src/pages/QuoteDesigner.jsx b/src/pages/QuoteDesigner.jsx
+index 62a99eb..07bf140 100644
+--- a/src/pages/QuoteDesigner.jsx
++++ b/src/pages/QuoteDesigner.jsx
+@@ -1,6 +1,7 @@
+-import React, { useState, useRef } from 'react';
++import React, { useState, useRef, useEffect } from 'react';
+ import ReactDOM from 'react-dom';
+ import { useDemoPopup } from '../context/DemoContext';
++import { openBilling } from '../utils/billingNav';
+ import jsPDF from 'jspdf';
+ 
+ const TEMPLATES = [
+@@ -26,8 +27,32 @@ const hexToRgb = (hex) => {
+   return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
+ };
+ 
++// ΓöÇΓöÇΓöÇ Logs Popup ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const LogsPopup = ({ onClose }) => {
++  const popupRef = useRef(null);
++  useEffect(() => {
++    const handleClickOutside = (event) => {
++      if (popupRef.current && !popupRef.current.contains(event.target)) onClose();
++    };
++    document.addEventListener('mousedown', handleClickOutside);
++    return () => document.removeEventListener('mousedown', handleClickOutside);
++  }, [onClose]);
++  return (
++    <div className="logs-popup-container" ref={popupRef}>
++      <div className="logs-popup-header"><h3>Logs</h3></div>
++      <div className="logs-popup-body">
++        <div className="logs-empty">
++          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.2, marginBottom: 12 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++          <p>No logs yet</p>
++        </div>
++      </div>
++    </div>
++  );
++};
++
+ export const QuoteDesigner = ({ quoteId, quoteData, fromView, onBack }) => {
+   const openDemo = useDemoPopup();
++  const [isLogsOpen, setIsLogsOpen] = useState(false);
+ 
+   const [selectedTemplate, setSelectedTemplate] = useState('wanderlust');
+   const [accentColor, setAccentColor]           = useState('#16A34A');
+@@ -326,6 +351,19 @@ export const QuoteDesigner = ({ quoteId, quoteData, fromView, onBack }) => {
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+             Save
+           </button>
++          <div style={{ position: 'relative' }}>
++            <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++            </button>
++            {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
++          </div>
++          <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
++            <div className="header-user-avatar">DA</div>
++            <div className="header-user-info">
++              <span className="header-user-name">Demo Admin</span>
++              <span className="header-user-role"><span className="role-dot"></span> Pro</span>
++            </div>
++          </div>
+         </div>
+       </div>
+ 
+diff --git a/src/pages/QuoteDetail.jsx b/src/pages/QuoteDetail.jsx
+index 4686f11..53bc0f6 100644
+--- a/src/pages/QuoteDetail.jsx
++++ b/src/pages/QuoteDetail.jsx
+@@ -4,7 +4,7 @@ import { openCustomerProfile } from '../utils/customerNav';
+ import { openBilling } from '../utils/billingNav';
+ import { openEditQuote } from '../utils/editQuoteNav';
+ import { openDesigner } from '../utils/designerNav';
+-import { useDemoPopup } from '../context/DemoContext';
++import { useDemoPopup, useDemoData } from '../context/DemoContext';
+ import { generateCustomerPDF, generateAgentPDF } from '../shared/utils/generateQuotePdf';
+ import { InfoBtn } from '../shared/components/InfoBtn';
+ import { buildEditFormData } from '../shared/utils/buildEditFormData';
+@@ -406,8 +406,33 @@ const ItinItem = ({ item }) => {
+ // Re-export for backward compat with files importing from QuoteDetail
+ export { buildEditFormData } from '../shared/utils/buildEditFormData';
+ 
++// ΓöÇΓöÇΓöÇ Logs Popup ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const LogsPopup = ({ onClose }) => {
++  const popupRef = useRef(null);
++  useEffect(() => {
++    const handleClickOutside = (event) => {
++      if (popupRef.current && !popupRef.current.contains(event.target)) onClose();
++    };
++    document.addEventListener('mousedown', handleClickOutside);
++    return () => document.removeEventListener('mousedown', handleClickOutside);
++  }, [onClose]);
++  return (
++    <div className="logs-popup-container" ref={popupRef}>
++      <div className="logs-popup-header"><h3>Logs</h3></div>
++      <div className="logs-popup-body">
++        <div className="logs-empty">
++          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.2, marginBottom: 12 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++          <p>No logs yet</p>
++        </div>
++      </div>
++    </div>
++  );
++};
++
+ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
+   const demo = useDemoPopup();
++  const { quotes, updateQuote, convertQuote } = useDemoData();
++  const [isLogsOpen, setIsLogsOpen] = useState(false);
+   const [itinView, setItinView] = useState('simple');
+   const [showItinDrop, setShowItinDrop] = useState(false);
+   const itinDropRef = useRef(null);
+@@ -444,17 +469,8 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
+     rejected:  'status-rejected',
+   };
+ 
+-  // Determine quote status from the global quotes data
+-  const initialQuotes = [
+-    { id: 'WL-Q-0001', status: 'converted' },
+-    { id: 'WL-Q-0002', status: 'sent' },
+-    { id: 'WL-Q-0003', status: 'converted' },
+-    { id: 'WL-Q-0004', status: 'draft' },
+-    { id: 'WL-Q-0005', status: 'converted' },
+-    { id: 'WL-Q-0006', status: 'approved' },
+-    { id: 'WL-Q-0007', status: 'rejected' },
+-  ];
+-  const quoteStatus = initialQuotes.find(q => q.id === quoteId)?.status || 'draft';
++  // Determine quote status from context quotes data
++  const quoteStatus = quotes.find(q => q.id === quoteId)?.status || 'draft';
+ 
+   return (
+     <div id="view-quote-detail" className="fade-in">
+@@ -474,6 +490,12 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
+             <button className="icon-btn" onClick={demo} title="Export">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+             </button>
++            <div style={{ position: 'relative' }}>
++              <button className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} onClick={() => setIsLogsOpen(!isLogsOpen)}>
++                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++              </button>
++              {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
++            </div>
+             <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+               <div className="header-user-avatar">DA</div>
+               <div className="header-user-info">
+@@ -510,31 +532,31 @@ export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
+ 
+           <div className="qd-action-bar">
+             {(quoteStatus === 'draft' || quoteStatus === 'sent') && (<>
+-              <button className="qd-btn qd-btn-approve" onClick={demo}>
++              <button className="qd-btn qd-btn-approve" onClick={() => updateQuote(quoteId, { status: 'approved' })}>
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                 Approve
+               </button>
+-              <button className="qd-btn qd-btn-reject" onClick={demo}>
++              <button className="qd-btn qd-btn-reject" onClick={() => updateQuote(quoteId, { status: 'rejected' })}>
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                 Reject
+               </button>
+             </>)}
+             {quoteStatus === 'approved' && (<>
+-              <button className="qd-btn qd-btn-backtosent" onClick={demo}>
++              <button className="qd-btn qd-btn-backtosent" onClick={() => updateQuote(quoteId, { status: 'sent' })}>
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+                 Back to Sent
+               </button>
+-              <button className="qd-btn qd-btn-reject" onClick={demo}>
++              <button className="qd-btn qd-btn-reject" onClick={() => updateQuote(quoteId, { status: 'rejected' })}>
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                 Reject
+               </button>
+-              <button className="qd-btn qd-btn-convert" onClick={demo}>
++              <button className="qd-btn qd-btn-convert" onClick={() => convertQuote(quoteId)}>
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                 Convert to Booking
+               </button>
+             </>)}
+             {quoteStatus === 'rejected' && (
+-              <button className="qd-btn qd-btn-reopen" onClick={demo}>
++              <button className="qd-btn qd-btn-reopen" onClick={() => updateQuote(quoteId, { status: 'draft' })}>
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+                 Reopen as Draft
+               </button>
+diff --git a/src/pages/Quotes.jsx b/src/pages/Quotes.jsx
+index 50493d5..d28b9f6 100644
+--- a/src/pages/Quotes.jsx
++++ b/src/pages/Quotes.jsx
+@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
+ import { Header } from '../shared/components/Header';
+ import { QuotesSearchBar } from '../shared/components/QuotesSearchBar';
+ import { QuotesTable } from '../shared/components/QuotesTable';
+-import { demoCustomers, demoQuoteDetailData } from '../shared/data/demoData';
+ import { buildEditFormData } from '../shared/utils/buildEditFormData';
+-import { useDemoPopup } from '../context/DemoContext';
++import { useDemoPopup, useDemoData } from '../context/DemoContext';
+ import { TableSkeleton } from '../shared/components/PageSkeleton';
+ import { ExportDropdown } from '../shared/components/ExportDropdown';
+ 
+@@ -18,18 +17,9 @@ const QUOTES_COLUMNS = [
+   { header: 'Status',       key: 'status' },
+ ];
+ 
+-const initialQuotes = [
+-  { id: 'WL-Q-0001', customerName: 'Rahul Sharma', customerPhone: '+91 99876 54321', destName: 'Bali, Indonesia', destType: 'international', amount: 'Γé╣1,40,952', profit: 'Γé╣18,000', status: 'converted', tripDate: '15 Apr 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
+-  { id: 'WL-Q-0002', customerName: 'Priya Mehta', customerPhone: '+91 98765 12345', destName: 'Jaipur - Udaipur - Jodhpur', destType: 'domestic', amount: 'Γé╣1,10,520', profit: 'Γé╣14,000', status: 'sent', tripDate: '01 May 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
+-  { id: 'WL-Q-0003', customerName: 'Vikram Iyer', customerPhone: '+91 98456 78901', destName: 'Goa', destType: 'domestic', amount: 'Γé╣4,69,900', profit: 'Γé╣55,000', status: 'converted', tripDate: '20 Mar 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
+-  { id: 'WL-Q-0004', customerName: 'Ananya Reddy', customerPhone: '+91 87654 32109', destName: 'Paris - Switzerland - Rome', destType: 'international', amount: 'Γé╣8,92,400', profit: 'Γé╣1,05,000', status: 'draft', tripDate: '10 Jun 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
+-  { id: 'WL-Q-0005', customerName: 'Rajesh Patel', customerPhone: '+91 97654 32100', destName: 'Srinagar - Gulmarg - Pahalgam', destType: 'domestic', amount: 'Γé╣1,56,880', profit: 'Γé╣16,000', status: 'converted', tripDate: '05 Apr 2026', createdDate: '09 Mar 2026', createdTime: '12:19 pm' },
+-  { id: 'WL-Q-0006', customerName: 'Arjun Singh', customerPhone: '+91 91234 56789', destName: 'Leh - Ladakh', destType: 'domestic', amount: 'Γé╣78,500', profit: 'Γé╣9,500', status: 'approved', tripDate: '22 May 2026', createdDate: '10 Mar 2026', createdTime: '02:45 pm' },
+-  { id: 'WL-Q-0007', customerName: 'Kavita Sharma', customerPhone: '+91 99988 77766', destName: 'Dubai', destType: 'international', amount: 'Γé╣2,45,000', profit: 'Γé╣22,000', status: 'rejected', tripDate: '10 Apr 2026', createdDate: '08 Mar 2026', createdTime: '11:30 am' }
+-];
+-
+ export const Quotes = ({ onViewChange }) => {
+   const triggerDemoPopup = useDemoPopup();
++  const { quotes, updateQuote, convertQuote, customers, quoteDetailData } = useDemoData();
+   const [activeFilter, setActiveFilter] = useState(() => sessionStorage.getItem('quotes_activeFilter') || 'all');
+   const [searchQuery, setSearchQuery] = useState('');
+   const [refreshKey, setRefreshKey] = useState(0);
+@@ -40,7 +30,29 @@ export const Quotes = ({ onViewChange }) => {
+     sessionStorage.setItem('quotes_activeFilter', activeFilter);
+   }, [activeFilter]);
+ 
+-  const filteredQuotes = initialQuotes.filter(q => {
++  const handleQuoteAction = (actionType, quoteId) => {
++    switch (actionType) {
++      case 'approve':
++        updateQuote(quoteId, { status: 'approved' });
++        break;
++      case 'reject':
++        updateQuote(quoteId, { status: 'rejected' });
++        break;
++      case 'back-to-sent':
++        updateQuote(quoteId, { status: 'sent' });
++        break;
++      case 'reopen':
++        updateQuote(quoteId, { status: 'draft' });
++        break;
++      case 'convert':
++        convertQuote(quoteId);
++        break;
++      default:
++        break;
++    }
++  };
++
++  const filteredQuotes = quotes.filter(q => {
+     const matchesFilter = activeFilter === 'all' || q.status === activeFilter;
+     const matchesSearch = searchQuery === '' || 
+       q.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+@@ -87,10 +99,10 @@ export const Quotes = ({ onViewChange }) => {
+         <QuotesTable
+           key={refreshKey}
+           quotes={filteredQuotes}
+-          customers={demoCustomers}
+-          quoteDetailData={demoQuoteDetailData}
++          customers={customers}
++          quoteDetailData={quoteDetailData}
+           buildEditFormData={buildEditFormData}
+-          onAction={triggerDemoPopup}
++          onAction={handleQuoteAction}
+         />
+       ) : (
+ 
+diff --git a/src/shared/components/Header.jsx b/src/shared/components/Header.jsx
+index af0f326..51de81c 100644
+--- a/src/shared/components/Header.jsx
++++ b/src/shared/components/Header.jsx
+@@ -83,33 +83,29 @@ export const Header = ({ title, subtitle, showDateFilter = false, onNewQuote, bu
+           
+           {children}
+ 
+-          {!children && (
+-            <>
+-              {showNewQuote && (
+-                <button className="new-quote-btn" id="newQuoteBtn" onClick={onNewQuote}>
+-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+-                  {buttonLabel}
+-                </button>
+-              )}
+-              <div style={{ position: 'relative' }}>
+-                <button 
+-                  className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`} 
+-                  id="logBtnMain"
+-                  onClick={() => setIsLogsOpen(!isLogsOpen)}
+-                >
+-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+-                </button>
+-                {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
+-              </div>
+-              <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
+-                <div className="header-user-avatar">DA</div>
+-                <div className="header-user-info">
+-                  <span className="header-user-name">Demo Admin</span>
+-                  <span className="header-user-role"><span className="role-dot"></span> Pro</span>
+-                </div>
+-              </div>
+-            </>
++          {!children && showNewQuote && (
++            <button className="new-quote-btn" id="newQuoteBtn" onClick={onNewQuote}>
++              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
++              {buttonLabel}
++            </button>
+           )}
++          <div style={{ position: 'relative' }}>
++            <button
++              className={`icon-btn log-btn ${isLogsOpen ? 'active' : ''}`}
++              id="logBtnMain"
++              onClick={() => setIsLogsOpen(!isLogsOpen)}
++            >
++              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
++            </button>
++            {isLogsOpen && <LogsPopup onClose={() => setIsLogsOpen(false)} />}
++          </div>
++          <div className="header-user" style={{ cursor: 'pointer' }} onClick={() => openBilling()}>
++            <div className="header-user-avatar">DA</div>
++            <div className="header-user-info">
++              <span className="header-user-name">Demo Admin</span>
++              <span className="header-user-role"><span className="role-dot"></span> Pro</span>
++            </div>
++          </div>
+         </div>
+       </div>
+     </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { LandingScreen } from './pages/LandingScreen';
 import { DemoRouter } from './demo/routes/DemoRouter';
 import { DashboardRouter } from './dashboard/routes/DashboardRouter';
+import { clearDemoSession } from './demo/context/DemoContext';
 import './index.css';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
   };
 
   const handleSwitchMode = () => {
+    clearDemoSession();
     sessionStorage.removeItem('appMode');
     setAppMode(null);
   };
