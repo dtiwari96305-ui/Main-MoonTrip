@@ -36,7 +36,17 @@
       "Bash(xargs grep:*)",
       "Bash(npx react-scripts:*)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(npm start:*)"
+      "Bash(npm start:*)",
+      "Bash(grep -v \"^\\\\.$|^\\\\.\\\\.$\")",
+      "Bash(grep -E '\\\\.jsx?$')",
+      "Bash(wc -l src/shared/styles/*.css src/App.css src/index.css)",
+      "Bash(while read:*)",
+      "Bash(do rm:*)",
+      "Bash(rmdir src/routes)",
+      "Bash(rmdir src/data)",
+      "Bash(rmdir src/services)",
+      "Bash(echo '=== Checking for imports from deleted/non-existent files ===' grep -r from.*[''].*api[''] '/c/Users/ACER/OneDrive/Desktop/Moontrip - Main - Copy/src' --include=*.jsx --include=*.js)",
+      "Bash(do path=\"/c/Users/ACER/OneDrive/Desktop/Moontrip - Main - Copy/src/pages/$file\" echo \"\" echo \"File: $file\" echo \"Import line:\" grep \"InfoBtn\" \"$path\")"
     ]
   }
 }

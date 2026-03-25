@@ -4,6 +4,7 @@
 @import './shared/styles/landing.css';
 @import './shared/styles/help.css';
 @import './shared/styles/manual.css';
+@import './auth/styles/auth.css';
 
 /* Override for React SPA — React handles view switching via conditional rendering,
    so we don't need display:none toggling. Just apply a fade-in animation. */

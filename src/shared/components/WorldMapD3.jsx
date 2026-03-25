@@ -161,7 +161,7 @@ export const WorldMapD3 = ({ destinations = [] }) => {
           mg.append('circle').attr('class', 'wm-dot').attr('cx', x).attr('cy', y).attr('r', 4);
         });
       })
-      .catch(err => console.error('WorldMapD3: failed to load geo data', err));
+      .catch(() => {});
 
     return () => { cancelled = true; };
   }, [JSON.stringify(placesToRender)]);

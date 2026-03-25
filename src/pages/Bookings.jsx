@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from '../shared/components/Header';
 import { BookingsTable } from '../shared/components/BookingsTable';
-import { demoCustomers } from '../shared/data/demoData';
 import { useDemoPopup } from '../context/DemoContext';
 import { TableSkeleton } from '../shared/components/PageSkeleton';
 import { ExportDropdown } from '../shared/components/ExportDropdown';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DemoLogButton } from '../demo/components/DemoLogButton';
 import { InfoBtn } from '../shared/components/InfoBtn';
 import { TableSkeleton } from '../shared/components/PageSkeleton';

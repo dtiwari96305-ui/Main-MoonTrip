@@ -1,5 +1,135 @@
 /* ============================================================
-   LANDING SCREEN — Mode Selection
+   NEW LANDING SCREEN — Auth entry point
+============================================================ */
+
+.new-landing-root {
+  min-height: 100vh;
+  background: #0d1117;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.new-landing-box {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.new-landing-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.new-landing-logo-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.new-landing-logo-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+}
+
+.new-landing-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #e8eaed;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px;
+}
+
+.new-landing-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0 0 36px;
+  line-height: 1.5;
+}
+
+.new-landing-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  background: #E97040;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background 0.2s, transform 0.15s;
+  letter-spacing: -0.01em;
+}
+
+.new-landing-btn-primary:hover {
+  background: #d4622f;
+  transform: translateY(-1px);
+}
+
+.new-landing-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 20px;
+  background: transparent;
+  color: #e8eaed;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.new-landing-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.new-landing-create {
+  font-size: 13.5px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.new-landing-link {
+  color: #E97040;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.new-landing-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .new-landing-title {
+    font-size: 1.6rem;
+  }
+}
+
+/* ============================================================
+   LANDING SCREEN — Mode Selection (legacy, kept for reference)
 ============================================================ */
 
 .landing-screen {

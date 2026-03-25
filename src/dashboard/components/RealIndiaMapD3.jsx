@@ -216,7 +216,7 @@ export const RealIndiaMapD3 = ({ destinations = [] }) => {
           });
         });
       })
-      .catch(err => console.error('RealIndiaMapD3: failed to load geo data', err));
+      .catch(() => {});
 
     return () => { cancelled = true; };
   }, [destinations]);

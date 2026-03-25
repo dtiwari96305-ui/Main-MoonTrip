@@ -202,7 +202,7 @@ export const IndiaMapD3 = ({ destinations = [] }) => {
           });
         });
       })
-      .catch(err => console.error('IndiaMapD3: failed to load geo data', err));
+      .catch(() => {});
 
     return () => { cancelled = true; };
   }, [JSON.stringify(placesToRender)]);

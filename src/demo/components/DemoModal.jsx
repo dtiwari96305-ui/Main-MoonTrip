@@ -15,5 +15,3 @@ export const DemoModal = ({ onClose }) => (
     </div>
   </div>
 );
-
-export default DemoModal;

@@ -1,366 +1,435 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { createRealDataService } from '../services/realDataService';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { realDb } from '../lib/realDb';
 
 const DataContext = createContext(null);
 
+const formatINR = (num) => '₹' + Number(num).toLocaleString('en-IN');
+const parseINR = (s) => parseInt(String(s).replace(/[₹,\s]/g, '') || 0, 10);
+
 export const DataProvider = ({ children }) => {
-  const service = useMemo(() => createRealDataService(), []);
+  const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState([]);
+  const [quotes, setQuotes] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [settings, setSettings] = useState(null);
+  const [activities, setActivities] = useState([]);
 
-  // Live state — components re-render when these change
-  const [customers, setCustomers] = useState(() => service.getCustomers());
-  const [quotes, setQuotes] = useState(() => service.getQuotes());
-  const [bookings, setBookings] = useState(() => service.getBookings());
-  const [payments, setPayments] = useState(() => service.getPayments());
-  const [invoices, setInvoices] = useState(() => service.getInvoices());
-  const [settings, setSettings] = useState(() => service.getSettings());
-  const [activities, setActivities] = useState(() => service.getActivities());
+  // ── Refresh Helpers ──
+  const refreshData = useCallback(async () => {
+    try {
+      const [c, q, b, p, inv, logs, s] = await Promise.all([
+        realDb.getCustomers(),
+        realDb.getQuotes(),
+        realDb.getBookings(),
+        realDb.getPayments(),
+        realDb.getInvoices(),
+        realDb.getLogs(),
+        realDb.getSettings()
+      ]);
 
-  // Refresh helpers — re-read from localStorage
-  const refreshCustomers = useCallback(() => setCustomers(service.getCustomers()), [service]);
-  const refreshQuotes = useCallback(() => setQuotes(service.getQuotes()), [service]);
-  const refreshBookings = useCallback(() => setBookings(service.getBookings()), [service]);
-  const refreshPayments = useCallback(() => setPayments(service.getPayments()), [service]);
-  const refreshInvoices = useCallback(() => setInvoices(service.getInvoices()), [service]);
-  const refreshActivities = useCallback(() => setActivities(service.getActivities()), [service]);
+      setCustomers(c.map(item => ({
+        id: item.customer_code,
+        uuid: item.id,
+        code: item.customer_code,
+        name: item.full_name,
+        phone: item.phone,
+        email: item.email,
+        location: item.city,
+        type: item.customer_type === 'corporate' ? 'Corporate' : 'Individual',
+        joined: new Date(item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        raw: item
+      })));
 
-  const logActivity = useCallback((entry) => {
-    service.addActivity(entry);
-    refreshActivities();
-  }, [service, refreshActivities]);
+      setQuotes(q.map(item => ({
+        id: item.quote_number,
+        uuid: item.id,
+        quoteNumber: item.quote_number,
+        customerName: item.real_customers?.full_name || 'Unknown',
+        customerPhone: item.real_customers?.phone || '',
+        destName: item.destination,
+        destType: item.destination_type,
+        amount: formatINR(item.total_payable || item.total_cost),
+        profit: formatINR(item.total_profit),
+        status: item.status,
+        tripDate: item.departure_date ? new Date(item.departure_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+        createdDate: new Date(item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        createdTime: new Date(item.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        raw: item
+      })));
 
-  // ─── Customer CRUD ────────────────────────────────────────
-  const addCustomer = useCallback((data) => {
-    const result = service.addCustomer(data);
-    refreshCustomers();
-    logActivity({
+      setBookings(b.map(item => ({
+        id: item.booking_number,
+        uuid: item.id,
+        bookingNumber: item.booking_number,
+        customerName: item.real_customers?.full_name || 'Unknown',
+        destination: item.destination,
+        amount: formatINR(item.total_payable || item.total_cost),
+        profit: formatINR(item.total_profit),
+        paymentStatus: item.payment_status,
+        paymentText: `${formatINR(item.amount_paid)} / ${formatINR(item.total_cost)}`,
+        remaining: item.amount_pending > 0 ? formatINR(item.amount_pending) : '—',
+        status: item.booking_status,
+        date: new Date(item.booked_at || item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        raw: item
+      })));
+
+      setPayments(p.map(item => ({
+        id: item.payment_number,
+        uuid: item.id,
+        paymentNumber: item.payment_number,
+        against: item.allocations?.[0]?.booking_number || 'Advance',
+        customerName: item.real_customers?.full_name || 'Unknown',
+        amount: formatINR(item.total_amount),
+        amountNum: Number(item.total_amount),
+        modeType: item.payment_mode,
+        modeLabel: item.payment_mode === 'upi' ? 'UPI' : item.payment_mode === 'bank_transfer' ? 'Bank Transfer' : 'Cash',
+        ref: item.transaction_reference || '—',
+        bankName: item.bank_name || '',
+        remarks: item.notes || '',
+        date: new Date(item.payment_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        againstType: item.payment_type === 'advance' ? 'advance' : 'normal',
+        badge: item.payment_type === 'advance' ? 'Advance' : 'Payment',
+        createdDate: new Date(item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        raw: item
+      })));
+
+      setInvoices(inv.map(item => ({
+        id: item.invoice_number,
+        uuid: item.id,
+        invoiceNumber: item.invoice_number,
+        customerName: item.real_customers?.full_name || 'Unknown',
+        amount: formatINR(item.total_amount),
+        status: item.status,
+        date: new Date(item.invoice_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        type: item.invoice_type === 'tax_invoice' ? 'Tax Invoice' : 'Invoice',
+        raw: item
+      })));
+
+      setActivities(logs.map(item => ({
+        id: item.id,
+        uuid: item.id,
+        type: item.reference_type === 'customer' ? 'customer' : item.reference_type === 'quote' ? 'quote' : 'booking',
+        action: item.action_type,
+        message: item.description,
+        name: '', // Optional
+        time: new Date(item.created_at).toLocaleString('en-IN'),
+        icon: item.action_type.includes('add') ? 'customer-add' : 'customer-edit'
+      })));
+
+      setSettings(s || {
+        companyName: 'My Agency',
+        companySubtitle: 'Travel & Tourism',
+        userName: 'Admin',
+        userRole: 'admin',
+        email: '',
+        phone: '',
+      });
+
+    } catch (err) {
+      // handle refresh failure
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ── Migration Logic ──
+  useEffect(() => {
+    const runMigration = async () => {
+      const isMigrated = localStorage.getItem('moontrip_supabase_migrated');
+      if (isMigrated === 'true') {
+        refreshData();
+        return;
+      }
+
+      // migration starting
+      try {
+        const localCustomers = JSON.parse(localStorage.getItem('real_customers') || '[]');
+        const localQuotes = JSON.parse(localStorage.getItem('real_quotes') || '[]');
+        const localBookings = JSON.parse(localStorage.getItem('real_bookings') || '[]');
+        const localPayments = JSON.parse(localStorage.getItem('real_payments') || '[]');
+        const localSettings = JSON.parse(localStorage.getItem('real_settings') || '{}');
+
+        // 1. Migrate Customers
+        const customerMap = {}; // oldId -> newId
+        for (const c of localCustomers) {
+          const payload = {
+            customer_code: c.id,
+            full_name: c.name,
+            phone: c.phone,
+            email: c.email,
+            city: c.location,
+            customer_type: c.type?.toLowerCase() === 'corporate' ? 'corporate' : 'individual',
+            company_name: c.companyName || ''
+          };
+          const result = await realDb.createCustomer(payload);
+          customerMap[c.id] = result.id;
+        }
+
+        // 2. Migrate Quotes
+        for (const q of localQuotes) {
+          const detail = JSON.parse(localStorage.getItem(`real_quoteDetail_${q.id}`) || 'null');
+          const payload = {
+            quote_number: q.id,
+            customer_id: customerMap[q.customerId] || null, // Assuming q.customerId exists in localStorage
+            status: q.status,
+            destination: q.destName,
+            destination_type: q.destType,
+            total_cost: parseINR(q.amount),
+            margin: parseINR(q.profit),
+            total_payable: parseINR(q.amount),
+            itinerary: detail
+          };
+          await realDb.createQuote(payload);
+        }
+
+        // 3. Migrate Settings
+        if (Object.keys(localSettings).length > 0) {
+          await realDb.updateSettings({
+            company_name: localSettings.companyName,
+            company_subtitle: localSettings.companySubtitle,
+            email: localSettings.email,
+            phone: localSettings.phone
+          });
+        }
+
+        localStorage.setItem('moontrip_supabase_migrated', 'true');
+        // migration complete
+      } catch (err) {
+        // handle migration failure
+      }
+      refreshData();
+    };
+
+    runMigration();
+  }, [refreshData]);
+
+  const logActivity = useCallback(async (entry) => {
+    try {
+      await realDb.createLog({
+        action_type: entry.action,
+        title: entry.message,
+        description: entry.message,
+        reference_id: entry.id,
+        reference_type: entry.type
+      });
+      refreshData();
+    } catch (err) {
+      // handle error
+    }
+  }, [refreshData]);
+
+  // ── Customer CRUD ──
+  const addCustomer = useCallback(async (data) => {
+    const payload = {
+      full_name: data.name,
+      phone: data.phone,
+      email: data.email,
+      city: data.location,
+      customer_type: data.type?.toLowerCase(),
+      company_name: data.companyName,
+      customer_code: `C-${Date.now()}`
+    };
+    const result = await realDb.createCustomer(payload);
+    await logActivity({
       type: 'customer',
       action: 'added',
-      message: `New customer ${result.name || 'Unknown'} added`,
-      name: result.name,
-      id: result.id,
-      icon: 'customer-add',
+      message: `New customer ${data.name || 'Unknown'} added`,
+      id: result.id
     });
-    return result;
-  }, [service, refreshCustomers, logActivity]);
+    return { ...result, id: result.customer_code, uuid: result.id };
+  }, [logActivity]);
 
-  const updateCustomer = useCallback((id, updates) => {
-    const existing = service.getCustomerById(id);
-    const result = service.updateCustomer(id, updates);
-    refreshCustomers();
-    logActivity({
+  const updateCustomer = useCallback(async (id, updates) => {
+    const customer = customers.find(c => c.id === id);
+    if (!customer) return;
+
+    const result = await realDb.updateCustomer(customer.uuid, {
+      full_name: updates.name,
+      phone: updates.phone,
+      email: updates.email,
+      city: updates.location,
+      customer_type: updates.type?.toLowerCase(),
+      company_name: updates.companyName
+    });
+    await logActivity({
       type: 'customer',
       action: 'updated',
-      message: `Customer ${existing?.name || updates.name || id} updated`,
-      name: existing?.name || updates.name || '',
-      id,
-      icon: 'customer-edit',
+      message: `Customer updated`,
+      id
     });
     return result;
-  }, [service, refreshCustomers, logActivity]);
+  }, [customers, logActivity]);
 
-  const deleteCustomer = useCallback((id, { cascade = false } = {}) => {
-    const existing = service.getCustomerById(id);
-    const customerName = existing?.name || '';
-
-    if (cascade && customerName) {
-      // Delete all linked quotes
-      const allQuotes = service.getQuotes();
-      allQuotes.filter(q => q.customerName === customerName).forEach(q => {
-        service.deleteQuote(q.id);
-      });
-      // Delete all linked bookings
-      const allBookings = service.getBookings();
-      allBookings.filter(b => b.customerName === customerName).forEach(b => {
-        service.deleteBooking(b.id);
-      });
-      // Delete all linked payments
-      const allPayments = service.getPayments();
-      allPayments.filter(p => p.customerName === customerName).forEach(p => {
-        service.deletePayment(p.id);
-      });
-    }
-
-    service.deleteCustomer(id);
-    refreshCustomers();
-    refreshQuotes();
-    refreshBookings();
-    refreshPayments();
-    logActivity({
+  const deleteCustomer = useCallback(async (id) => {
+    const customer = customers.find(c => c.id === id);
+    if (!customer) return;
+    await realDb.deleteCustomer(customer.uuid);
+    await logActivity({
       type: 'customer',
       action: 'deleted',
-      message: `Customer ${customerName || id} deleted`,
-      name: customerName,
-      id,
-      icon: 'customer-delete',
+      message: `Customer deleted`,
+      id
     });
-  }, [service, refreshCustomers, refreshQuotes, refreshBookings, refreshPayments, logActivity]);
+  }, [customers, logActivity]);
 
-  // ─── Quote CRUD ───────────────────────────────────────────
-  const addQuote = useCallback((data) => {
-    const result = service.addQuote(data);
-    refreshQuotes();
-    logActivity({
+  // ── Quote CRUD ──
+  const addQuote = useCallback(async (data) => {
+    const payload = {
+      quote_number: `Q-${Date.now()}`,
+      customer_id: data.customerId,
+      status: data.status || 'draft',
+      destination: data.destName,
+      destination_type: data.destType,
+      total_cost: parseINR(data.amount),
+      margin: parseINR(data.profit),
+      total_payable: parseINR(data.amount),
+      departure_date: data.tripDate
+    };
+    const result = await realDb.createQuote(payload);
+    await logActivity({
       type: 'quote',
       action: 'created',
-      message: `Quote ${result.id} created for ${result.customerName || 'Unknown'}`,
-      name: result.customerName,
-      id: result.id,
-      icon: 'quote-add',
+      message: `Quote ${result.quote_number} created`,
+      id: result.id
     });
-    return result;
-  }, [service, refreshQuotes, logActivity]);
+    return { ...result, id: result.quote_number, uuid: result.id };
+  }, [logActivity]);
 
-  const updateQuote = useCallback((id, updates) => {
-    const existing = service.getQuoteById(id);
-    const result = service.updateQuote(id, updates);
-    refreshQuotes();
-    if (updates.status && updates.status !== existing?.status) {
-      logActivity({
-        type: 'quote',
-        action: 'status-changed',
-        message: `Quote ${id} status changed to ${updates.status}`,
-        name: existing?.customerName || '',
-        id,
-        icon: 'quote-status',
-      });
-    } else {
-      logActivity({
-        type: 'quote',
-        action: 'updated',
-        message: `Quote ${id} updated`,
-        name: existing?.customerName || '',
-        id,
-        icon: 'quote-edit',
-      });
-    }
+  const updateQuote = useCallback(async (id, updates) => {
+    const quote = quotes.find(q => q.id === id);
+    if (!quote) return;
+    const result = await realDb.updateQuote(quote.uuid, updates);
+    await refreshData();
     return result;
-  }, [service, refreshQuotes, logActivity]);
+  }, [quotes, refreshData]);
 
-  const deleteQuote = useCallback((id) => {
-    const existing = service.getQuoteById(id);
-    service.deleteQuote(id);
-    refreshQuotes();
-    logActivity({
-      type: 'quote',
-      action: 'deleted',
-      message: `Quote ${id} deleted`,
-      name: existing?.customerName || '',
-      id,
-      icon: 'quote-delete',
+  const deleteQuote = useCallback(async (id) => {
+    const quote = quotes.find(q => q.id === id);
+    if (!quote) return;
+    await realDb.deleteQuote(quote.uuid);
+    refreshData();
+  }, [quotes, refreshData]);
+
+  // ── Booking CRUD ──
+  const addBooking = useCallback(async (data) => {
+    const result = await realDb.createBooking(data);
+    refreshData();
+    return { ...result, id: result.booking_number, uuid: result.id };
+  }, [refreshData]);
+
+  const updateBooking = useCallback(async (id, updates) => {
+    const booking = bookings.find(b => b.id === id);
+    if (!booking) return;
+    const result = await realDb.updateBooking(booking.uuid, updates);
+    refreshData();
+    return result;
+  }, [bookings, refreshData]);
+
+  const deleteBooking = useCallback(async (id) => {
+    const booking = bookings.find(b => b.id === id);
+    if (!booking) return;
+    await realDb.deleteBooking(booking.uuid);
+    refreshData();
+  }, [bookings, refreshData]);
+
+  // ── Payment CRUD ──
+  const addPayment = useCallback(async (data) => {
+    const result = await realDb.createPayment({
+      total_amount: parseINR(data.amount),
+      payment_mode: data.modeType,
+      payment_date: data.date,
+      transaction_reference: data.ref,
+      notes: data.remarks,
+      payment_type: data.againstType === 'booking' ? 'regular' : 'advance'
     });
-  }, [service, refreshQuotes, logActivity]);
+    refreshData();
+    return result;
+  }, [refreshData]);
 
-  // ─── Booking CRUD ─────────────────────────────────────────
-  const addBooking = useCallback((data) => {
-    const result = service.addBooking(data);
-    refreshBookings();
-    logActivity({
-      type: 'booking',
-      action: 'created',
-      message: `Booking ${result.id} created for ${result.customerName || 'Unknown'}`,
-      name: result.customerName,
-      id: result.id,
-      icon: 'booking-add',
+  // ── Settings ──
+  const updateSettings = useCallback(async (updates) => {
+    const result = await realDb.updateSettings(updates);
+    refreshData();
+    return result;
+  }, [refreshData]);
+
+  // ── Advanced Logic ──
+  const getTopCustomers = useCallback(() => {
+    const totals = {};
+    const bookingCounts = {};
+    payments.forEach(p => {
+      const name = p.customerName;
+      if (!name) return;
+      totals[name] = (totals[name] || 0) + parseINR(p.amount);
     });
-    return result;
-  }, [service, refreshBookings, logActivity]);
-
-  const updateBooking = useCallback((id, updates) => {
-    const existing = service.getBookingById(id);
-    const result = service.updateBooking(id, updates);
-    refreshBookings();
-    if (updates.status === 'completed') {
-      logActivity({
-        type: 'booking',
-        action: 'completed',
-        message: `Booking ${id} marked as completed`,
-        name: existing?.customerName || '',
-        id,
-        icon: 'booking-complete',
-      });
-    } else if (updates.status === 'cancelled') {
-      logActivity({
-        type: 'booking',
-        action: 'cancelled',
-        message: `Booking ${id} cancelled`,
-        name: existing?.customerName || '',
-        id,
-        icon: 'booking-cancel',
-      });
-    } else {
-      logActivity({
-        type: 'booking',
-        action: 'updated',
-        message: `Booking ${id} updated`,
-        name: existing?.customerName || '',
-        id,
-        icon: 'booking-edit',
-      });
-    }
-    return result;
-  }, [service, refreshBookings, logActivity]);
-
-  const deleteBooking = useCallback((id) => {
-    const existing = service.getBookingById(id);
-    service.deleteBooking(id);
-    refreshBookings();
-    logActivity({
-      type: 'booking',
-      action: 'deleted',
-      message: `Booking ${id} deleted`,
-      name: existing?.customerName || '',
-      id,
-      icon: 'booking-delete',
+    bookings.forEach(b => {
+      const name = b.customerName;
+      if (!name) return;
+      bookingCounts[name] = (bookingCounts[name] || 0) + 1;
     });
-  }, [service, refreshBookings, logActivity]);
+    return customers
+      .map(c => ({ ...c, totalRevenue: totals[c.name] || 0, bookingCount: bookingCounts[c.name] || 0 }))
+      .sort((a, b) => b.totalRevenue - a.totalRevenue)
+      .slice(0, 5);
+  }, [customers, payments, bookings]);
 
-  // ─── Payment CRUD ─────────────────────────────────────────
-  const addPayment = useCallback((data) => {
-    const result = service.addPayment(data);
-    refreshPayments();
-    logActivity({
-      type: 'payment',
-      action: 'recorded',
-      message: `Payment ${result.id} of ${result.amount} recorded for ${result.customerName || 'Unknown'}`,
-      name: result.customerName,
-      id: result.id,
-      amount: result.amount,
-      icon: 'payment-add',
-    });
-    return result;
-  }, [service, refreshPayments, logActivity]);
-
-  const updatePayment = useCallback((id, updates) => {
-    const result = service.updatePayment(id, updates);
-    refreshPayments();
-    logActivity({
-      type: 'payment',
-      action: 'updated',
-      message: `Payment ${id} updated`,
-      name: result?.customerName || '',
-      id,
-      icon: 'payment-edit',
-    });
-    return result;
-  }, [service, refreshPayments, logActivity]);
-
-  const deletePayment = useCallback((id) => {
-    const existing = service.getPaymentById(id);
-    service.deletePayment(id);
-    refreshPayments();
-    logActivity({
-      type: 'payment',
-      action: 'deleted',
-      message: `Payment ${id} deleted`,
-      name: existing?.customerName || '',
-      id,
-      icon: 'payment-delete',
-    });
-  }, [service, refreshPayments, logActivity]);
-
-  // ─── Invoices ─────────────────────────────────────────────
-  const addInvoice = useCallback((data) => {
-    const result = service.addInvoice(data);
-    refreshInvoices();
-    return result;
-  }, [service, refreshInvoices]);
-
-  const updateInvoice = useCallback((id, updates) => {
-    const result = service.updateInvoice(id, updates);
-    refreshInvoices();
-    return result;
-  }, [service, refreshInvoices]);
-
-  const deleteInvoice = useCallback((id) => {
-    service.deleteInvoice(id);
-    refreshInvoices();
-  }, [service, refreshInvoices]);
-
-  // ─── Convert Quote → Booking + Invoice ────────────────────
-  const convertQuote = useCallback((quoteId, customerEdits = {}) => {
-    const quote = service.getQuoteById(quoteId);
+  const convertQuote = useCallback(async (quoteId, customerEdits = {}) => {
+    const quote = quotes.find(q => q.id === quoteId);
     if (!quote) return null;
 
-    // 1. Mark quote as converted
-    service.updateQuote(quoteId, { status: 'converted' });
-    refreshQuotes();
+    try {
+      // 1. Mark quote as converted
+      await realDb.updateQuote(quote.uuid, { status: 'converted' });
 
-    // 2. Create booking
-    const booking = service.addBooking({
-      customerName: customerEdits.customerName || quote.customerName,
-      customerPhone: customerEdits.customerPhone || quote.customerPhone,
-      customerEmail: customerEdits.customerEmail || '',
-      customerPan: customerEdits.customerPan || '',
-      customerGstin: customerEdits.customerGstin || '',
-      destination: quote.destName,
-      destType: quote.destType,
-      travelDate: quote.tripDate,
-      amount: quote.amount,
-      profit: quote.profit,
-      paymentStatus: 'partial',
-      paymentText: `₹0 / ${quote.amount}`,
-      remaining: quote.amount,
-      status: 'confirmed',
-      pax: customerEdits.travelers || 1,
-      quoteId,
-    });
-    refreshBookings();
+      // 2. Create booking
+      const bookingPayload = {
+        booking_number: `B-${Date.now()}`,
+        customer_id: quote.raw.customer_id,
+        destination: quote.destName,
+        destination_type: quote.destType,
+        total_cost: parseINR(quote.amount),
+        total_payable: parseINR(quote.amount),
+        amount_paid: 0,
+        amount_pending: parseINR(quote.amount),
+        booking_status: 'confirmed',
+        pax: customerEdits.travelers || 1,
+        departure_date: quote.raw.departure_date,
+        booked_at: new Date().toISOString()
+      };
+      const booking = await realDb.createBooking(bookingPayload);
 
-    // 3. Create invoice
-    const travelCost = customerEdits.travelCost || 0;
-    const serviceFee = customerEdits.serviceFee || 200;
-    const cgst = customerEdits.cgst || 18;
-    const sgst = customerEdits.sgst || 18;
-    const invoiceValue = customerEdits.invoiceValue || (travelCost + serviceFee + cgst + sgst);
+      // 3. Create invoice
+      const invoiceValue = customerEdits.invoiceValue || parseINR(quote.amount);
+      const invoicePayload = {
+        invoice_number: `INV-${Date.now()}`,
+        customer_id: quote.raw.customer_id,
+        booking_id: booking.id,
+        invoice_date: new Date().toISOString(),
+        total_amount: invoiceValue,
+        status: 'unpaid',
+        invoice_type: 'tax_invoice'
+      };
+      const invoice = await realDb.createInvoice(invoicePayload);
 
-    const invoice = service.addInvoice({
-      quoteId,
-      bookingId: booking.id,
-      customerName: customerEdits.customerName || quote.customerName,
-      customerPhone: customerEdits.customerPhone || quote.customerPhone,
-      customerEmail: customerEdits.customerEmail || '',
-      customerPan: customerEdits.customerPan || '',
-      customerGstin: customerEdits.customerGstin || '',
-      destination: quote.destName,
-      destType: quote.destType,
-      travelDate: quote.tripDate,
-      duration: customerEdits.duration || '',
-      travelers: customerEdits.travelers || 1,
-      placeOfSupply: customerEdits.placeOfSupply || 'India',
-      travelCost,
-      serviceFee,
-      cgst,
-      sgst,
-      invoiceValue,
-      amount: quote.amount,
-      total: `₹${invoiceValue.toLocaleString('en-IN')}`,
-      status: 'Unpaid',
-    });
-    refreshInvoices();
+      await logActivity({
+        type: 'booking',
+        action: 'created',
+        message: `Quote converted to Booking ${booking.booking_number}`,
+        id: booking.id
+      });
 
-    // 4. Log activity
-    service.addActivity({
-      type: 'booking',
-      action: 'created',
-      message: `Quote ${quoteId} converted to Booking ${booking.id} for ${quote.customerName}`,
-      name: quote.customerName,
-      id: booking.id,
-      icon: 'booking-add',
-    });
-    refreshActivities();
-
-    return { booking, invoice };
-  }, [service, refreshQuotes, refreshBookings, refreshInvoices, refreshActivities]);
-
-  // ─── Settings ─────────────────────────────────────────────
-  const updateSettings = useCallback((updates) => {
-    const result = service.updateSettings(updates);
-    setSettings(result);
-    return result;
-  }, [service]);
+      await refreshData();
+      return { booking, invoice };
+    } catch (err) {
+      // handle error
+      return null;
+    }
+  }, [quotes, logActivity, refreshData]);
 
   const value = {
-    // Data
+    loading,
     customers,
     quotes,
     bookings,
@@ -368,63 +437,38 @@ export const DataProvider = ({ children }) => {
     invoices,
     settings,
     activities,
-
-    // Customer CRUD
     addCustomer,
     updateCustomer,
     deleteCustomer,
-    getCustomerById: service.getCustomerById,
-
-    // Quote CRUD
+    getCustomerById: (id) => customers.find(c => c.id === id),
     addQuote,
     updateQuote,
     deleteQuote,
-    getQuoteById: service.getQuoteById,
-    getQuoteDetail: service.getQuoteDetail,
-    saveQuoteDetail: service.saveQuoteDetail,
-
-    // Booking CRUD
-    addBooking,
+    getQuoteById: (id) => quotes.find(q => q.id === id),
+    getQuoteDetail: (id) => quotes.find(q => q.id === id)?.raw?.itinerary,
+    saveQuoteDetail: async (id, detail) => {
+      const quote = quotes.find(q => q.id === id);
+      if (!quote) return;
+      await realDb.updateQuote(quote.uuid, { itinerary: detail });
+      await refreshData();
+    },
     updateBooking,
     deleteBooking,
-    getBookingById: service.getBookingById,
-
-    // Payment CRUD
     addPayment,
-    updatePayment,
-    deletePayment,
-    getPaymentById: service.getPaymentById,
-
-    // Profile
-    getProfileData: service.getProfileData,
-    updateProfileData: service.updateProfileData,
-
-    // Dashboard
-    getTopCustomers: service.getTopCustomers,
-
-    // Settings
     updateSettings,
-
-    // Invoice CRUD
-    addInvoice,
-    updateInvoice,
-    deleteInvoice,
-    getInvoiceById: service.getInvoiceById,
+    getProfileData: (id) => customers.find(c => c.id === id)?.raw?.profile_data,
+    updateProfileData: async (id, data) => {
+      const customer = customers.find(c => c.id === id);
+      if (!customer) return;
+      await realDb.updateCustomer(customer.uuid, { profile_data: data });
+      await refreshData();
+    },
+    getTopCustomers,
     convertQuote,
-
-    // Refresh helpers
-    refreshCustomers,
-    refreshQuotes,
-    refreshBookings,
-    refreshPayments,
-    refreshInvoices,
+    refreshData
   };
 
-  return (
-    <DataContext.Provider value={value}>
-      {children}
-    </DataContext.Provider>
-  );
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
 
 export const useData = () => {

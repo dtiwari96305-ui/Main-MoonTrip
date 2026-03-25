@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DemoLogButton } from '../demo/components/DemoLogButton';
-import { openBilling } from '../utils/billingNav';
 import { useDemoPopup } from '../context/DemoContext';
 
 // ─── Plan data ─────────────────────────────────────────────────────────────────

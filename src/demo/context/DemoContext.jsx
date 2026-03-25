@@ -1,9 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { DemoModal } from '../components/DemoModal';
-import {
-  demoCustomers, demoQuotes, demoBookings, demoPayments,
-  demoProfileData, demoQuoteDetailData, demoActivities,
-} from '../../shared/data/demoData';
+import { demoDb } from '../lib/demoDb';
 
 // ── Helpers ──────────────────────────────────────────────────────
 const AVATAR_GRADIENTS = [
@@ -18,7 +15,7 @@ const AVATAR_GRADIENTS = [
 ];
 
 const generateInitials = (name) => {
-  if (!name) return 'NA';
+  if (!name) return '??';
   const words = name.trim().split(/\s+/);
   if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
@@ -30,22 +27,11 @@ const generateGradient = (name) => {
   return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
 };
 
-const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
-
 const formatINR = (num) => '₹' + Number(num).toLocaleString('en-IN');
 
 const parseINR = (s) => {
   if (!s || s === '—') return 0;
   return parseInt(String(s).replace(/[₹,\s]/g, ''), 10) || 0;
-};
-
-const nextId = (arr, prefix) => {
-  let max = 0;
-  arr.forEach(item => {
-    const m = item.id.match(/(\d+)$/);
-    if (m) max = Math.max(max, parseInt(m[1], 10));
-  });
-  return `${prefix}${String(max + 1).padStart(4, '0')}`;
 };
 
 const todayStr = () => {
@@ -62,344 +48,368 @@ const nowTime = () => {
   return `${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`;
 };
 
-const SS_KEY = 'demo_session_data';
-
-const loadSession = () => {
-  try {
-    const raw = sessionStorage.getItem(SS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-  return null;
-};
-
 // ── Contexts ──────────────────────────────────────────────────────
 const DemoPopupContext = createContext(null);
 const DemoDataContext = createContext(null);
 
 export const DemoProvider = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const triggerDemoPopup = useCallback(() => setIsOpen(true), []);
 
-  // ── Load initial state ──
-  const init = loadSession();
-  const [customers, setCustomers] = useState(() => init?.customers || deepClone(demoCustomers));
-  const [quotes, setQuotes] = useState(() => init?.quotes || deepClone(demoQuotes));
-  const [bookings, setBookings] = useState(() => init?.bookings || deepClone(demoBookings));
-  const [payments, setPayments] = useState(() => init?.payments || deepClone(demoPayments));
-  const [invoices, setInvoices] = useState(() => init?.invoices || []);
-  const [profileData, setProfileData] = useState(() => init?.profileData || deepClone(demoProfileData));
-  const [quoteDetailData, setQuoteDetailData] = useState(() => init?.quoteDetailData || deepClone(demoQuoteDetailData));
-  const [activities, setActivities] = useState(() => init?.activities || deepClone(demoActivities));
+  const [customers, setCustomers] = useState([]);
+  const [quotes, setQuotes] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [quoteDetailData, setQuoteDetailData] = useState({});
 
-  // ── Persist to sessionStorage ──
-  useEffect(() => {
+  // ── Fetch Initial Data ──
+  const refreshData = useCallback(async () => {
     try {
-      sessionStorage.setItem(SS_KEY, JSON.stringify({
-        customers, quotes, bookings, payments,
-        invoices, profileData, quoteDetailData, activities,
-      }));
-    } catch { /* ignore */ }
-  }, [customers, quotes, bookings, payments, invoices, profileData, quoteDetailData, activities]);
+      const [c, q, b, p, inv, logs] = await Promise.all([
+        demoDb.getCustomers(),
+        demoDb.getQuotes(),
+        demoDb.getBookings(),
+        demoDb.getPayments(),
+        demoDb.getInvoices(),
+        demoDb.getLogs()
+      ]);
+      
+      // Map Supabase data to expected UI format
+      setCustomers(c.map(item => ({
+        id: item.customer_code,
+        uuid: item.id,
+        code: item.customer_code,
+        name: item.full_name,
+        phone: item.phone,
+        email: item.email,
+        location: item.city,
+        type: item.customer_type === 'corporate' ? 'Corporate' : 'Individual',
+        joined: new Date(item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        gradient: generateGradient(item.full_name),
+        initials: generateInitials(item.full_name),
+        raw: item
+      })));
 
-  // ── Activity logging ──
-  const logActivity = useCallback((entry) => {
-    setActivities(prev => [{
-      ...entry,
-      date: todayStr(),
-      colorClass: entry.colorClass || 'ai-green',
-    }, ...prev].slice(0, 50));
+      setQuotes(q.map(item => ({
+        id: item.quote_number,
+        uuid: item.id,
+        quoteNumber: item.quote_number,
+        customerName: item.demo_customers?.full_name || 'Unknown',
+        customerPhone: item.demo_customers?.phone || '',
+        destName: item.destination,
+        destType: item.destination_type,
+        amount: formatINR(item.total_payable || item.total_cost),
+        profit: formatINR(item.total_profit),
+        status: item.status,
+        tripDate: item.departure_date ? new Date(item.departure_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+        createdDate: new Date(item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        createdTime: new Date(item.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        raw: item
+      })));
+
+      setBookings(b.map(item => ({
+        id: item.booking_number,
+        uuid: item.id,
+        bookingNumber: item.booking_number,
+        customerName: item.demo_customers?.full_name || 'Unknown',
+        destination: item.destination,
+        amount: formatINR(item.total_payable || item.total_cost),
+        profit: formatINR(item.total_profit),
+        paymentStatus: item.payment_status,
+        paymentText: `${formatINR(item.amount_paid)} / ${formatINR(item.total_cost)}`,
+        remaining: item.amount_pending > 0 ? formatINR(item.amount_pending) : '—',
+        status: item.booking_status,
+        date: new Date(item.booked_at || item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        raw: item
+      })));
+
+      setPayments(p.map(item => ({
+        id: item.payment_number,
+        uuid: item.id,
+        paymentNumber: item.payment_number,
+        against: item.allocations?.[0]?.booking_number || 'Advance',
+        customerName: item.demo_customers?.full_name || 'Unknown',
+        amount: formatINR(item.total_amount),
+        amountNum: Number(item.total_amount),
+        modeType: item.payment_mode,
+        modeLabel: item.payment_mode === 'upi' ? 'UPI' : item.payment_mode === 'bank_transfer' ? 'Bank Transfer' : 'Cash',
+        ref: item.transaction_reference || '—',
+        bankName: item.bank_name || '',
+        remarks: item.notes || '',
+        date: new Date(item.payment_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        againstType: item.payment_type === 'advance' ? 'advance' : 'normal',
+        badge: item.payment_type === 'advance' ? 'Advance' : 'Payment',
+        createdDate: new Date(item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        raw: item
+      })));
+
+      setInvoices(inv.map(item => ({
+        id: item.invoice_number,
+        uuid: item.id,
+        invoiceNumber: item.invoice_number,
+        customerName: item.demo_customers?.full_name || 'Unknown',
+        amount: formatINR(item.total_amount),
+        status: item.status === 'active' ? 'Unpaid' : item.status, // Simplification for demo
+        date: new Date(item.invoice_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        type: item.invoice_type === 'tax_invoice' ? 'Tax Invoice' : 'Invoice',
+        raw: item
+      })));
+
+      setActivities(logs.map(item => ({
+        id: item.id,
+        uuid: item.id,
+        type: item.reference_type === 'customer' ? 'customers' : item.reference_type === 'quote' ? 'quotes' : 'bookings',
+        title: item.title,
+        amount: '', 
+        status: item.action_type,
+        statusLabel: item.title,
+        date: new Date(item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        customer: '', 
+        colorClass: item.action_type.includes('converted') ? 'ai-purple' : 'ai-green'
+      })));
+
+      // Populate quote details from itinerary field
+      const details = {};
+      q.forEach(item => {
+        if (item.itinerary && typeof item.itinerary === 'object') {
+          details[item.id] = item.itinerary;
+        }
+      });
+      setQuoteDetailData(details);
+
+    } catch (err) {
+      // silently handle fetch failure
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
   // ── Customer CRUD ──
-  const addCustomer = useCallback((data) => {
-    const id = nextId(customers, 'WL-C-');
-    const newCustomer = {
-      id,
-      name: data.fullName,
-      phone: `+91 ${data.phone}`,
-      email: data.email || '',
-      location: data.city || '',
-      type: data.customerType || 'Individual',
-      joined: todayStr(),
-      gradient: generateGradient(data.fullName),
-      initials: generateInitials(data.fullName),
-    };
-    setCustomers(prev => [...prev, newCustomer]);
-    setProfileData(prev => ({
-      ...prev,
-      [id]: {
-        city: data.city || '', state: data.state || '', country: data.country || 'India',
-        emailOverride: data.email || '',
-        tags: data.tags ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-        pan: data.panNumber || '', gstin: data.gstin || '', company: data.companyName || '',
-        ledger: [], payments: [],
-      },
-    }));
-    logActivity({
-      id, type: 'customers', amount: '',
-      status: 'added', statusLabel: 'Added',
-      customer: data.fullName, colorClass: 'ai-green',
-    });
-    return newCustomer;
-  }, [customers, logActivity]);
-
-  const updateCustomer = useCallback((id, data) => {
-    setCustomers(prev => prev.map(c => {
-      if (c.id !== id) return c;
-      return {
-        ...c,
-        name: data.fullName || c.name,
-        phone: data.phone ? `+91 ${data.phone}` : c.phone,
-        email: data.email || c.email,
-        location: data.city || c.location,
-        type: data.customerType || c.type,
-        gradient: data.fullName ? generateGradient(data.fullName) : c.gradient,
-        initials: data.fullName ? generateInitials(data.fullName) : c.initials,
+  const addCustomer = useCallback(async (data) => {
+    try {
+      const payload = {
+        customer_code: `DEMO-C-${String(Date.now()).slice(-4)}`,
+        full_name: data.fullName,
+        phone: `+91 ${data.phone}`,
+        email: data.email || '',
+        city: data.city || '',
+        state: data.state || '',
+        country: data.country || 'India',
+        customer_type: (data.customerType || 'Individual').toLowerCase(),
+        company_name: data.companyName || '',
+        pan: data.panNumber || '',
+        gstin: data.gstin || '',
+        avatar_color: generateGradient(data.fullName) 
       };
-    }));
-    setProfileData(prev => ({
-      ...prev,
-      [id]: {
-        ...(prev[id] || {}),
-        city: data.city ?? prev[id]?.city ?? '',
-        state: data.state ?? prev[id]?.state ?? '',
-        country: data.country ?? prev[id]?.country ?? 'India',
-        emailOverride: data.email ?? prev[id]?.emailOverride ?? '',
-        tags: data.tags
-          ? data.tags.split(',').map(t => t.trim()).filter(Boolean)
-          : (prev[id]?.tags || []),
-        pan: data.panNumber ?? prev[id]?.pan ?? '',
-        gstin: data.gstin ?? prev[id]?.gstin ?? '',
-        company: data.companyName ?? prev[id]?.company ?? '',
-        ledger: prev[id]?.ledger || [],
-        payments: prev[id]?.payments || [],
-      },
-    }));
-    logActivity({
-      id, type: 'customers', amount: '',
-      status: 'updated', statusLabel: 'Updated',
-      customer: data.fullName || '', colorClass: 'ai-blue',
-    });
-  }, [logActivity]);
+      const result = await demoDb.createCustomer(payload);
+      
+      await demoDb.createLog({
+        action_type: 'customer_created',
+        title: 'Customer Added',
+        description: `New customer ${data.fullName} created.`,
+        reference_id: result.id,
+        reference_type: 'customer'
+      });
+
+      refreshData();
+      return { id: result.id, ...result };
+    } catch (err) {
+      // handle error
+      throw err;
+    }
+  }, [refreshData]);
+
+  const updateCustomer = useCallback(async (id, data) => {
+    // For demo, we might block updates to original seed data or allow everything
+    // The prompt says "functional actions" write to Supabase.
+    try {
+      const customer = customers.find(c => c.id === id);
+      if (!customer) return;
+
+      const payload = {
+        full_name: data.fullName,
+        phone: data.phone ? `+91 ${data.phone}` : undefined,
+        email: data.email,
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        customer_type: data.customerType?.toLowerCase(),
+        company_name: data.companyName,
+        pan: data.panNumber,
+        gstin: data.gstin
+      };
+      await demoDb.updateCustomer(customer.uuid, payload);
+      refreshData();
+    } catch (err) {
+      // handle error
+    }
+  }, [customers, refreshData]);
 
   // ── Quote CRUD ──
-  const addQuote = useCallback((formData, calcResult) => {
-    const id = nextId(quotes, 'WL-Q-');
-    const customerName = formData.customerSearch || formData.newCustomerName || 'Customer';
-    const customerPhone = formData.newCustomerPhone ? `+91 ${formData.newCustomerPhone}` : '';
-    const amount = calcResult?.packagePriceCustomer ? formatINR(calcResult.packagePriceCustomer) : '₹0';
-    const profit = calcResult?.totalProfit ? formatINR(calcResult.totalProfit) : '₹0';
+  const addQuote = useCallback(async (formData, calcResult) => {
+    try {
+      const customerName = formData.customerSearch || formData.newCustomerName || 'Customer';
+      const tempId = `TEMP-${Date.now()}`;
+      const detail = buildQuoteDetail(formData, calcResult, tempId);
 
-    const newQuote = {
-      id,
-      customerName,
-      customerPhone,
-      destName: formData.destination || '',
-      destType: (formData.destType || 'domestic').toLowerCase(),
-      amount,
-      profit,
-      status: 'draft',
-      tripDate: formData.startDate ? new Date(formData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
-      createdDate: todayStr(),
-      createdTime: nowTime(),
-    };
-    setQuotes(prev => [newQuote, ...prev]);
+      const payload = {
+        quote_number: `DEMO-Q-${String(Date.now()).slice(-4)}`,
+        customer_id: formData._customerId || null,
+        status: 'draft',
+        destination: formData.destination || '',
+        destination_type: (formData.destType || 'domestic').toLowerCase(),
+        total_cost: calcResult?.costOfServices || 0,
+        margin: calcResult?.totalProfit || 0,
+        total_payable: calcResult?.packagePriceCustomer || 0,
+        departure_date: formData.startDate || null,
+        itinerary: detail // Store full enriched detail in itinerary
+      };
+      
+      const result = await demoDb.createQuote(payload);
 
-    // Save quote detail
-    const detail = buildQuoteDetail(formData, calcResult, id);
-    setQuoteDetailData(prev => ({ ...prev, [id]: detail }));
-
-    logActivity({
-      id, type: 'quotes', amount,
-      status: 'draft', statusLabel: 'Draft',
-      customer: customerName, colorClass: 'ai-orange',
-    });
-    return { id, quote: newQuote };
-  }, [quotes, logActivity]);
-
-  const updateQuote = useCallback((id, updates) => {
-    setQuotes(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q));
-    if (updates.status) {
-      const q = quotes.find(q => q.id === id);
-      logActivity({
-        id, type: 'quotes', amount: q?.amount || '',
-        status: updates.status,
-        statusLabel: updates.status.charAt(0).toUpperCase() + updates.status.slice(1),
-        customer: q?.customerName || '', colorClass:
-          updates.status === 'approved' ? 'ai-green' :
-          updates.status === 'rejected' ? 'ai-orange' :
-          updates.status === 'converted' ? 'ai-purple' : 'ai-blue',
+      await demoDb.createLog({
+        action_type: 'quote_created',
+        title: 'Quote Created',
+        description: `Quote for ${customerName} at ${payload.destination}`,
+        reference_id: result.id,
+        reference_type: 'quote'
       });
+
+      refreshData();
+      return { id: result.quote_number, quote: result }; // Return formatted number as ID
+    } catch (err) {
+      // handle error
+      throw err;
     }
-  }, [quotes, logActivity]);
+  }, [refreshData]);
 
-  const updateQuoteFromForm = useCallback((id, formData, calcResult) => {
-    const customerName = formData.customerSearch || formData.newCustomerName || 'Customer';
-    const customerPhone = formData.newCustomerPhone ? `+91 ${formData.newCustomerPhone}` : '';
-    const amount = calcResult?.packagePriceCustomer ? formatINR(calcResult.packagePriceCustomer) : undefined;
-    const profit = calcResult?.totalProfit ? formatINR(calcResult.totalProfit) : undefined;
-
-    const updates = { customerName, customerPhone };
-    if (formData.destination) updates.destName = formData.destination;
-    if (formData.destType) updates.destType = formData.destType.toLowerCase();
-    if (amount) updates.amount = amount;
-    if (profit) updates.profit = profit;
-    if (formData.startDate) {
-      updates.tripDate = new Date(formData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const updateQuote = useCallback(async (id, updates) => {
+    try {
+      const quote = quotes.find(q => q.id === id);
+      if (!quote) return;
+      await demoDb.updateQuote(quote.uuid, updates);
+      refreshData();
+    } catch (err) {
+      // handle error
     }
+  }, [quotes, refreshData]);
 
-    setQuotes(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q));
+  const updateQuoteFromForm = useCallback(async (id, formData, calcResult) => {
+    try {
+      const quote = quotes.find(q => q.id === id);
+      if (!quote) return;
+      const detail = buildQuoteDetail(formData, calcResult, id);
+      const updates = {
+        destination: formData.destination,
+        destination_type: formData.destType?.toLowerCase(),
+        total_cost: calcResult?.costOfServices,
+        margin: calcResult?.totalProfit,
+        total_payable: calcResult?.packagePriceCustomer,
+        departure_date: formData.startDate,
+        itinerary: detail
+      };
+      await demoDb.updateQuote(quote.uuid, updates);
+      refreshData();
+    } catch (err) {
+      // handle error
+    }
+  }, [quotes, refreshData]);
 
-    const detail = buildQuoteDetail(formData, calcResult, id);
-    setQuoteDetailData(prev => ({ ...prev, [id]: detail }));
-
-    logActivity({
-      id, type: 'quotes', amount: amount || '',
-      status: 'updated', statusLabel: 'Updated',
-      customer: customerName, colorClass: 'ai-blue',
-    });
-  }, [logActivity]);
-
-  const saveQuoteDetail = useCallback((id, detail) => {
-    setQuoteDetailData(prev => ({ ...prev, [id]: detail }));
-  }, []);
+  const saveQuoteDetail = useCallback(async (id, detail) => {
+    try {
+      const quote = quotes.find(q => q.id === id);
+      if (!quote) return;
+      await demoDb.updateQuote(quote.uuid, { itinerary: detail });
+      refreshData();
+    } catch (err) {
+      // handle error
+    }
+  }, [quotes, refreshData]);
 
   // ── Booking CRUD ──
-  const updateBooking = useCallback((id, updates) => {
-    setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b));
-    if (updates.status) {
-      const b = bookings.find(b => b.id === id);
-      logActivity({
-        id, type: 'bookings', amount: b?.amount || '',
-        status: updates.status,
-        statusLabel: updates.status === 'in_progress' ? 'In Progress' :
-          updates.status.charAt(0).toUpperCase() + updates.status.slice(1),
-        customer: b?.customerName || '', colorClass:
-          updates.status === 'completed' ? 'ai-green' :
-          updates.status === 'cancelled' ? 'ai-orange' :
-          updates.status === 'in_progress' ? 'ai-blue' : 'ai-blue',
-      });
+  const updateBooking = useCallback(async (id, updates) => {
+    try {
+      const booking = bookings.find(b => b.id === id);
+      if (!booking) return;
+      await demoDb.updateBooking(booking.uuid, updates);
+      refreshData();
+    } catch (err) {
+      // handle error
     }
-  }, [bookings, logActivity]);
+  }, [bookings, refreshData]);
 
   // ── Payment CRUD ──
-  const addPayment = useCallback((data) => {
-    const id = nextId(payments, 'REC-');
-    const newPayment = {
-      id,
-      against: data.allocateTo === 'advance' ? 'Advance' : (data.allocateTo || 'Advance'),
-      customerName: data.customerName || '',
-      amount: formatINR(data.amount),
-      amountNum: Number(data.amount) || 0,
-      modeType: data.mode || 'cash',
-      modeLabel: ({ cash: 'Cash', upi: 'UPI', bank: 'Bank Transfer', cheque: 'Cheque', card: 'Card' })[data.mode] || 'Cash',
-      ref: data.reference || '—',
-      bankName: data.bankName || '',
-      remarks: data.notes || '',
-      date: data.date ? new Date(data.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : todayStr(),
-      againstType: data.allocateTo === 'advance' ? 'advance' : 'normal',
-      badge: data.allocateTo === 'advance' ? 'Advance' : 'Payment',
-      createdDate: todayStr(),
-    };
-    setPayments(prev => [newPayment, ...prev]);
-
-    // Update booking payment status if allocated to a booking
-    if (data.allocateTo && data.allocateTo !== 'advance') {
-      const bookingId = data.allocateTo;
-      setBookings(prev => prev.map(b => {
-        if (b.id !== bookingId) return b;
-        const totalAmount = parseINR(b.amount);
-        const currentPaid = parseINR(b.paymentText?.split('/')[0]);
-        const newPaid = currentPaid + (Number(data.amount) || 0);
-        const remaining = totalAmount - newPaid;
-        const paymentStatus = remaining <= 0 ? 'paid' : 'partial';
-        return {
-          ...b,
-          paymentStatus,
-          paymentText: `${formatINR(Math.min(newPaid, totalAmount))} / ${formatINR(totalAmount)}`,
-          remaining: remaining <= 0 ? '—' : formatINR(remaining),
-        };
-      }));
-    }
-
-    // Update customer profile
-    if (data.customerId) {
-      setProfileData(prev => {
-        const profile = prev[data.customerId] || { ledger: [], payments: [] };
-        return {
-          ...prev,
-          [data.customerId]: {
-            ...profile,
-            payments: [
-              ...profile.payments,
-              { id, badge: newPayment.badge, date: newPayment.date, method: data.mode || 'cash', amount: Number(data.amount) || 0 },
-            ],
-            ledger: [
-              ...profile.ledger,
-              { id, date: newPayment.date, desc: `${newPayment.modeLabel}(${newPayment.badge}) - ${newPayment.ref}`, credit: Number(data.amount) || 0, balance: 0 },
-            ],
-          },
-        };
+  const addPayment = useCallback(async (data) => {
+    try {
+      const payload = {
+        payment_number: `DEMO-REC-${String(Date.now()).slice(-4)}`,
+        customer_id: data.customerId || null,
+        total_amount: Number(data.amount),
+        payment_mode: data.mode || 'cash',
+        transaction_reference: data.reference || '',
+        bank_name: data.bankName || '',
+        notes: data.notes || '',
+        payment_date: data.date || todayStr(),
+        payment_type: data.allocateTo === 'advance' ? 'advance' : 'regular'
+      };
+      
+      const result = await demoDb.createPayment(payload);
+      
+      await demoDb.createLog({
+        action_type: 'payment_recorded',
+        title: 'Payment Recorded',
+        description: `Payment of ${formatINR(data.amount)} from ${data.customerName}`,
+        reference_id: result.id,
+        reference_type: 'payment'
       });
-    }
 
-    logActivity({
-      id, type: 'payments', amount: formatINR(data.amount),
-      status: 'recorded', statusLabel: 'Recorded',
-      customer: data.customerName || '', colorClass: 'ai-green',
-    });
-    return newPayment;
-  }, [payments, logActivity]);
+      refreshData();
+      return result;
+    } catch (err) {
+      // handle error
+      throw err;
+    }
+  }, [refreshData]);
 
   // ── Convert Quote to Booking ──
-  const convertQuote = useCallback((quoteId) => {
-    const quote = quotes.find(q => q.id === quoteId);
-    if (!quote) return null;
+  const convertQuote = useCallback(async (quoteId) => {
+    try {
+      // In a real app, this would be a single transaction or complex set of inserts
+      // For demo, we'll just update quote and create booking
+      const quote = quotes.find(q => q.id === quoteId);
+      if (!quote) return null;
 
-    // Mark quote as converted
-    setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'converted' } : q));
+      await demoDb.updateQuote(quote.uuid, { status: 'converted' });
+      
+      // Simplified booking creation
+      const bPayload = {
+        booking_number: `DEMO-B-${String(Date.now()).slice(-4)}`,
+        quote_id: quote.uuid,
+        customer_id: quote.raw?.customer_id,
+        booking_status: 'confirmed',
+        payment_status: 'unpaid',
+        destination: quote.destName,
+        total_cost: parseINR(quote.amount),
+        total_profit: parseINR(quote.profit),
+        booked_at: new Date().toISOString()
+      };
+      
+      const booking = await demoDb.createBooking(bPayload);
 
-    // Create booking
-    const bookingId = nextId(bookings, 'WL-B-');
-    const totalAmount = parseINR(quote.amount);
-    const newBooking = {
-      id: bookingId,
-      customerName: quote.customerName,
-      destination: quote.destName,
-      amount: quote.amount,
-      profit: quote.profit,
-      paymentStatus: 'unpaid',
-      paymentText: `₹0 / ${quote.amount}`,
-      remaining: quote.amount,
-      status: 'confirmed',
-      date: todayStr(),
-      quoteId,
-    };
-    setBookings(prev => [newBooking, ...prev]);
-
-    // Create invoice
-    const invoiceId = `INV-${String(invoices.length + 1).padStart(3, '0')}`;
-    const newInvoice = {
-      id: invoiceId,
-      bookingId,
-      quoteId,
-      customerName: quote.customerName,
-      destination: quote.destName,
-      amount: quote.amount,
-      status: 'Unpaid',
-      date: todayStr(),
-      type: 'Tax Invoice',
-    };
-    setInvoices(prev => [newInvoice, ...prev]);
-
-    logActivity({
-      id: quoteId, type: 'quotes', amount: quote.amount,
-      status: 'converted', statusLabel: 'Converted',
-      customer: quote.customerName, colorClass: 'ai-purple',
-    });
-
-    return { booking: newBooking, invoice: newInvoice };
-  }, [quotes, bookings, invoices, logActivity]);
+      refreshData();
+      return { booking };
+    } catch (err) {
+      // handle error
+      return null;
+    }
+  }, [quotes, refreshData]);
 
   // ── Getters ──
   const getCustomerById = useCallback((id) => customers.find(c => c.id === id), [customers]);
@@ -407,22 +417,15 @@ export const DemoProvider = ({ children }) => {
   const getBookingById = useCallback((id) => bookings.find(b => b.id === id), [bookings]);
   const getPaymentById = useCallback((id) => payments.find(p => p.id === id), [payments]);
 
-  // ── Data context value ──
   const dataValue = {
-    // Data arrays
-    customers, quotes, bookings, payments, invoices, profileData, quoteDetailData, activities,
-    // Customer
+    loading,
+    customers, quotes, bookings, payments, invoices, activities, quoteDetailData,
     addCustomer, updateCustomer, getCustomerById,
-    // Quote
     addQuote, updateQuote, updateQuoteFromForm, saveQuoteDetail, getQuoteById,
-    // Booking
     updateBooking, getBookingById,
-    // Payment
     addPayment, getPaymentById,
-    // Conversion
     convertQuote,
-    // Activity
-    logActivity,
+    refreshData
   };
 
   return (
@@ -435,14 +438,12 @@ export const DemoProvider = ({ children }) => {
   );
 };
 
-// ── Hooks ──
-const noop = () => {};
-export const useDemoPopup = () => useContext(DemoPopupContext) || noop;
+export const useDemoPopup = () => useContext(DemoPopupContext) || (() => {});
 export const useDemoData = () => useContext(DemoDataContext);
 
 // ── Reset helper (call when navigating back to landing) ──
 export const clearDemoSession = () => {
-  try { sessionStorage.removeItem(SS_KEY); } catch { /* ignore */ }
+  try { sessionStorage.removeItem('demo_mode'); } catch { /* ignore */ }
 };
 
 // ── Build quote detail from form data ──

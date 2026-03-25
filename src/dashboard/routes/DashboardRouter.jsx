@@ -32,7 +32,7 @@ import { ManualSection } from '../../shared/components/ManualSection';
 
 
 const DashboardRouterInner = ({ onSwitchMode }) => {
-  const { settings } = useData();
+  const { settings, loading } = useData();
   const [activeView, setActiveView] = useState(() => sessionStorage.getItem('activeView') || 'dashboard');
   const [viewData, setViewData] = useState({});
   const [billingFromView, setBillingFromView] = useState(null);
@@ -130,12 +130,25 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
     sessionStorage.setItem('activeView', view);
   };
 
+  if (loading) {
+    return (
+      <RealLayout
+        activeView={activeView}
+        onViewChange={handleViewChange}
+        onSwitchMode={onSwitchMode}
+        userName="Loading..."
+      >
+        <PageSkeleton view={activeView} />
+      </RealLayout>
+    );
+  }
+
   return (
     <RealLayout
       activeView={activeView}
       onViewChange={handleViewChange}
       onSwitchMode={onSwitchMode}
-      userName={settings?.business_name || 'Admin'}
+      userName={settings?.company_name || settings?.business_name || 'Admin'}
     >
       <div className="fade-in" key={activeView}>
         <>

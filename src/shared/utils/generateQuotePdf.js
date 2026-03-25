@@ -235,9 +235,9 @@ export const generateCustomerPDF = (quoteId, detail) => {
   const pricingBody = [
     ['Cost of Travel (Reimbursement)',                fin.costOfTravel],
     ['Processing / Service Charge (SAC: 998551)',     fin.processingCustomer],
-    ['CGST on Processing @9%',                        fin.custCgst],
-    ['SGST on Processing @9%',                        fin.custSgst],
-    ['Invoice Value',                                 fin.custInvoice],
+    ['CGST on Processing @9%',                        fin.cgst],
+    ['SGST on Processing @9%',                        fin.sgst],
+    ['Invoice Value',                                 fin.invoiceValue],
     ['Total Payable',                                 fin.totalPayable],
   ];
 
@@ -530,7 +530,7 @@ export const generateAgentPDF = (quoteId, detail, quoteStatus) => {
     ['Billing Model',                billingModelLabel,   false],
     ['Total Cost',                   fin.costOfServices,  false],
     ['Margin',                       fin.processingCharge,false],
-    ['Commission Earned',            fin.profitProcessing,false],
+    ['Commission Earned',            fin.processingCharge,false],
     ['Package Price',                fin.packagePrice,    false],
     [`GST @${fin.gstRate}`,          fin.gstAmount,       false],
     ['CGST',                         fin.cgst,            true],
@@ -598,7 +598,7 @@ export const generateAgentPDF = (quoteId, detail, quoteStatus) => {
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(DARK[0], DARK[1], DARK[2]);
   const cLabelW = doc.getTextWidth('Commission:') + 2;
-  doc.text(fin.profitProcessing, commX + cLabelW, y);
+  doc.text(fin.processingCharge, commX + cLabelW, y);
   y += 10;
 
   // Total Profit — highlighted box

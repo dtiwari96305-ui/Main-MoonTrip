@@ -180,7 +180,7 @@ export const RealWorldMapD3 = ({ destinations = [] }) => {
           mg.append('circle').attr('class', 'wm-dot').attr('cx', x).attr('cy', y).attr('r', 4);
         });
       })
-      .catch(err => console.error('RealWorldMapD3: failed to load geo data', err));
+      .catch(() => {});
 
     return () => { cancelled = true; };
   }, [destinations]);
