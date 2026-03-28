@@ -1,13 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DemoLogButton } from '../demo/components/DemoLogButton';
 import { InfoBtn } from '../shared/components/InfoBtn';
 import { RecordPaymentModal } from '../shared/components/RecordPaymentModal';
 import { PaymentDetailModal } from '../shared/components/PaymentDetailModal';
 import { openBilling } from '../utils/billingNav';
 import { ExportDropdown } from '../shared/components/ExportDropdown';
-import { useDemoPopup } from '../context/DemoContext';
-import { demoCustomers } from '../shared/data/demoData';
-import { getDemoPaymentById } from '../shared/data/demoData';
+import { useDemoPopup, useDemoData } from '../context/DemoContext';
 
 const PAYMENTS_COLUMNS = [
   { header: 'Payment #',  key: 'id' },
@@ -18,8 +16,6 @@ const PAYMENTS_COLUMNS = [
   { header: 'Date',       key: 'date' },
 ];
 
-
-
 const FunnelIcon = ({ active, onClick }) => (
   <span className={`th-search-btn ${active ? 'active' : ''}`} onClick={onClick}>
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: active ? 1 : 0.4 }}>
@@ -28,13 +24,23 @@ const FunnelIcon = ({ active, onClick }) => (
   </span>
 );
 
+function parseAmt(str) {
+  if (typeof str === 'number') return str;
+  return parseInt((str || '0').replace(/[₹,\s]/g, ''), 10) || 0;
+}
+
+function fmtINR(n) {
+  return '₹' + n.toLocaleString('en-IN');
+}
+
 export const Payments = () => {
   const triggerDemoPopup = useDemoPopup();
+  const { payments, customers, bookings, addPayment, getPaymentById } = useDemoData();
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('payments_activeTab') || 'all');
   const [activeStat, setActiveStat] = useState(() => sessionStorage.getItem('payments_activeStat') || 'totalReceived');
   const [customerFilter, setCustomerFilter] = useState('All Customers');
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
-    const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [paymentDetailId, setPaymentDetailId] = useState(null);
 
   // Search
@@ -47,34 +53,88 @@ export const Payments = () => {
     sessionStorage.setItem('payments_activeStat', activeStat);
   }, [activeTab, activeStat]);
 
+  // Computed stats from real data
+  const totalReceived = useMemo(() => payments.reduce((sum, p) => sum + parseAmt(p.amount), 0), [payments]);
+  const transactionCount = payments.length;
+  const pendingPayments = useMemo(() => {
+    const bookingTotal = bookings.reduce((s, b) => s + parseAmt(b.amount), 0);
+    return Math.max(0, bookingTotal - totalReceived);
+  }, [bookings, totalReceived]);
+  const advanceBalance = useMemo(() => {
+    return payments
+      .filter(p => p.againstType === 'advance' || p.badge === 'Advance' || (p.against || '').toLowerCase() === 'advance')
+      .reduce((sum, p) => sum + parseAmt(p.amount), 0);
+  }, [payments]);
+
   const stats = [
-    { id: 'totalReceived', label: 'Total Received', value: '₹5,57,832', icon: 'green', type: 'all' },
-    { id: 'transactions', label: 'Transactions', value: '5', icon: 'blue', type: 'all' },
-    { id: 'pending', label: 'Pending Payments', value: '₹2,34,900', icon: 'orange', type: 'pending' },
-    { id: 'advance', label: 'Advance Balance', value: '₹25,000', icon: 'purple', type: 'advance', info: 'advance' },
+    { id: 'totalReceived', label: 'Total Received', value: fmtINR(totalReceived), icon: 'green', type: 'all' },
+    { id: 'transactions', label: 'Transactions', value: String(transactionCount), icon: 'blue', type: 'all' },
+    { id: 'pending', label: 'Pending Payments', value: fmtINR(pendingPayments), icon: 'orange', type: 'pending' },
+    { id: 'advance', label: 'Advance Balance', value: fmtINR(advanceBalance), icon: 'purple', type: 'advance', info: 'advance' },
   ];
 
-  const customers = ['All Customers', 'Priya Mehta'];
+  // Unique customer names for dropdown
+  const customerNames = useMemo(() => {
+    const names = new Set(payments.map(p => p.customerName).filter(Boolean));
+    return ['All Customers', ...Array.from(names)];
+  }, [payments]);
 
-  // Data Arrays
-  const allPaymentsData = [
-    { id: 'REC-0001', against: 'WL-B-0001', customerName: 'Vikram Iyer', amount: '₹2,35,000', modeType: 'bank', modeLabel: 'Bank Transfer', ref: 'NEFT/2026/03/HDFC123456', remarks: '50% advance — GlobalTech...', date: '10 Mar 2026', againstType: 'normal' },
-    { id: 'REC-0002', against: 'WL-B-0002', customerName: 'Rahul Sharma', amount: '₹1,40,952', modeType: 'upi', modeLabel: 'Upi', ref: 'UPI/326598741258', remarks: 'Full payment — Bali honeym...', date: '06 Mar 2026', againstType: 'normal' },
-    { id: 'REC-0003', against: 'WL-B-0003', customerName: 'Rajesh Patel', amount: '₹80,000', modeType: 'bank', modeLabel: 'Bank Transfer', ref: 'IMPS/2026/SBIN789012', remarks: 'Advance — Kashmir family trip', date: '01 Mar 2026', againstType: 'normal' },
-    { id: 'REC-0004', against: 'WL-B-0003', customerName: 'Rajesh Patel', amount: '₹76,880', modeType: 'cheque', modeLabel: 'Cheque', ref: '—', remarks: 'Balance payment — Kashmir', date: '08 Mar 2026', againstType: 'normal' },
-    { id: 'REC-0005', against: 'Advance', customerName: 'Priya Mehta', amount: '₹25,000', modeType: 'upi', modeLabel: 'Upi', ref: 'UPI/326541239876', remarks: 'Advance deposit — Rajastha...', date: '07 Mar 2026', againstType: 'advance' }
-  ];
+  // Data for All tab
+  const allPaymentsData = payments.map(p => ({
+    ...p,
+    againstType: p.againstType || (p.badge === 'Advance' ? 'advance' : 'normal'),
+    against: p.against || '—',
+  }));
 
-  const pendingPaymentsData = [
-    { against: 'WL-B-0001', customerName: 'Vikram Iyer', total: '₹4,69,900', paid: '₹2,35,000', pending: '₹2,34,900', date: '10 Mar 2026' }
-  ];
+  // Data for Pending tab
+  const pendingPaymentsData = useMemo(() => {
+    return bookings
+      .filter(b => b.status !== 'cancelled')
+      .map(b => {
+        const bookingAmt = parseAmt(b.amount);
+        const paidForBooking = payments
+          .filter(p => p.against === b.id || p.bookingRef === b.id)
+          .reduce((s, p) => s + parseAmt(p.amount), 0);
+        const pending = Math.max(0, bookingAmt - paidForBooking);
+        if (pending <= 0) return null;
+        return {
+          against: b.id,
+          customerName: b.customerName,
+          total: b.amount || fmtINR(bookingAmt),
+          paid: fmtINR(paidForBooking),
+          pending: fmtINR(pending),
+          date: b.date || '',
+        };
+      })
+      .filter(Boolean);
+  }, [bookings, payments]);
 
-  const filteredAllPayments = allPaymentsData.filter(p => !customerSearch || p.customerName.toLowerCase().includes(customerSearch.toLowerCase()));
-  const filteredPendingPayments = pendingPaymentsData.filter(p => !customerSearch || p.customerName.toLowerCase().includes(customerSearch.toLowerCase()));
+  // Data for Advance tab
+  const advancePaymentsData = useMemo(() => {
+    return payments.filter(p =>
+      p.againstType === 'advance' || p.badge === 'Advance' || (p.against || '').toLowerCase() === 'advance'
+    );
+  }, [payments]);
+
+  // Apply customer search filter
+  const filteredAllPayments = allPaymentsData.filter(p => !customerSearch || (p.customerName || '').toLowerCase().includes(customerSearch.toLowerCase()));
+  const filteredPendingPayments = pendingPaymentsData.filter(p => !customerSearch || (p.customerName || '').toLowerCase().includes(customerSearch.toLowerCase()));
+  const filteredAdvancePayments = advancePaymentsData.filter(p => {
+    const matchesCustomerFilter = customerFilter === 'All Customers' || p.customerName === customerFilter;
+    const matchesSearch = !customerSearch || (p.customerName || '').toLowerCase().includes(customerSearch.toLowerCase());
+    return matchesCustomerFilter && matchesSearch;
+  });
+
+  const advanceTotalCredit = filteredAdvancePayments.reduce((s, p) => s + parseAmt(p.amount), 0);
 
   const toggleStat = (stat) => {
     setActiveTab(stat.type);
     setActiveStat(stat.id);
+  };
+
+  const handleSavePayment = (formData) => {
+    addPayment(formData);
+    setRecordPaymentOpen(false);
   };
 
   return (
@@ -83,7 +143,7 @@ export const Payments = () => {
         <div className="dash-header">
           <div className="dash-header-left">
             <h1 className="page-title">Payments</h1>
-            <p className="page-subtitle">5 payments recorded</p>
+            <p className="page-subtitle">{payments.length} payment{payments.length !== 1 ? 's' : ''} recorded</p>
           </div>
           <div className="dash-header-right">
             <ExportDropdown
@@ -109,7 +169,7 @@ export const Payments = () => {
 
       <div className="payment-stats" style={{ marginTop: 0, marginBottom: 24 }}>
         {stats.map(stat => (
-          <div 
+          <div
             key={stat.id}
             className={`pstat-card ${activeStat === stat.id ? 'pstat-active' : ''} pstat-clickable`}
             onClick={() => toggleStat(stat)}
@@ -131,7 +191,7 @@ export const Payments = () => {
 
       {activeTab === 'advance' && (
         <div className="customers-filter-wrap" style={{ marginBottom: 20 }}>
-          <div 
+          <div
             className={`customers-dropdown ${isCustomerDropdownOpen ? 'open' : ''}`}
             onClick={() => setIsCustomerDropdownOpen(!isCustomerDropdownOpen)}
             style={{ position: 'relative', cursor: 'pointer' }}
@@ -139,12 +199,12 @@ export const Payments = () => {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
             <span>{customerFilter}</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: 'auto', transform: isCustomerDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><polyline points="6 9 12 15 18 9"/></svg>
-            
+
             {isCustomerDropdownOpen && (
               <div className="date-filter-dropdown" style={{ display: 'block', opacity: 1, visibility: 'visible', top: 'calc(100% + 4px)', left: 0, width: '100%', minWidth: 200 }}>
-                {customers.map(c => (
-                  <div 
-                    key={c} 
+                {customerNames.map(c => (
+                  <div
+                    key={c}
                     className={`date-filter-option ${customerFilter === c ? 'active' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -174,7 +234,7 @@ export const Payments = () => {
                   </div>
                   {showCustomerSearch && (
                     <div className="table-inline-search">
-                      <input 
+                      <input
                         type="text" className="inline-search-input" placeholder="Search name..." autoFocus
                         value={customerSearch} onChange={e => setCustomerSearch(e.target.value)}
                       />
@@ -189,20 +249,32 @@ export const Payments = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredAllPayments.map(p => (
+              {filteredAllPayments.length > 0 ? filteredAllPayments.map(p => (
                 <tr key={p.id}>
                   <td className="pay-id"><span className="pay-id-link" onClick={() => setPaymentDetailId(p.id)}>{p.id}</span></td>
                   <td className="pay-against">
-                    {p.againstType === 'normal' ? p.against : <span className="type-badge type-corporate" style={{ background: 'rgba(102, 126, 234, 0.1)', color: '#667eea' }}>Advance</span>}
+                    {(p.againstType === 'advance' || p.badge === 'Advance')
+                      ? <span className="type-badge type-corporate" style={{ background: 'rgba(102, 126, 234, 0.1)', color: '#667eea' }}>Advance</span>
+                      : (p.against || '—')}
                   </td>
                   <td className="qt-customer-name">{p.customerName}</td>
                   <td className="qt-amount">{p.amount}</td>
                   <td><span className={`mode-badge mode-${p.modeType}`}>{p.modeLabel}</span></td>
-                  <td className="pay-ref">{p.ref}</td>
-                  <td className="pay-remarks">{p.remarks}</td>
+                  <td className="pay-ref">{p.ref || '—'}</td>
+                  <td className="pay-remarks">{p.remarks || '—'}</td>
                   <td className="qt-date">{p.date}</td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '60px 20px' }}>
+                    <div className="empty-icon-wrap" style={{ margin: '0 auto 16px', display: 'flex', justifyContent: 'center' }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <h3 className="empty-state-title">No payments recorded</h3>
+                    <p className="empty-state-desc">Record your first payment to get started.</p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -220,7 +292,7 @@ export const Payments = () => {
                   </div>
                   {showCustomerSearch && (
                     <div className="table-inline-search">
-                      <input 
+                      <input
                         type="text" className="inline-search-input" placeholder="Search name..." autoFocus
                         value={customerSearch} onChange={e => setCustomerSearch(e.target.value)}
                       />
@@ -235,7 +307,7 @@ export const Payments = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredPendingPayments.map((p, idx) => (
+              {filteredPendingPayments.length > 0 ? filteredPendingPayments.map((p, idx) => (
                 <tr key={idx}>
                   <td className="pay-against" style={{ color: '#f6ad55', fontWeight: 600 }}>{p.against}</td>
                   <td className="qt-customer-name">{p.customerName}</td>
@@ -245,7 +317,17 @@ export const Payments = () => {
                   <td><span className="status-badge status-partial">Partial</span></td>
                   <td className="qt-date">{p.date}</td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '60px 20px' }}>
+                    <div className="empty-icon-wrap" style={{ margin: '0 auto 16px', display: 'flex', justifyContent: 'center' }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <h3 className="empty-state-title">No pending payments</h3>
+                    <p className="empty-state-desc">All bookings are fully paid.</p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -264,7 +346,7 @@ export const Payments = () => {
                   </div>
                   {showCustomerSearch && (
                     <div className="table-inline-search">
-                      <input 
+                      <input
                         type="text" className="inline-search-input" placeholder="Search name..." autoFocus
                         value={customerSearch} onChange={e => setCustomerSearch(e.target.value)}
                       />
@@ -278,27 +360,40 @@ export const Payments = () => {
               </tr>
             </thead>
             <tbody>
-              {(customerFilter === 'All Customers' || customerFilter === 'Priya Mehta') && 
-               (!customerSearch || 'Priya Mehta'.toLowerCase().includes(customerSearch.toLowerCase())) && (
+              {filteredAdvancePayments.length > 0 ? (
+                <>
+                  {filteredAdvancePayments.map(p => (
+                    <tr key={p.id}>
+                      <td className="qt-date">{p.date}</td>
+                      <td className="pay-id"><span className="pay-id-link" onClick={() => setPaymentDetailId(p.id)}>{p.id}</span></td>
+                      <td className="qt-customer-name">{p.customerName}</td>
+                      <td style={{ color: '#48bb78', fontWeight: 500 }}>Advance Deposit ({p.modeType || p.modeLabel || 'other'})</td>
+                      <td className="pay-remarks">{p.remarks || '—'}</td>
+                      <td className="qt-amount" style={{ color: '#48bb78' }}>{p.amount}</td>
+                      <td className="qt-amount" style={{ color: '#f6ad55' }}>—</td>
+                    </tr>
+                  ))}
+                  <tr className="table-total-row">
+                    <td colSpan="5" style={{ fontWeight: 600, textTransform: 'uppercase' }}>Total</td>
+                    <td className="qt-amount" style={{ color: '#48bb78', fontWeight: 700 }}>{fmtINR(advanceTotalCredit)}</td>
+                    <td className="qt-amount" style={{ color: '#f6ad55', fontWeight: 700 }}>₹0</td>
+                  </tr>
+                  <tr className="table-balance-row">
+                    <td colSpan="6" style={{ textAlign: 'right', fontWeight: 500, color: '#718096' }}>Balance</td>
+                    <td className="qt-amount" style={{ color: '#667eea', fontWeight: 800, fontSize: '1.1rem' }}>{fmtINR(advanceTotalCredit)}</td>
+                  </tr>
+                </>
+              ) : (
                 <tr>
-                  <td className="qt-date">07 Mar 2026</td>
-                  <td className="pay-id"><span className="pay-id-link" onClick={() => setPaymentDetailId('REC-0005')}>REC-0005</span></td>
-                  <td className="qt-customer-name">Priya Mehta</td>
-                  <td style={{ color: '#48bb78', fontWeight: 500 }}>Advance Deposit (upi)</td>
-                  <td className="pay-remarks">Advance deposit — Rajastha...</td>
-                  <td className="qt-amount" style={{ color: '#48bb78' }}>₹25,000</td>
-                  <td className="qt-amount" style={{ color: '#f6ad55' }}>—</td>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '60px 20px' }}>
+                    <div className="empty-icon-wrap" style={{ margin: '0 auto 16px', display: 'flex', justifyContent: 'center' }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </div>
+                    <h3 className="empty-state-title">No advance payments</h3>
+                    <p className="empty-state-desc">Advance deposits will appear here.</p>
+                  </td>
                 </tr>
               )}
-              <tr className="table-total-row">
-                <td colSpan="5" style={{ fontWeight: 600, textTransform: 'uppercase' }}>Total</td>
-                <td className="qt-amount" style={{ color: '#48bb78', fontWeight: 700 }}>₹25,000</td>
-                <td className="qt-amount" style={{ color: '#f6ad55', fontWeight: 700 }}>₹0</td>
-              </tr>
-              <tr className="table-balance-row">
-                <td colSpan="6" style={{ textAlign: 'right', fontWeight: 500, color: '#718096' }}>Balance</td>
-                <td className="qt-amount" style={{ color: '#667eea', fontWeight: 800, fontSize: '1.1rem' }}>₹25,000</td>
-              </tr>
             </tbody>
           </table>
         </div>
@@ -307,15 +402,15 @@ export const Payments = () => {
       <RecordPaymentModal
         isOpen={recordPaymentOpen}
         onClose={() => setRecordPaymentOpen(false)}
-        customers={demoCustomers}
-        onSave={triggerDemoPopup}
+        customers={customers}
+        onSave={handleSavePayment}
       />
 
       {paymentDetailId && (
         <PaymentDetailModal
           paymentId={paymentDetailId}
           onClose={() => setPaymentDetailId(null)}
-          getPaymentById={getDemoPaymentById}
+          getPaymentById={getPaymentById}
           onSave={triggerDemoPopup}
         />
       )}

@@ -98,7 +98,7 @@ export const CustomerProfile = ({ customerId, fromView, onBack, onViewChange }) 
   const customer = customers.find(c => c.id === customerId);
   if (!customer) return null;
 
-  const ext = profileData[customerId] || { city: '', state: '', country: '', emailOverride: '', tags: [], pan: '', gstin: '', company: '', payments: [] };
+  const ext = (profileData && profileData[customerId]) || { city: '', state: '', country: '', emailOverride: '', tags: [], pan: '', gstin: '', company: '', payments: [] };
   const email = ext.emailOverride || customer.email;
 
   const myBookings = allBookings.filter(b => b.customerName === customer.name);

@@ -29,6 +29,13 @@ import { RealBookingDetail } from '../pages/BookingDetail';
 import { RealQuoteDesigner } from '../pages/QuoteDesigner';
 import { HelpSection } from '../../shared/components/HelpSection';
 import { ManualSection } from '../../shared/components/ManualSection';
+import { RealVendors } from '../pages/Vendors';
+import { RealVendorDetail } from '../pages/VendorDetail';
+import { RealVendorBills } from '../pages/VendorBills';
+import { RealCreateVendorBill } from '../pages/CreateVendorBill';
+import { RealVendorPayments } from '../pages/VendorPayments';
+import { registerVendorNav } from '../../utils/vendorNav';
+import { ErrorBoundary } from '../../shared/components/ErrorBoundary';
 
 
 const DashboardRouterInner = ({ onSwitchMode }) => {
@@ -47,6 +54,9 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
   const [designerQuoteId, setDesignerQuoteId] = useState(null);
   const [designerQuoteData, setDesignerQuoteData] = useState(null);
   const [designerFromView, setDesignerFromView] = useState('create-quote');
+  const [vendorDetailId, setVendorDetailId] = useState(null);
+  const [vendorDetailFrom, setVendorDetailFrom] = useState('vendors-list');
+  const [createBillVendorId, setCreateBillVendorId] = useState(null);
   const activeViewRef = useRef(activeView);
 
   useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
@@ -117,6 +127,20 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
     });
   }, []);
 
+  useEffect(() => {
+    registerVendorNav((action, id, fromView) => {
+      const fv = fromView || activeViewRef.current;
+      if (action === 'vendor-detail') {
+        setVendorDetailId(id);
+        setVendorDetailFrom(fv);
+        handleViewChange('vendor-detail');
+      } else if (action === 'create-vendor-bill') {
+        setCreateBillVendorId(id || null);
+        handleViewChange('create-vendor-bill');
+      }
+    });
+  }, []);
+
   const handleViewChange = (view, data = {}) => {
     setActiveView(view);
     setViewData(data);
@@ -151,7 +175,7 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
       userName={settings?.company_name || settings?.business_name || 'Admin'}
     >
       <div className="fade-in" key={activeView}>
-        <>
+        <ErrorBoundary key={activeView}><>
           {activeView === 'dashboard' && <RealDashboard onViewChange={handleViewChange} />}
           {activeView === 'customers' && <RealCustomers onViewChange={handleViewChange} />}
           {activeView === 'quotes' && <RealQuotes onViewChange={handleViewChange} />}
@@ -168,7 +192,7 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
           {activeView === 'livetrips' && <RealLiveTrips onViewChange={handleViewChange} />}
           {activeView === 'payments' && <RealPayments />}
           {activeView === 'invoices' && <RealSalesInvoices />}
-          {activeView === 'accounts' && <RealAccounts />}
+          {activeView.startsWith('accounts') && <RealAccounts view={activeView} onViewChange={handleViewChange} />}
           {activeView === 'settings' && <RealSettings onViewChange={handleViewChange} />}
           {activeView === 'help' && <HelpSection mode="real" onViewChange={handleViewChange} />}
           {activeView === 'manual' && <ManualSection mode="real" initialSection={viewData.initialSection} />}
@@ -202,7 +226,28 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
               onBack={() => handleViewChange(designerFromView || 'create-quote')}
             />
           )}
-        </>
+          {activeView === 'vendors-list' && <RealVendors onViewChange={handleViewChange} />}
+          {activeView === 'vendors-bills' && <RealVendorBills onViewChange={handleViewChange} />}
+          {activeView === 'vendors-payments' && <RealVendorPayments onViewChange={handleViewChange} />}
+          {activeView === 'vendor-detail' && (
+            <RealVendorDetail
+              vendorId={vendorDetailId}
+              onBack={() => handleViewChange(vendorDetailFrom || 'vendors-list')}
+              onViewChange={(view, id) => {
+                if (view === 'vendor-detail') { setVendorDetailId(id); setVendorDetailFrom('vendor-detail'); handleViewChange('vendor-detail'); }
+                else if (view === 'create-vendor-bill') { setCreateBillVendorId(id || null); handleViewChange('create-vendor-bill'); }
+                else handleViewChange(view);
+              }}
+            />
+          )}
+          {activeView === 'create-vendor-bill' && (
+            <RealCreateVendorBill
+              prefilledVendorId={createBillVendorId}
+              onBack={() => handleViewChange(createBillVendorId ? 'vendor-detail' : 'vendors-bills')}
+              onSuccess={() => handleViewChange('vendors-bills')}
+            />
+          )}
+        </></ErrorBoundary>
       </div>
     </RealLayout>
   );

@@ -6,6 +6,85 @@ const DataContext = createContext(null);
 const formatINR = (num) => '₹' + Number(num).toLocaleString('en-IN');
 const parseINR = (s) => parseInt(String(s).replace(/[₹,\s]/g, '') || 0, 10);
 
+// Map Supabase snake_case settings → camelCase UI format
+function mapSettingsFromDb(s) {
+  if (!s) return null;
+  return {
+    id: s.id,
+    companyName: s.company_name || 'My Agency',
+    companySubtitle: s.company_subtitle || 'Travel & Tourism',
+    slug: s.slug || '',
+    gstin: s.gstin || '',
+    pan: s.pan || '',
+    companyPhone: s.company_phone || '',
+    companyEmail: s.company_email || '',
+    streetAddress: s.street_address || '',
+    city: s.city || '',
+    state: s.state || 'Maharashtra',
+    pincode: s.pincode || '',
+    accountNumber: s.account_number || '',
+    ifscCode: s.ifsc_code || '',
+    bankName: s.bank_name || '',
+    branch: s.branch || '',
+    accountHolderName: s.account_holder_name || '',
+    upiId: s.upi_id || '',
+    invoiceTerms: s.invoice_terms || '',
+    gstEnabled: s.gst_enabled !== false,
+    pdfTheme: s.pdf_theme || 'classic',
+    quotePrefix: s.quote_prefix || 'WL-Q-',
+    quoteNextNum: String(s.quote_next_number || 1),
+    quoteSuffix: s.quote_suffix || '',
+    bookingPrefix: s.invoice_prefix || 'WL-B-',
+    bookingNextNum: String(s.invoice_next_number || 1),
+    bookingSuffix: s.invoice_suffix || '',
+    userName: s.user_name || 'Admin',
+    userRole: s.user_role || 'admin',
+    email: s.email || '',
+    phone: s.phone || '',
+  };
+}
+
+// Map camelCase UI updates → snake_case Supabase format
+function mapSettingsToDb(updates) {
+  const KEY_MAP = {
+    companyName: 'company_name',
+    companySubtitle: 'company_subtitle',
+    slug: 'slug',
+    gstin: 'gstin',
+    pan: 'pan',
+    companyPhone: 'company_phone',
+    companyEmail: 'company_email',
+    streetAddress: 'street_address',
+    city: 'city',
+    state: 'state',
+    pincode: 'pincode',
+    accountNumber: 'account_number',
+    ifscCode: 'ifsc_code',
+    bankName: 'bank_name',
+    branch: 'branch',
+    accountHolderName: 'account_holder_name',
+    upiId: 'upi_id',
+    invoiceTerms: 'invoice_terms',
+    gstEnabled: 'gst_enabled',
+    pdfTheme: 'pdf_theme',
+    quotePrefix: 'quote_prefix',
+    quoteNextNum: 'quote_next_number',
+    quoteSuffix: 'quote_suffix',
+    bookingPrefix: 'invoice_prefix',
+    bookingNextNum: 'invoice_next_number',
+    bookingSuffix: 'invoice_suffix',
+    userName: 'user_name',
+    userRole: 'user_role',
+    email: 'email',
+    phone: 'phone',
+  };
+  const result = {};
+  for (const [key, value] of Object.entries(updates)) {
+    result[KEY_MAP[key] || key] = value;
+  }
+  return result;
+}
+
 export const DataProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState([]);
@@ -15,19 +94,35 @@ export const DataProvider = ({ children }) => {
   const [invoices, setInvoices] = useState([]);
   const [settings, setSettings] = useState(null);
   const [activities, setActivities] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [vendorBills, setVendorBills] = useState([]);
+  const [vendorPayments, setVendorPayments] = useState([]);
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [generalEntries, setGeneralEntries] = useState([]);
+  const [journalEntries, setJournalEntries] = useState([]);
+  const [chartOfAccounts, setChartOfAccounts] = useState([]);
 
   // ── Refresh Helpers ──
   const refreshData = useCallback(async () => {
     try {
-      const [c, q, b, p, inv, logs, s] = await Promise.all([
+      const results = await Promise.allSettled([
         realDb.getCustomers(),
         realDb.getQuotes(),
         realDb.getBookings(),
         realDb.getPayments(),
         realDb.getInvoices(),
         realDb.getLogs(),
-        realDb.getSettings()
+        realDb.getSettings(),
+        realDb.getVendors(),
+        realDb.getVendorBills(),
+        realDb.getVendorPayments(),
+        realDb.getBankAccounts(),
+        realDb.getGeneralEntries(),
+        realDb.getJournalEntries(),
+        realDb.getChartOfAccounts(),
       ]);
+      const getValue = (r) => (r.status === 'fulfilled' ? r.value : []);
+      const [c, q, b, p, inv, logs, s, vend, vbills, vpay, banks, gEntries, jEntries, coa] = results.map(getValue);
 
       setCustomers(c.map(item => ({
         id: item.customer_code,
@@ -118,7 +213,7 @@ export const DataProvider = ({ children }) => {
         icon: item.action_type.includes('add') ? 'customer-add' : 'customer-edit'
       })));
 
-      setSettings(s || {
+      setSettings(mapSettingsFromDb(s) || {
         companyName: 'My Agency',
         companySubtitle: 'Travel & Tourism',
         userName: 'Admin',
@@ -126,6 +221,122 @@ export const DataProvider = ({ children }) => {
         email: '',
         phone: '',
       });
+
+      setVendors(vend.map(v => ({
+        id: v.id,
+        name: v.name,
+        vendorCode: v.vendor_code || '',
+        city: v.city || '',
+        contactPerson: v.contact_person || '',
+        phone: v.phone || '',
+        email: v.email || '',
+        gstNumber: v.gst_number || '',
+        panNumber: v.pan_number || '',
+        bankName: v.bank_name || '',
+        bankAccount: v.bank_account || '',
+        ifscCode: v.ifsc_code || '',
+        notes: v.notes || '',
+        createdAt: v.created_at,
+        raw: v,
+      })));
+
+      setVendorBills(vbills.map(b => ({
+        id: b.id,
+        billNumber: b.bill_number,
+        vendorId: b.vendor_id,
+        vendorName: b.real_vendors?.name || '—',
+        bookingId: b.booking_id,
+        bookingNumber: b.real_bookings?.booking_number || '—',
+        serviceType: b.service_type,
+        serviceDate: b.service_date || '',
+        grossAmount: Number(b.gross_amount) || 0,
+        commissionAmount: Number(b.commission_amount) || 0,
+        tdsReceivable: Number(b.tds_receivable) || 0,
+        processingFee: Number(b.processing_fee) || 0,
+        vendorGstCgst: Number(b.vendor_gst_cgst) || 0,
+        vendorGstSgst: Number(b.vendor_gst_sgst) || 0,
+        roundOff: Number(b.round_off) || 0,
+        netPayable: Number(b.net_payable) || 0,
+        status: b.status || 'unpaid',
+        serviceDetails: b.service_details || {},
+        notes: b.notes || '',
+        createdAt: b.created_at,
+        raw: b,
+      })));
+
+      setVendorPayments(vpay.map(p => ({
+        id: p.id,
+        paymentNumber: p.payment_number,
+        vendorId: p.vendor_id,
+        vendorName: p.real_vendors?.name || '—',
+        billId: p.bill_id,
+        billNumber: p.real_vendor_bills?.bill_number || '—',
+        amount: Number(p.amount) || 0,
+        paymentMode: p.payment_mode || 'bank_transfer',
+        paymentDate: p.payment_date || '',
+        reference: p.reference || '',
+        bankName: p.bank_name || '',
+        notes: p.notes || '',
+        createdAt: p.created_at,
+        raw: p,
+      })));
+
+      setBankAccounts(banks.map(b => ({
+        id: b.id,
+        bankName: b.bank_name,
+        accountNumber: b.account_number || '',
+        ifscCode: b.ifsc_code || '',
+        accountHolder: b.account_holder || '',
+        accountType: b.account_type || 'current',
+        openingBalance: Number(b.opening_balance) || 0,
+        currentBalance: Number(b.current_balance) || 0,
+        isDefault: b.is_default || false,
+        createdAt: b.created_at,
+        raw: b,
+      })));
+
+      setGeneralEntries(gEntries.map(e => ({
+        id: e.id,
+        entryNumber: e.entry_number,
+        date: e.date,
+        description: e.description,
+        category: e.category || 'other',
+        amount: Number(e.amount) || 0,
+        paymentMode: e.payment_mode || '',
+        reference: e.reference || '',
+        bankAccountId: e.bank_account_id || null,
+        notes: e.notes || '',
+        createdAt: e.created_at,
+        raw: e,
+      })));
+
+      setJournalEntries(jEntries.map(e => ({
+        id: e.id,
+        entryNumber: e.entry_number,
+        date: e.date,
+        narration: e.narration || '',
+        refType: e.ref_type || '',
+        entryType: e.entry_type || 'manual',
+        posted: e.posted !== false,
+        totalDebit: Number(e.total_debit) || 0,
+        totalCredit: Number(e.total_credit) || 0,
+        createdAt: e.created_at,
+        raw: e,
+      })));
+
+      setChartOfAccounts(coa.map(a => ({
+        id: a.id,
+        code: a.code,
+        name: a.name,
+        type: a.type,
+        subType: a.sub_type || '',
+        parentId: a.parent_id || null,
+        isSystem: a.is_system || false,
+        balance: Number(a.balance) || 0,
+        description: a.description || '',
+        createdAt: a.created_at,
+        raw: a,
+      })));
 
     } catch (err) {
       // handle refresh failure
@@ -337,12 +548,14 @@ export const DataProvider = ({ children }) => {
   // ── Payment CRUD ──
   const addPayment = useCallback(async (data) => {
     const result = await realDb.createPayment({
-      total_amount: parseINR(data.amount),
-      payment_mode: data.modeType,
+      payment_number: `REC-${Date.now()}`,
+      total_amount: Number(data.amount) || parseINR(data.amount),
+      payment_mode: data.mode || data.modeType || 'cash',
       payment_date: data.date,
-      transaction_reference: data.ref,
-      notes: data.remarks,
-      payment_type: data.againstType === 'booking' ? 'regular' : 'advance'
+      transaction_reference: data.reference || data.ref || '',
+      bank_name: data.bankName || '',
+      notes: data.notes || data.remarks || '',
+      payment_type: (data.allocateTo === 'advance' || data.againstType === 'advance') ? 'advance' : 'regular'
     });
     refreshData();
     return result;
@@ -350,10 +563,12 @@ export const DataProvider = ({ children }) => {
 
   // ── Settings ──
   const updateSettings = useCallback(async (updates) => {
-    const result = await realDb.updateSettings(updates);
+    const dbPayload = mapSettingsToDb(updates);
+    if (settings?.id) dbPayload.id = settings.id;
+    const result = await realDb.updateSettings(dbPayload);
     refreshData();
     return result;
-  }, [refreshData]);
+  }, [settings, refreshData]);
 
   // ── Advanced Logic ──
   const getTopCustomers = useCallback(() => {
@@ -428,6 +643,165 @@ export const DataProvider = ({ children }) => {
     }
   }, [quotes, logActivity, refreshData]);
 
+  // ── Vendor CRUD ──
+  const addVendor = useCallback(async (data) => {
+    const result = await realDb.createVendor({
+      name: data.name,
+      vendor_code: data.vendorCode || '',
+      city: data.city || '',
+      contact_person: data.contactPerson || '',
+      phone: data.phone || '',
+      email: data.email || '',
+      gst_number: data.gstNumber || '',
+      pan_number: data.panNumber || '',
+      bank_name: data.bankName || '',
+      bank_account: data.bankAccount || '',
+      ifsc_code: data.ifscCode || '',
+      notes: data.notes || '',
+    });
+    refreshData();
+    return result;
+  }, [refreshData]);
+
+  const updateVendor = useCallback(async (id, data) => {
+    await realDb.updateVendor(id, {
+      name: data.name,
+      vendor_code: data.vendorCode || '',
+      city: data.city || '',
+      contact_person: data.contactPerson || '',
+      phone: data.phone || '',
+      email: data.email || '',
+      gst_number: data.gstNumber || '',
+      pan_number: data.panNumber || '',
+      bank_name: data.bankName || '',
+      bank_account: data.bankAccount || '',
+      ifsc_code: data.ifscCode || '',
+      notes: data.notes || '',
+    });
+    refreshData();
+  }, [refreshData]);
+
+  const addVendorBill = useCallback(async (data) => {
+    const result = await realDb.createVendorBill({
+      bill_number: `VB-${Date.now()}`,
+      vendor_id: data.vendorId || null,
+      booking_id: data.bookingId || null,
+      service_type: data.serviceType || 'other',
+      service_date: data.serviceDate || null,
+      gross_amount: Number(data.grossAmount) || 0,
+      commission_amount: Number(data.commissionAmount) || 0,
+      tds_receivable: Number(data.tdsReceivable) || 0,
+      processing_fee: Number(data.processingFee) || 0,
+      vendor_gst_cgst: Number(data.vendorGstCgst) || 0,
+      vendor_gst_sgst: Number(data.vendorGstSgst) || 0,
+      round_off: Number(data.roundOff) || 0,
+      net_payable: Number(data.netPayable) || 0,
+      status: 'unpaid',
+      service_details: data.serviceDetails || {},
+      notes: data.notes || '',
+    });
+    refreshData();
+    return result;
+  }, [refreshData]);
+
+  const updateVendorBill = useCallback(async (id, data) => {
+    await realDb.updateVendorBill(id, data);
+    refreshData();
+  }, [refreshData]);
+
+  const addVendorPayment = useCallback(async (data) => {
+    if (data.billId) {
+      await realDb.updateVendorBill(data.billId, { status: 'paid' });
+    }
+    const result = await realDb.createVendorPayment({
+      payment_number: `VP-${Date.now()}`,
+      vendor_id: data.vendorId || null,
+      bill_id: data.billId || null,
+      amount: Number(data.amount) || 0,
+      payment_mode: data.paymentMode || 'bank_transfer',
+      payment_date: data.paymentDate || new Date().toISOString().slice(0, 10),
+      reference: data.reference || '',
+      bank_name: data.bankName || '',
+      notes: data.notes || '',
+    });
+    refreshData();
+    return result;
+  }, [refreshData]);
+
+  // ── Accounts CRUD ──
+  const addBankAccount = useCallback(async (data) => {
+    const result = await realDb.createBankAccount({
+      bank_name: data.bankName,
+      account_number: data.accountNumber || '',
+      ifsc_code: data.ifscCode || '',
+      account_holder: data.accountHolder || '',
+      account_type: data.accountType || 'current',
+      opening_balance: Number(data.openingBalance) || 0,
+      current_balance: Number(data.openingBalance) || 0,
+      is_default: data.isDefault || false,
+    });
+    refreshData();
+    return result;
+  }, [refreshData]);
+
+  const addGeneralEntry = useCallback(async (data) => {
+    const result = await realDb.createGeneralEntry({
+      entry_number: `GE-${Date.now()}`,
+      date: data.date || new Date().toISOString().slice(0, 10),
+      description: data.description,
+      category: data.category || 'other',
+      amount: Number(data.amount) || 0,
+      payment_mode: data.paymentMode || 'bank_transfer',
+      reference: data.reference || '',
+      bank_account_id: data.bankAccountId || null,
+      notes: data.notes || '',
+    });
+    refreshData();
+    return result;
+  }, [refreshData]);
+
+  const addJournalEntry = useCallback(async (entry, lines) => {
+    const entryPayload = {
+      entry_number: `JE-${Date.now()}`,
+      date: entry.date || new Date().toISOString().slice(0, 10),
+      narration: entry.narration || '',
+      ref_type: entry.refType || 'manual',
+      entry_type: 'manual',
+      posted: true,
+      total_debit: lines.reduce((s, l) => s + (Number(l.debit) || 0), 0),
+      total_credit: lines.reduce((s, l) => s + (Number(l.credit) || 0), 0),
+    };
+    const result = await realDb.createJournalEntry(entryPayload, lines.map(l => ({
+      account_id: l.accountId || null,
+      account_code: l.accountCode || '',
+      account_name: l.accountName || '',
+      debit: Number(l.debit) || 0,
+      credit: Number(l.credit) || 0,
+      description: l.description || '',
+    })));
+    refreshData();
+    return result;
+  }, [refreshData]);
+
+  const addCoAAccount = useCallback(async (data) => {
+    const result = await realDb.createCoAAccount({
+      code: data.code,
+      name: data.name,
+      type: data.type,
+      sub_type: data.subType || '',
+      parent_id: data.parentId || null,
+      is_system: false,
+      description: data.description || '',
+    });
+    refreshData();
+    return result;
+  }, [refreshData]);
+
+  const updateCoAAccount = useCallback(async (id, data) => {
+    await realDb.updateCoAAccount(id, { name: data.name, description: data.description || '' });
+    refreshData();
+  }, [refreshData]);
+
   const value = {
     loading,
     customers,
@@ -465,6 +839,12 @@ export const DataProvider = ({ children }) => {
     },
     getTopCustomers,
     convertQuote,
+    vendors, vendorBills, vendorPayments,
+    addVendor, updateVendor, getVendorById: (id) => vendors.find(v => v.id === id),
+    addVendorBill, updateVendorBill, getVendorBillById: (id) => vendorBills.find(b => b.id === id),
+    addVendorPayment,
+    bankAccounts, generalEntries, journalEntries, chartOfAccounts,
+    addBankAccount, addGeneralEntry, addJournalEntry, addCoAAccount, updateCoAAccount,
     refreshData
   };
 

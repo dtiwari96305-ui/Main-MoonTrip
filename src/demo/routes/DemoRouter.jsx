@@ -27,6 +27,13 @@ import { BookingDetail } from '../../pages/BookingDetail';
 import { QuoteDesigner } from '../../pages/QuoteDesigner';
 import { HelpSection } from '../../shared/components/HelpSection';
 import { ManualSection } from '../../shared/components/ManualSection';
+import { Vendors } from '../../pages/Vendors';
+import { VendorDetailPage } from '../../pages/VendorDetail';
+import { VendorBills } from '../../pages/VendorBills';
+import { CreateVendorBillPage } from '../../pages/CreateVendorBill';
+import { VendorPayments } from '../../pages/VendorPayments';
+import { registerVendorNav } from '../../utils/vendorNav';
+import { ErrorBoundary } from '../../shared/components/ErrorBoundary';
 
 
 export const DemoRouter = ({ onSwitchMode }) => {
@@ -46,6 +53,9 @@ export const DemoRouter = ({ onSwitchMode }) => {
   const [designerQuoteId, setDesignerQuoteId] = useState(null);
   const [designerQuoteData, setDesignerQuoteData] = useState(null);
   const [designerFromView, setDesignerFromView] = useState('create-quote');
+  const [vendorDetailId, setVendorDetailId] = useState(null);
+  const [vendorDetailFrom, setVendorDetailFrom] = useState('vendors-list');
+  const [createBillVendorId, setCreateBillVendorId] = useState(null);
   const activeViewRef = useRef(activeView);
 
   useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
@@ -105,6 +115,20 @@ export const DemoRouter = ({ onSwitchMode }) => {
   }, []);
 
   useEffect(() => {
+    registerVendorNav((action, id, fromView) => {
+      const fv = fromView || activeViewRef.current;
+      if (action === 'vendor-detail') {
+        setVendorDetailId(id);
+        setVendorDetailFrom(fv);
+        handleViewChange('vendor-detail');
+      } else if (action === 'create-vendor-bill') {
+        setCreateBillVendorId(id || null);
+        handleViewChange('create-vendor-bill');
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     registerDesignerNav((quoteId, quoteData, fromView) => {
       const fv = fromView || activeViewRef.current;
       setDesignerQuoteId(quoteId);
@@ -153,11 +177,11 @@ export const DemoRouter = ({ onSwitchMode }) => {
           onViewChange={handleViewChange}
           onSwitchMode={onSwitchMode}
         >
-          <div className="fade-in" key={isLoading ? 'loading' : activeView}>
+          <div className="fade-in" key={activeView}>
             {isLoading ? (
               <PageSkeleton view={pendingView} />
             ) : (
-              <>
+              <ErrorBoundary key={activeView}><>
                 {activeView === 'dashboard' && <Dashboard onViewChange={handleViewChange} />}
                 {activeView === 'customers' && <Customers />}
                 {activeView === 'quotes' && <Quotes onViewChange={handleViewChange} />}
@@ -174,7 +198,7 @@ export const DemoRouter = ({ onSwitchMode }) => {
                 {activeView === 'livetrips' && <LiveTrips />}
                 {activeView === 'payments' && <Payments />}
                 {activeView === 'invoices' && <SalesInvoices />}
-                {activeView === 'accounts' && <Accounts />}
+                {activeView.startsWith('accounts') && <Accounts view={activeView} onViewChange={handleViewChange} />}
                 {activeView === 'settings' && <Settings onNavigate={handleViewChange} />}
                 {activeView === 'help' && <HelpSection mode="demo" onViewChange={handleViewChange} />}
                 {activeView === 'manual' && <ManualSection mode="demo" initialSection={viewData.initialSection} />}
@@ -209,7 +233,28 @@ export const DemoRouter = ({ onSwitchMode }) => {
                     onBack={() => handleViewChange(designerFromView || 'create-quote')}
                   />
                 )}
-              </>
+                {activeView === 'vendors-list' && <Vendors onViewChange={handleViewChange} />}
+                {activeView === 'vendors-bills' && <VendorBills onViewChange={handleViewChange} />}
+                {activeView === 'vendors-payments' && <VendorPayments onViewChange={handleViewChange} />}
+                {activeView === 'vendor-detail' && (
+                  <VendorDetailPage
+                    vendorId={vendorDetailId}
+                    onBack={() => handleViewChange(vendorDetailFrom || 'vendors-list')}
+                    onViewChange={(view, id) => {
+                      if (view === 'vendor-detail') { setVendorDetailId(id); setVendorDetailFrom('vendor-detail'); handleViewChange('vendor-detail'); }
+                      else if (view === 'create-vendor-bill') { setCreateBillVendorId(id || null); handleViewChange('create-vendor-bill'); }
+                      else handleViewChange(view);
+                    }}
+                  />
+                )}
+                {activeView === 'create-vendor-bill' && (
+                  <CreateVendorBillPage
+                    prefilledVendorId={createBillVendorId}
+                    onBack={() => handleViewChange(createBillVendorId ? 'vendor-detail' : 'vendors-bills')}
+                    onSuccess={() => handleViewChange('vendors-bills')}
+                  />
+                )}
+              </></ErrorBoundary>
             )}
           </div>
         </DemoLayout>

@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DemoLogButton } from '../demo/components/DemoLogButton';
-import { demoCustomers as customers } from '../shared/data/demoData';
 import { openCustomerProfile } from '../utils/customerNav';
 import { openBilling } from '../utils/billingNav';
 import { openEditQuote } from '../utils/editQuoteNav';
@@ -412,7 +411,7 @@ export { buildEditFormData } from '../shared/utils/buildEditFormData';
 
 export const QuoteDetail = ({ quoteId, fromView, onBack }) => {
   const demo = useDemoPopup();
-  const { quotes, updateQuote, convertQuote } = useDemoData();
+  const { quotes, customers, updateQuote, convertQuote } = useDemoData();
     const [itinView, setItinView] = useState('simple');
   const [showItinDrop, setShowItinDrop] = useState(false);
   const itinDropRef = useRef(null);
