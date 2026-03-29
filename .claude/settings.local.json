@@ -51,7 +51,9 @@
       "Bash(python -c \":*)",
       "Bash(rmdir client:*)",
       "Bash(rm -rf __pycache__)",
-      "Bash(netstat -ano)"
+      "Bash(netstat -ano)",
+      "Bash(grep -r \"real_settings\\\\|real_document_sequences\\\\|demo_settings\\\\|demo_document_sequences\" '/c/Users/ACER/OneDrive/Desktop/Moontrip - Main - Copy/server' --include=*.sql)",
+      "Bash(find 'c:/Users/ACER/OneDrive/Desktop/Moontrip - Main - Copy' -type f -iname *quote*)"
     ]
   }
 }

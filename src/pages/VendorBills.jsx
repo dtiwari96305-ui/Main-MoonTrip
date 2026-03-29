@@ -10,6 +10,7 @@ export const VendorBills = ({ onViewChange }) => {
       vendors={vendors}
       addVendorPayment={addVendorPayment}
       onViewChange={onViewChange}
+      mode="demo"
     />
   );
 };

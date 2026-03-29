@@ -11,6 +11,7 @@ export const RealVendors = ({ onViewChange }) => {
       vendorPayments={vendorPayments}
       addVendor={addVendor}
       onViewChange={onViewChange}
+      mode="real"
     />
   );
 };

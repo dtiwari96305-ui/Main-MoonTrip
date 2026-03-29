@@ -2,14 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { InfoBtn } from './InfoBtn';
 
-// Pending bookings per customer (partial / unpaid only)
-const pendingBookings = {
-  'Vikram Iyer': [
-    { id: 'WL-B-0001', destination: 'Goa', remaining: '₹2,34,900' },
-  ],
-};
-
-
 // ─── Mode option icons ─────────────────────────────────────────────────────
 const ModeIcon = ({ mode }) => {
   if (mode === 'cash') return (

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { AddVendorModal } from '../../components/vendor/AddVendorModal';
 import { ServiceTypeToggle, ServiceDetailForm, SERVICE_TYPE_LABELS } from '../../components/vendor/ServiceDetailsForm';
 import { AdjustmentsSection } from '../../components/vendor/AdjustmentsSection';
+import { Header } from '../../components/Header';
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
@@ -28,7 +29,7 @@ const EMPTY_FORM = {
 const LD_PANEL = { background: '#fff', border: '1px solid #e5e7eb', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' };
 const LD_SEARCH = { background: '#f9fafb', borderBottom: '1px solid #e5e7eb', color: '#111827' };
 
-export const CreateVendorBill = ({ vendors, bookings, addVendor, addVendorBill, prefilledVendorId, onBack, onSuccess }) => {
+export const CreateVendorBill = ({ vendors, bookings, addVendor, addVendorBill, prefilledVendorId, onBack, onSuccess, mode = 'demo' }) => {
   const [form, setForm] = useState({ ...EMPTY_FORM, vendorId: prefilledVendorId || '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -91,12 +92,7 @@ export const CreateVendorBill = ({ vendors, bookings, addVendor, addVendorBill, 
     <div className="page-content cvb-form">
       <button className="back-btn" onClick={onBack}>← Back</button>
 
-      <div className="page-header" style={{ marginTop: 16 }}>
-        <div>
-          <h1 className="page-title">New Vendor Bill</h1>
-          <p className="page-subtitle">Record a service bill from a vendor</p>
-        </div>
-      </div>
+      <Header title="New Vendor Bill" subtitle="Record a service bill from a vendor" showNewQuote={false} mode={mode} />
 
       {error && <div className="form-error-banner" style={{ marginBottom: 16 }}>{error}</div>}
 

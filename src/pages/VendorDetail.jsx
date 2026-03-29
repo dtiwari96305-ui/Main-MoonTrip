@@ -13,6 +13,7 @@ export const VendorDetailPage = ({ vendorId, onBack, onViewChange }) => {
       addVendorPayment={addVendorPayment}
       onBack={onBack}
       onViewChange={onViewChange}
+      mode="demo"
     />
   );
 };

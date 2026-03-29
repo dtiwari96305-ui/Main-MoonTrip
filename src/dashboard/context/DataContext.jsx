@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { realDb } from '../lib/realDb';
+import { supabase } from '../../shared/lib/supabase';
 
 const DataContext = createContext(null);
 
@@ -416,6 +417,33 @@ export const DataProvider = ({ children }) => {
     runMigration();
   }, [refreshData]);
 
+  // ── Real-time subscriptions ──
+  useEffect(() => {
+    const debounceRef = { timer: null };
+    const debouncedRefresh = () => {
+      clearTimeout(debounceRef.timer);
+      debounceRef.timer = setTimeout(() => refreshData(), 800);
+    };
+
+    const channel = supabase
+      .channel('realtime_data')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_customers' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_quotes' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_bookings' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_payments' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_sales_invoices' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_vendors' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_vendor_bills' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_vendor_payments' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_activity_log' }, debouncedRefresh)
+      .subscribe();
+
+    return () => {
+      clearTimeout(debounceRef.timer);
+      supabase.removeChannel(channel);
+    };
+  }, [refreshData]);
+
   const logActivity = useCallback(async (entry) => {
     try {
       await realDb.createLog({
@@ -487,8 +515,9 @@ export const DataProvider = ({ children }) => {
 
   // ── Quote CRUD ──
   const addQuote = useCallback(async (data) => {
+    const quoteNum = await realDb.getNextDocNumber('quote').catch(() => `WL-Q-${Date.now()}`);
     const payload = {
-      quote_number: `Q-${Date.now()}`,
+      quote_number: quoteNum,
       customer_id: data.customerId,
       status: data.status || 'draft',
       destination: data.destName,
@@ -547,8 +576,9 @@ export const DataProvider = ({ children }) => {
 
   // ── Payment CRUD ──
   const addPayment = useCallback(async (data) => {
+    const recNum = await realDb.getNextDocNumber('receipt').catch(() => `REC-${Date.now()}`);
     const result = await realDb.createPayment({
-      payment_number: `REC-${Date.now()}`,
+      payment_number: recNum,
       total_amount: Number(data.amount) || parseINR(data.amount),
       payment_mode: data.mode || data.modeType || 'cash',
       payment_date: data.date,
@@ -599,8 +629,9 @@ export const DataProvider = ({ children }) => {
       await realDb.updateQuote(quote.uuid, { status: 'converted' });
 
       // 2. Create booking
+      const bookingNum = await realDb.getNextDocNumber('booking').catch(() => `WL-B-${Date.now()}`);
       const bookingPayload = {
-        booking_number: `B-${Date.now()}`,
+        booking_number: bookingNum,
         customer_id: quote.raw.customer_id,
         destination: quote.destName,
         destination_type: quote.destType,
@@ -617,8 +648,9 @@ export const DataProvider = ({ children }) => {
 
       // 3. Create invoice
       const invoiceValue = customerEdits.invoiceValue || parseINR(quote.amount);
+      const invoiceNum = await realDb.getNextDocNumber('receipt').catch(() => `INV-${Date.now()}`);
       const invoicePayload = {
-        invoice_number: `INV-${Date.now()}`,
+        invoice_number: invoiceNum,
         customer_id: quote.raw.customer_id,
         booking_id: booking.id,
         invoice_date: new Date().toISOString(),
@@ -682,8 +714,9 @@ export const DataProvider = ({ children }) => {
   }, [refreshData]);
 
   const addVendorBill = useCallback(async (data) => {
+    const billNum = await realDb.getNextDocNumber('vendor_bill').catch(() => `VB-${Date.now()}`);
     const result = await realDb.createVendorBill({
-      bill_number: `VB-${Date.now()}`,
+      bill_number: billNum,
       vendor_id: data.vendorId || null,
       booking_id: data.bookingId || null,
       service_type: data.serviceType || 'other',
@@ -713,8 +746,9 @@ export const DataProvider = ({ children }) => {
     if (data.billId) {
       await realDb.updateVendorBill(data.billId, { status: 'paid' });
     }
+    const payNum = await realDb.getNextDocNumber('vendor_pay').catch(() => `VP-${Date.now()}`);
     const result = await realDb.createVendorPayment({
-      payment_number: `VP-${Date.now()}`,
+      payment_number: payNum,
       vendor_id: data.vendorId || null,
       bill_id: data.billId || null,
       amount: Number(data.amount) || 0,
@@ -745,8 +779,9 @@ export const DataProvider = ({ children }) => {
   }, [refreshData]);
 
   const addGeneralEntry = useCallback(async (data) => {
+    const entNum = await realDb.getNextDocNumber('gen_entry').catch(() => `GE-${Date.now()}`);
     const result = await realDb.createGeneralEntry({
-      entry_number: `GE-${Date.now()}`,
+      entry_number: entNum,
       date: data.date || new Date().toISOString().slice(0, 10),
       description: data.description,
       category: data.category || 'other',

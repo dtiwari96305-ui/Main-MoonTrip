@@ -1,6 +1,14 @@
 import { supabase } from '../../shared/lib/supabase'
 
 export const realDb = {
+  // ── Sequential Document Numbers ──
+  getNextDocNumber: async (type) => {
+    const { data, error } = await supabase.rpc('get_next_doc_number', { p_type: type });
+    if (error) throw error;
+    return data;
+  },
+
+
   // Customers
   getCustomers: async () => {
     const { data, error } = await supabase
@@ -292,12 +300,12 @@ export const realDb = {
     const { data, error } = await supabase
       .from('real_settings')
       .select('*')
-      .single();
-    // Default settings if none found
-    if (error && error.code === 'PGRST116') {
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
       return {
         company_name: 'My Agency',
-        pdf_theme: 'default',
+        pdf_theme: 'classic',
         quote_prefix: 'WL-Q-',
         quote_next_number: 1,
         invoice_prefix: 'WL-B-',
@@ -307,13 +315,12 @@ export const realDb = {
         gst_enabled: true
       };
     }
-    if (error) throw error;
     return data;
   },
   updateSettings: async (data) => {
     const { data: result, error } = await supabase
       .from('real_settings')
-      .upsert({ ...data, id: data.id || undefined }) // Assuming single settings row handles identity
+      .upsert(data, { onConflict: 'user_id' })
       .select()
       .single();
     if (error) throw error;

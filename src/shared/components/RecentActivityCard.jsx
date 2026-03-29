@@ -1,103 +1,83 @@
-import React from 'react';
+import { useMemo } from 'react';
 import { useDemoData } from '../../demo/context/DemoContext';
 import { openQuoteDetail } from '../../utils/quoteNav';
 import { openBookingDetail } from '../../utils/bookingNav';
-import { openCustomerProfile } from '../../utils/customerNav';
 
-const ICONS = {
-  quotes: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>
-    </svg>
-  ),
-  bookings: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
-      <polyline points="9 16 11 18 15 14"/>
-    </svg>
-  ),
-  customers: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
-    </svg>
-  ),
-};
+const QuoteIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>
+  </svg>
+);
 
-const BADGE_STYLE = {
-  draft:     { background: '#f1f5f9', color: '#64748b' },
-  sent:      { background: '#dbeafe', color: '#2563eb' },
-  converted: { background: '#f3e8ff', color: '#7c3aed' },
-  confirmed: { background: '#dcfce7', color: '#16a34a' },
-  rejected:  { background: '#fee2e2', color: '#dc2626' },
-  cancelled: { background: '#fee2e2', color: '#dc2626' },
-  completed: { background: '#dcfce7', color: '#16a34a' },
-};
+const BookingIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+    <polyline points="9 16 11 18 15 14"/>
+  </svg>
+);
 
-const ICON_CLASS = {
-  quotes_draft:     'ai-blue',
-  quotes_sent:      'ai-blue',
-  quotes_converted: 'ai-purple',
-  quotes_rejected:  'ai-orange',
-  bookings:         'ai-green',
-  customers:        'ai-orange',
+const BADGE = {
+  draft:     { bg: '#f3f4f6', color: '#6b7280' },
+  sent:      { bg: '#dbeafe', color: '#2563eb' },
+  approved:  { bg: '#dcfce7', color: '#16a34a' },
+  converted: { bg: '#f3e8ff', color: '#9333ea' },
+  rejected:  { bg: '#fee2e2', color: '#dc2626' },
+  confirmed: { bg: '#dcfce7', color: '#16a34a' },
+  completed: { bg: '#dcfce7', color: '#16a34a' },
+  cancelled: { bg: '#fee2e2', color: '#dc2626' },
 };
 
 const timeAgo = (isoStr) => {
   if (!isoStr) return '';
   const diff = Date.now() - new Date(isoStr).getTime();
   const mins = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
+  const hrs  = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  if (mins < 1) return 'Just now';
+  if (mins < 1)  return 'Just now';
   if (mins < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${days}d ago`;
+  if (hrs  < 24) return `${hrs}h ago`;
+  if (days < 7)  return `${days}d ago`;
+  return new Date(isoStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
 export const RecentActivityCard = () => {
-  const { activities, customers, quotes, bookings } = useDemoData();
+  const { quotes, bookings } = useDemoData();
 
-  const enrich = (item) => {
-    if (item.type === 'quotes') {
-      const q = quotes.find(q => q.uuid === item.referenceId);
-      return {
-        label: q ? (q.quoteNumber || q.id) : (item.title || '—'),
-        badge: q ? q.status : null,
-        customer: q ? q.customerName : '',
-        amount: q ? q.amount : '',
-        iconClass: ICON_CLASS[`quotes_${q?.status}`] || 'ai-blue',
-        onClick: () => { if (item.referenceId) openQuoteDetail(item.referenceId, 'dashboard'); },
-      };
-    }
-    if (item.type === 'bookings') {
-      const b = bookings.find(b => b.uuid === item.referenceId);
-      return {
-        label: b ? (b.bookingNumber || b.id) : (item.title || '—'),
-        badge: b ? b.status : 'confirmed',
-        customer: b ? b.customerName : '',
-        amount: b ? b.amount : '',
-        iconClass: 'ai-green',
-        onClick: () => { if (item.referenceId) openBookingDetail(item.referenceId, 'dashboard'); },
-      };
-    }
-    if (item.type === 'customers') {
-      const c = customers.find(c => c.id === item.referenceId);
-      return {
-        label: c ? c.name : (item.title || '—'),
-        badge: null,
-        customer: c ? (c.phone || c.email || '') : '',
-        amount: '',
-        iconClass: 'ai-orange',
-        onClick: () => { if (item.referenceId) openCustomerProfile(item.referenceId, 'dashboard'); },
-      };
-    }
-    return { label: item.title || '—', badge: null, customer: '', amount: '', iconClass: 'ai-blue', onClick: () => {} };
-  };
+  const items = useMemo(() => {
+    const all = [];
+
+    quotes.forEach(q => all.push({
+      key: q.uuid || q.id,
+      type: 'quotes',
+      refLabel: q.quoteNumber || q.id,
+      badge: q.status,
+      customer: q.customerName || '',
+      amount: q.amount || '',
+      ts: q.raw?.created_at || '',
+      iconClass: 'ai-blue',
+      onClick: () => openQuoteDetail(q.uuid, 'dashboard'),
+    }));
+
+    bookings.forEach(b => all.push({
+      key: b.uuid || b.id,
+      type: 'bookings',
+      refLabel: b.bookingNumber || b.id,
+      badge: null,
+      customer: b.customerName || '',
+      amount: b.amount || '',
+      ts: b.raw?.created_at || '',
+      iconClass: 'ai-green',
+      onClick: () => openBookingDetail(b.uuid, 'dashboard'),
+    }));
+
+    return all
+      .sort((a, b) => (b.ts ? new Date(b.ts).getTime() : 0) - (a.ts ? new Date(a.ts).getTime() : 0))
+      .slice(0, 10);
+  }, [quotes, bookings]);
 
   return (
     <div className="recent-activity-card">
@@ -105,44 +85,50 @@ export const RecentActivityCard = () => {
         <h3 className="activity-title">Recent Activity</h3>
         <p className="activity-subtitle">Latest quotes and bookings</p>
       </div>
-      <div className="activity-list" id="recentActivityList">
-        {activities.map((item, i) => {
-          const { label, badge, customer, amount, iconClass, onClick } = enrich(item);
-          const bs = badge ? (BADGE_STYLE[badge] || BADGE_STYLE.draft) : null;
+
+      <div className="activity-list">
+        {items.length === 0 ? (
+          <div style={{ padding: '40px 0', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+            No recent activity yet
+          </div>
+        ) : items.map(item => {
+          const bs = item.badge ? (BADGE[item.badge] || BADGE.draft) : null;
           return (
-            <div key={i} className="activity-item" onClick={onClick}>
-              <div className={`activity-icon-wrap ${iconClass}`}>
-                {ICONS[item.type] || ICONS.quotes}
+            <div key={item.key} className="activity-item" onClick={item.onClick}>
+              {/* Icon */}
+              <div className={`activity-icon-wrap ${item.iconClass}`}>
+                {item.type === 'bookings' ? <BookingIcon /> : <QuoteIcon />}
               </div>
 
-              {/* Middle — ref + badge + customer */}
+              {/* Middle: ref + badge / customer */}
               <div className="activity-details">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                  <span className="activity-ref">{label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap' }}>
+                  <span className="activity-ref">{item.refLabel}</span>
                   {bs && (
                     <span style={{
-                      fontSize: '0.68rem', fontWeight: 600,
-                      padding: '2px 7px', borderRadius: 4,
-                      background: bs.background, color: bs.color,
-                      textTransform: 'capitalize',
+                      fontSize: 11, fontWeight: 600,
+                      padding: '2px 8px', borderRadius: 20,
+                      background: bs.bg, color: bs.color,
+                      textTransform: 'capitalize', flexShrink: 0,
                     }}>
-                      {badge.charAt(0).toUpperCase() + badge.slice(1)}
+                      {item.badge.charAt(0).toUpperCase() + item.badge.slice(1)}
                     </span>
                   )}
                 </div>
-                {customer && (
-                  <div className="activity-customer">{customer}</div>
+                {item.customer && (
+                  <div className="activity-customer" style={{ marginTop: 2 }}>{item.customer}</div>
                 )}
               </div>
 
-              {/* Right — amount + time */}
+              {/* Right: amount / time */}
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                {amount && (
-                  <div className="activity-amount" style={{ marginBottom: 3 }}>{amount}</div>
+                {item.amount && (
+                  <div className="activity-amount">{item.amount}</div>
                 )}
-                <div className="activity-date">{timeAgo(item.createdAt)}</div>
+                <div className="activity-date" style={{ marginTop: 2 }}>{timeAgo(item.ts)}</div>
               </div>
 
+              {/* Chevron */}
               <div className="activity-arrow">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="9 18 15 12 9 6"/>

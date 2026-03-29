@@ -13,6 +13,7 @@ export const RealCreateVendorBill = ({ prefilledVendorId, onBack, onSuccess }) =
       prefilledVendorId={prefilledVendorId}
       onBack={onBack}
       onSuccess={onSuccess}
+      mode="real"
     />
   );
 };

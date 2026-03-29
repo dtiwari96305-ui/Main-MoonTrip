@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { VendorPaymentModal } from '../../components/vendor/VendorPaymentModal';
+import { Header } from '../../components/Header';
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
@@ -10,7 +11,7 @@ const MODE_LABELS = {
   cheque: 'Cheque',
 };
 
-export const VendorPaymentsList = ({ vendorPayments, vendorBills, vendors, addVendorPayment, onViewChange }) => {
+export const VendorPaymentsList = ({ vendorPayments, vendorBills, vendors, addVendorPayment, onViewChange, mode = 'demo' }) => {
   const [search, setSearch] = useState('');
   const [showPay, setShowPay] = useState(false);
 
@@ -29,16 +30,12 @@ export const VendorPaymentsList = ({ vendorPayments, vendorBills, vendors, addVe
 
   return (
     <div className="page-content">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Vendor Payments</h1>
-          <p className="page-subtitle">All payments made to vendors</p>
-        </div>
+      <Header title="Vendor Payments" subtitle="All payments made to vendors" showNewQuote={false} mode={mode}>
         <button className="btn-primary" onClick={() => setShowPay(true)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Record Payment
         </button>
-      </div>
+      </Header>
 
       {/* Stats */}
       <div className="stat-cards" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 24 }}>
@@ -120,6 +117,7 @@ export const VendorPaymentsList = ({ vendorPayments, vendorBills, vendors, addVe
           vendor={null}
           onSave={addVendorPayment}
           onClose={() => setShowPay(false)}
+          mode={mode}
         />
       )}
     </div>

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { AddVendorModal } from '../../components/vendor/AddVendorModal';
+import { Header } from '../../components/Header';
 
-export const VendorsList = ({ vendors, vendorBills, vendorPayments, addVendor, onViewChange }) => {
+export const VendorsList = ({ vendors, vendorBills, vendorPayments, addVendor, onViewChange, mode = 'demo' }) => {
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
 
@@ -19,23 +20,12 @@ export const VendorsList = ({ vendors, vendorBills, vendorPayments, addVendor, o
 
   return (
     <div className="page-content">
-      {/* Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.8 }}>
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
-            </svg>
-            Vendors
-          </h1>
-          <p className="page-subtitle">Manage your vendor directory</p>
-        </div>
+      <Header title="Vendors" subtitle="Manage your vendor directory" showNewQuote={false} mode={mode}>
         <button className="btn-primary" onClick={() => setShowAdd(true)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Vendor
         </button>
-      </div>
+      </Header>
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 24 }}>
@@ -116,6 +106,7 @@ export const VendorsList = ({ vendors, vendorBills, vendorPayments, addVendor, o
             setShowAdd(false);
             if (result) onViewChange('vendor-detail', result.id);
           }}
+          mode={mode}
         />
       )}
     </div>

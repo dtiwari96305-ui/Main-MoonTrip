@@ -13,6 +13,7 @@ export const CreateVendorBillPage = ({ prefilledVendorId, onBack, onSuccess }) =
       prefilledVendorId={prefilledVendorId}
       onBack={onBack}
       onSuccess={onSuccess}
+      mode="demo"
     />
   );
 };

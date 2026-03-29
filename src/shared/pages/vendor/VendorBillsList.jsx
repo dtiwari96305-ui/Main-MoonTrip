@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { VendorPaymentModal } from '../../components/vendor/VendorPaymentModal';
+import { Header } from '../../components/Header';
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
@@ -18,7 +19,7 @@ const STATUS_STYLE = {
   paid:    { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
 };
 
-export const VendorBillsList = ({ vendorBills, vendors, addVendorPayment, onViewChange }) => {
+export const VendorBillsList = ({ vendorBills, vendors, addVendorPayment, onViewChange, mode = 'demo' }) => {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [payModal, setPayModal] = useState(null);
@@ -39,14 +40,7 @@ export const VendorBillsList = ({ vendorBills, vendors, addVendorPayment, onView
 
   return (
     <div className="page-content">
-      {/* Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 24 }}>🧾</span> Vendor Bills
-          </h1>
-          <p className="page-subtitle">Manage vendor costs and payments</p>
-        </div>
+      <Header title="Vendor Bills" subtitle="Manage vendor costs and payments" showNewQuote={false} mode={mode}>
         <button
           className="btn-primary"
           style={{ background: '#ef4444', display: 'flex', alignItems: 'center', gap: 8 }}
@@ -55,7 +49,7 @@ export const VendorBillsList = ({ vendorBills, vendors, addVendorPayment, onView
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Vendor Invoice
         </button>
-      </div>
+      </Header>
 
       {/* Status Tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
@@ -173,6 +167,7 @@ export const VendorBillsList = ({ vendorBills, vendors, addVendorPayment, onView
           vendor={payModal.vendor}
           onSave={addVendorPayment}
           onClose={() => setPayModal(null)}
+          mode={mode}
         />
       )}
     </div>

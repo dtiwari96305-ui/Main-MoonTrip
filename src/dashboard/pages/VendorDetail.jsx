@@ -13,6 +13,7 @@ export const RealVendorDetail = ({ vendorId, onBack, onViewChange }) => {
       addVendorPayment={addVendorPayment}
       onBack={onBack}
       onViewChange={onViewChange}
+      mode="real"
     />
   );
 };

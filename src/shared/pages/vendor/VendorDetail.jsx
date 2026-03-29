@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { VendorPaymentModal } from '../../components/vendor/VendorPaymentModal';
+import { Header } from '../../components/Header';
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
@@ -15,7 +16,7 @@ const STATUS_COLORS = {
   paid: { bg: 'rgba(74,222,128,0.15)', color: '#4ade80' },
 };
 
-export const VendorDetail = ({ vendorId, vendors, vendorBills, vendorPayments, addVendorPayment, onBack, onViewChange }) => {
+export const VendorDetail = ({ vendorId, vendors, vendorBills, vendorPayments, addVendorPayment, onBack, onViewChange, mode = 'demo' }) => {
   const [payModal, setPayModal] = useState(null); // bill to pay
 
   const vendor = vendors.find(v => v.id === vendorId);
@@ -45,17 +46,12 @@ export const VendorDetail = ({ vendorId, vendors, vendorBills, vendorPayments, a
     <div className="page-content">
       <button className="back-btn" onClick={onBack}>← Back to Vendors</button>
 
-      {/* Header */}
-      <div className="page-header" style={{ marginTop: 16 }}>
-        <div>
-          <h1 className="page-title">{vendor.name}</h1>
-          {vendor.notes && <p className="page-subtitle">{vendor.notes}</p>}
-        </div>
+      <Header title={vendor.name} subtitle={vendor.notes || 'Vendor ledger'} showNewQuote={false} mode={mode}>
         <button className="btn-primary" onClick={() => onViewChange('create-vendor-bill', vendor.id)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           New Bill
         </button>
-      </div>
+      </Header>
 
       {/* Info cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
@@ -155,6 +151,7 @@ export const VendorDetail = ({ vendorId, vendors, vendorBills, vendorPayments, a
           vendor={vendor}
           onSave={addVendorPayment}
           onClose={() => setPayModal(null)}
+          mode={mode}
         />
       )}
     </div>
