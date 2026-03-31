@@ -145,8 +145,9 @@ export const DataProvider = ({ children }) => {
         quoteNumber: item.quote_number,
         customerName: item.real_customers?.full_name || 'Unknown',
         customerPhone: item.real_customers?.phone || '',
-        destName: item.destination,
+        destName: item.destination || '',
         destType: item.destination_type,
+        quoteType: item.quote_type || 'detailed',
         amount: formatINR(item.total_payable || item.total_cost),
         profit: formatINR(item.total_profit),
         status: item.status,
@@ -169,6 +170,11 @@ export const DataProvider = ({ children }) => {
         remaining: item.amount_pending > 0 ? formatINR(item.amount_pending) : '—',
         status: item.booking_status,
         date: new Date(item.booked_at || item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        travelDate: item.departure_date ? new Date(item.departure_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+        returnDate: item.return_date ? new Date(item.return_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+        departureDateRaw: item.departure_date || null,
+        returnDateRaw: item.return_date || null,
+        pax: item.pax,
         raw: item
       })));
 
@@ -549,24 +555,32 @@ export const DataProvider = ({ children }) => {
     const quoteNum = await realDb.getNextDocNumber('quote').catch(() => `WL-Q-${Date.now()}`);
     const payload = {
       quote_number: quoteNum,
-      customer_id: data.customerId,
+      customer_id: data.customerUuid || data.customerId || null,
       status: data.status || 'draft',
-      destination: data.destName,
-      destination_type: data.destType,
-      total_cost: parseINR(data.amount),
-      margin: parseINR(data.profit),
-      total_payable: parseINR(data.amount),
-      departure_date: data.tripDate
+      destination: data.destination || data.destName || '',
+      destination_type: data.destType || 'domestic',
+      total_cost: parseINR(data.amount || data.totalQuoteAmount || 0),
+      margin: parseINR(data.profit || data.marginAmount || 0),
+      total_payable: parseINR(data.amount || data.totalQuoteAmount || 0),
+      departure_date: data.travelDate || data.tripDate || null,
+      quote_type: data.quoteType || 'detailed',
     };
-    const result = await realDb.createQuote(payload);
-    await logActivity({
-      type: 'quote',
-      action: 'created',
-      message: `Quote ${result.quote_number} created`,
-      id: result.id
-    });
-    return { ...result, id: result.quote_number, uuid: result.id };
-  }, [logActivity]);
+    try {
+      const result = await realDb.createQuote(payload);
+      await logActivity({
+        type: 'quote',
+        action: 'created',
+        message: `Quote ${result.quote_number} created`,
+        id: result.id
+      });
+      await refreshData();
+      return { ...result, id: result.quote_number, uuid: result.id };
+    } catch (err) {
+      console.error('addQuote failed:', err);
+      alert(`Failed to save quote: ${err.message}`);
+      throw err;
+    }
+  }, [logActivity, refreshData]);
 
   const updateQuote = useCallback(async (id, updates) => {
     const quote = quotes.find(q => q.id === id);
@@ -615,8 +629,14 @@ export const DataProvider = ({ children }) => {
     try {
       const booking = bookings.find(b => b.id === id);
       if (!booking) return;
-      const result = await realDb.updateBooking(booking.uuid, updates);
-      refreshData();
+      // Map frontend field names to DB column names
+      const dbUpdates = { ...updates };
+      if ('status' in dbUpdates) {
+        dbUpdates.booking_status = dbUpdates.status;
+        delete dbUpdates.status;
+      }
+      const result = await realDb.updateBooking(booking.uuid, dbUpdates);
+      await refreshData();
       return result;
     } catch (err) {
       console.error('DataContext: updateBooking failed', err);
@@ -745,8 +765,16 @@ export const DataProvider = ({ children }) => {
       // 1. Mark quote as converted
       await realDb.updateQuote(quote.uuid, { status: 'converted' });
 
-      // 2. Create booking — copy all relevant fields from quote
-      const bookingNum = await realDb.getNextDocNumber('booking').catch(() => `WL-B-${Date.now()}`);
+      // 2. Generate booking number — fallback to timestamp if RPC fails
+      let bookingNum;
+      try {
+        bookingNum = await realDb.getNextDocNumber('booking');
+      } catch (numErr) {
+        console.warn('getNextDocNumber(booking) failed, using fallback:', numErr.message);
+        bookingNum = `WL-B-${Date.now()}`;
+      }
+
+      // 3. Create booking — copy all relevant fields from quote
       const totalPayable = Number(raw.total_payable) || parseINR(quote.amount);
       const bookingPayload = {
         booking_number: bookingNum,
@@ -764,7 +792,8 @@ export const DataProvider = ({ children }) => {
         booking_status: 'confirmed',
         payment_status: 'unpaid',
         pax: customerEdits.travelers || Number(raw.pax) || 1,
-        departure_date: raw.departure_date,
+        departure_date: raw.departure_date || null,
+        return_date: raw.return_date || raw.returnDate || null,
         services: raw.services || raw.itinerary?.services || null,
         itinerary: raw.itinerary || null,
         gst_amount: Number(raw.gst_amount) || 0,
@@ -773,9 +802,17 @@ export const DataProvider = ({ children }) => {
       };
       const booking = await realDb.createBooking(bookingPayload);
 
-      // 3. Create invoice — use 'invoice' doc number type
+      // 4. Generate invoice number — fallback to timestamp if RPC fails
+      let invoiceNum;
+      try {
+        invoiceNum = await realDb.getNextDocNumber('invoice');
+      } catch (numErr) {
+        console.warn('getNextDocNumber(invoice) failed, using fallback:', numErr.message);
+        invoiceNum = `INV-${Date.now()}`;
+      }
+
+      // 5. Create invoice
       const invoiceValue = customerEdits.invoiceValue || totalPayable;
-      const invoiceNum = await realDb.getNextDocNumber('invoice').catch(() => `INV-${Date.now()}`);
       const invoicePayload = {
         invoice_number: invoiceNum,
         customer_id: raw.customer_id,
@@ -787,7 +824,7 @@ export const DataProvider = ({ children }) => {
       };
       const invoice = await realDb.createInvoice(invoicePayload);
 
-      // 4. Create hidden markup entry if Pure Agent billing
+      // 6. Create hidden markup entry if Pure Agent billing
       if ((raw.billing_model || 'pure-agent') === 'pure-agent' && Number(raw.margin) > 0) {
         try {
           await supabase.from('real_hidden_markup_entries').insert({
@@ -811,7 +848,9 @@ export const DataProvider = ({ children }) => {
       await refreshData();
       return { booking, invoice };
     } catch (err) {
-      console.error('DataContext: convertQuote failed', err);
+      console.error('DataContext: convertQuote failed:', err);
+      console.error('Error details:', err.message, err.code, err.details, err.hint);
+      alert(`Quote conversion failed: ${err.message || 'Unknown error. Check browser console for details.'}`);
       return null;
     }
   }, [quotes, logActivity, refreshData]);

@@ -23,7 +23,7 @@ const ModeIcon = ({ mode }) => {
 };
 
 // ─── Main Component ────────────────────────────────────────────────────────
-export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null, customers = [], onSave }) => {
+export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null, customers = [], bookings = [], onSave }) => {
   const [step, setStep] = useState('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -100,7 +100,12 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
     setNotes('');
   };
 
-  const myBookings = selectedCustomer ? (pendingBookings[selectedCustomer.name] || []) : [];
+  const myBookings = selectedCustomer
+    ? bookings.filter(b =>
+        b.customerName === selectedCustomer.name &&
+        b.status !== 'cancelled' && b.status !== 'completed'
+      )
+    : [];
 
   const modeOptions = [
     { value: 'cash',   label: 'Cash' },

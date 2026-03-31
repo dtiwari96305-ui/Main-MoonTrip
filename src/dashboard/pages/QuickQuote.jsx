@@ -56,7 +56,7 @@ const SectionCard = ({ num, title, children }) => (
 );
 
 export const RealQuickQuote = ({ onViewChange }) => {
-  const { customers = [], createQuote } = useData();
+  const { customers = [], addQuote } = useData();
 
   const [customerSearch, setCustomerSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -121,10 +121,11 @@ export const RealQuickQuote = ({ onViewChange }) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      if (createQuote) {
-        await createQuote({
+      if (addQuote) {
+        await addQuote({
           quoteType: 'quick',
-          customerId: selectedCustomer?.id,
+          customerId: selectedCustomer?.uuid || selectedCustomer?.id,
+          customerUuid: selectedCustomer?.uuid,
           customerName: selectedCustomer?.name || '',
           destType, destination, pax, travelDate, returnDate, duration,
           services, billingModel, pricingMode,
