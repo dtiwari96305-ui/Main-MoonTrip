@@ -9,6 +9,7 @@ import { ConfirmDeleteModal } from '../components/ConfirmDeleteModal';
 import { ConvertToBookingModal } from '../components/ConvertToBookingModal';
 import { buildEditFormData } from '../../shared/utils/buildEditFormData';
 import { useData } from '../context/DataContext';
+import { QuoteTypeModal } from '../../shared/components/QuoteTypeModal';
 
 const QUOTES_COLUMNS = [
   { header: 'Quote #',      key: 'id' },
@@ -23,19 +24,22 @@ const QUOTES_COLUMNS = [
 export const RealQuotes = ({ onViewChange }) => {
   const { quotes, customers, settings, updateQuote, deleteQuote, convertQuote, getQuoteDetail } = useData();
   const [activeFilter, setActiveFilter] = useState('all');
+  const [activeTypeFilter, setActiveTypeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [convertTarget, setConvertTarget] = useState(null); // quoteId for ConvertToBookingModal
+  const [convertTarget, setConvertTarget] = useState(null);
+  const [showTypeModal, setShowTypeModal] = useState(false);
 
   const filteredQuotes = quotes.filter(q => {
     const matchesFilter = activeFilter === 'all' || q.status === activeFilter;
+    const matchesType   = activeTypeFilter === 'all' || (q.quoteType || q.type || 'detailed') === activeTypeFilter;
     const matchesSearch = searchQuery === '' ||
       q.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       q.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       q.destName.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
+    return matchesFilter && matchesType && matchesSearch;
   });
 
   const handleAction = (actionType, quoteId) => {
@@ -77,6 +81,7 @@ export const RealQuotes = ({ onViewChange }) => {
   const handleRefresh = () => {
     setSearchQuery('');
     setActiveFilter('all');
+    setActiveTypeFilter('all');
     setIsRefreshing(true);
     setTimeout(() => {
       setRefreshKey(prev => prev + 1);
@@ -100,12 +105,14 @@ export const RealQuotes = ({ onViewChange }) => {
       <Header
         title="Quotes"
         subtitle={`${filteredQuotes.length} quotation${filteredQuotes.length !== 1 ? 's' : ''}`}
-        onNewQuote={() => onViewChange && onViewChange('create-quote')}
+        onNewQuote={() => setShowTypeModal(true)}
       />
 
       <QuotesSearchBar
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
+        activeTypeFilter={activeTypeFilter}
+        onTypeFilterChange={setActiveTypeFilter}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onRefresh={handleRefresh}
@@ -161,6 +168,20 @@ export const RealQuotes = ({ onViewChange }) => {
           customers={customers}
           onAccept={handleConvertAccept}
           onDecline={() => setConvertTarget(null)}
+        />
+      )}
+
+      {showTypeModal && (
+        <QuoteTypeModal
+          onClose={() => setShowTypeModal(false)}
+          onContinue={(type) => {
+            setShowTypeModal(false);
+            if (type === 'quick') {
+              onViewChange && onViewChange('quick-quote');
+            } else {
+              onViewChange && onViewChange('create-quote');
+            }
+          }}
         />
       )}
     </div>

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>Turidoo — Travel Agency Software</title>
+  </head>
+  <body>
+    <div id="root">
+      <div style="padding: 20px; text-align: center; font-family: sans-serif;">
+        <h2 style="color: #22c55e;">Turidoo is Loading...</h2>
+        <p>If you see this message for more than 5 seconds, please check your browser console for errors (Right-click > Inspect > Console).</p>
+        <p>Current Port: <span id="current-port"></span></p>
+        <script>
+          document.getElementById('current-port').textContent = window.location.port || '80';
+        </script>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

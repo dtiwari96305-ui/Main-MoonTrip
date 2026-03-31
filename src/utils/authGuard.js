@@ -1,6 +1,2 @@
-// Migrated from: [scaffolding] — zero visual or behavioral changes
-// ProtectedRoute wrapper (shell only)
-
-export const AuthGuard = ({ children }) => {
-  return children;
-};
+// Re-export from shared utils — single source of truth
+export { AuthGuard } from '../shared/utils/authGuard';

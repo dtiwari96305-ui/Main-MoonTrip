@@ -12,6 +12,7 @@ import { SalesInvoices } from '../../pages/SalesInvoices';
 import { Settings } from '../../pages/Settings';
 import { Accounts } from '../../pages/Accounts';
 import { CreateQuote } from '../../pages/CreateQuote';
+import { QuickQuote } from '../../pages/QuickQuote';
 import { CustomerProfile } from '../../pages/CustomerProfile';
 import { QuoteDetail } from '../../pages/QuoteDetail';
 import { PageSkeleton } from '../../shared/components/PageSkeleton';
@@ -186,6 +187,7 @@ export const DemoRouter = ({ onSwitchMode }) => {
                 {activeView === 'customers' && <Customers />}
                 {activeView === 'quotes' && <Quotes onViewChange={handleViewChange} />}
                 {activeView === 'create-quote' && <CreateQuote onViewChange={handleViewChange} prefilledCustomer={createQuoteCustomer} editQuote={editQuoteData} />}
+                {activeView === 'quick-quote' && <QuickQuote onViewChange={handleViewChange} />}
                 {activeView === 'bookings' && <Bookings />}
                 {activeView === 'booking-detail' && (
                   <BookingDetail

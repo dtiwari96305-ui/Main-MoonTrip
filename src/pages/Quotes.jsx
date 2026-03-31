@@ -6,6 +6,7 @@ import { buildEditFormData } from '../shared/utils/buildEditFormData';
 import { useDemoPopup, useDemoData } from '../context/DemoContext';
 import { TableSkeleton } from '../shared/components/PageSkeleton';
 import { ExportDropdown } from '../shared/components/ExportDropdown';
+import { QuoteTypeModal } from '../shared/components/QuoteTypeModal';
 
 const QUOTES_COLUMNS = [
   { header: 'Quote #',      key: 'id' },
@@ -21,9 +22,11 @@ export const Quotes = ({ onViewChange }) => {
   const triggerDemoPopup = useDemoPopup();
   const { quotes, updateQuote, convertQuote, customers, quoteDetailData } = useDemoData();
   const [activeFilter, setActiveFilter] = useState(() => sessionStorage.getItem('quotes_activeFilter') || 'all');
+  const [activeTypeFilter, setActiveTypeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
 
   // Persist filter changes
   useEffect(() => {
@@ -54,16 +57,18 @@ export const Quotes = ({ onViewChange }) => {
 
   const filteredQuotes = quotes.filter(q => {
     const matchesFilter = activeFilter === 'all' || q.status === activeFilter;
-    const matchesSearch = searchQuery === '' || 
+    const matchesType   = activeTypeFilter === 'all' || (q.quoteType || q.type || 'detailed') === activeTypeFilter;
+    const matchesSearch = searchQuery === '' ||
       q.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       q.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       q.destName.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
+    return matchesFilter && matchesType && matchesSearch;
   });
 
   const handleRefresh = () => {
     setSearchQuery('');
     setActiveFilter('all');
+    setActiveTypeFilter('all');
     setIsRefreshing(true);
     setTimeout(() => {
       setRefreshKey(prev => prev + 1);
@@ -76,12 +81,14 @@ export const Quotes = ({ onViewChange }) => {
       <Header
         title="Quotes"
         subtitle={`${filteredQuotes.length} quotation${filteredQuotes.length !== 1 ? 's' : ''}`}
-        onNewQuote={() => onViewChange && onViewChange('create-quote')}
+        onNewQuote={() => setShowTypeModal(true)}
       />
 
       <QuotesSearchBar
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
+        activeTypeFilter={activeTypeFilter}
+        onTypeFilterChange={setActiveTypeFilter}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onRefresh={handleRefresh}
@@ -113,6 +120,20 @@ export const Quotes = ({ onViewChange }) => {
           <h3 className="empty-state-title">No quotes found</h3>
           <p className="empty-state-desc">Try adjusting your filters or search.</p>
         </div>
+      )}
+
+      {showTypeModal && (
+        <QuoteTypeModal
+          onClose={() => setShowTypeModal(false)}
+          onContinue={(type) => {
+            setShowTypeModal(false);
+            if (type === 'quick') {
+              onViewChange && onViewChange('quick-quote');
+            } else {
+              onViewChange && onViewChange('create-quote');
+            }
+          }}
+        />
       )}
     </div>
   );

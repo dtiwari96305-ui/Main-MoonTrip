@@ -75,6 +75,39 @@ export const Sidebar = ({
             const isAccountActive = accountViews.includes(activeView);
             return (
               <React.Fragment key="accounts-vendors-group">
+                {/* ── Vendors collapsible group ── */}
+                <button
+                  className={`nav-item nav-group-parent${isVendorActive ? ' active' : ''}`}
+                  onClick={() => setVendorsOpen(o => !o)}
+                  style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                  <span>Vendors</span>
+                  <svg
+                    width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                    style={{ marginLeft: 'auto', transition: 'transform 0.2s', transform: vendorsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  >
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+                {vendorsOpen && (
+                  <div className="nav-group-children">
+                    {[
+                      { id: 'vendors-bills', label: 'Bills' },
+                      { id: 'vendors-payments', label: 'Payments' },
+                      { id: 'vendors-list', label: 'Vendors' },
+                    ].map(child => (
+                      <a
+                        key={child.id}
+                        href="#"
+                        onClick={(e) => { e.preventDefault(); onViewChange(child.id); }}
+                        className={`nav-item nav-child${activeView === child.id ? ' active' : ''}`}
+                      >
+                        <span>{child.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
                 {/* ── Accounts collapsible group ── */}
                 <button
                   className={`nav-item nav-group-parent${isAccountActive ? ' active' : ''}`}
@@ -100,39 +133,6 @@ export const Sidebar = ({
                       { id: 'accounts-reports', label: 'Reports' },
                       { id: 'accounts-coa', label: 'Chart of Accounts' },
                       { id: 'accounts-journal', label: 'Journal Entries' },
-                    ].map(child => (
-                      <a
-                        key={child.id}
-                        href="#"
-                        onClick={(e) => { e.preventDefault(); onViewChange(child.id); }}
-                        className={`nav-item nav-child${activeView === child.id ? ' active' : ''}`}
-                      >
-                        <span>{child.label}</span>
-                      </a>
-                    ))}
-                  </div>
-                )}
-                {/* ── Vendors collapsible group ── */}
-                <button
-                  className={`nav-item nav-group-parent${isVendorActive ? ' active' : ''}`}
-                  onClick={() => setVendorsOpen(o => !o)}
-                  style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                  <span>Vendors</span>
-                  <svg
-                    width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                    style={{ marginLeft: 'auto', transition: 'transform 0.2s', transform: vendorsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  >
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                </button>
-                {vendorsOpen && (
-                  <div className="nav-group-children">
-                    {[
-                      { id: 'vendors-bills', label: 'Bills' },
-                      { id: 'vendors-payments', label: 'Payments' },
-                      { id: 'vendors-list', label: 'Vendors' },
                     ].map(child => (
                       <a
                         key={child.id}

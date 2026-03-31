@@ -467,8 +467,9 @@ export const SignUp = ({ onSuccess, onSignIn, onDemo }) => {
               Already have an account?{' '}
               <span className="auth-link" onClick={onSignIn}>Sign in</span>
             </div>
-            <div className="auth-bottom-links" style={{ marginTop: 4 }}>
-              <span className="auth-link" style={{ color: '#6b7280', fontWeight: 400 }} onClick={onDemo}>View as Guest</span>
+            <div style={{ textAlign: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>Just exploring? </span>
+              <span className="auth-link" style={{ fontSize: 13, fontWeight: 500 }} onClick={onDemo}>View Demo Dashboard &rarr;</span>
             </div>
           </>
         )}
@@ -505,8 +506,9 @@ export const SignUp = ({ onSuccess, onSignIn, onDemo }) => {
               Already have an account?{' '}
               <span className="auth-link" onClick={onSignIn}>Sign in</span>
             </div>
-            <div className="auth-bottom-links" style={{ marginTop: 4 }}>
-              <span className="auth-link" style={{ color: '#6b7280', fontWeight: 400 }} onClick={onDemo}>View as Guest</span>
+            <div style={{ textAlign: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>Just exploring? </span>
+              <span className="auth-link" style={{ fontSize: 13, fontWeight: 500 }} onClick={onDemo}>View Demo Dashboard &rarr;</span>
             </div>
           </>
         )}
@@ -574,8 +576,9 @@ export const SignUp = ({ onSuccess, onSignIn, onDemo }) => {
               Already have an account?{' '}
               <span className="auth-link" onClick={onSignIn}>Sign in</span>
             </div>
-            <div className="auth-bottom-links" style={{ marginTop: 4 }}>
-              <span className="auth-link" style={{ color: '#6b7280', fontWeight: 400 }} onClick={onDemo}>View as Guest</span>
+            <div style={{ textAlign: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>Just exploring? </span>
+              <span className="auth-link" style={{ fontSize: 13, fontWeight: 500 }} onClick={onDemo}>View Demo Dashboard &rarr;</span>
             </div>
           </>
         )}

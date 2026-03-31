@@ -112,7 +112,8 @@ export const demoDb = {
     const { data, error } = await supabase
       .from('demo_activity_log')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(50);
     if (error) throw error;
     return data;
   },

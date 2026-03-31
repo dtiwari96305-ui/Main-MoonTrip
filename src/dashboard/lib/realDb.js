@@ -8,13 +8,75 @@ export const realDb = {
     return data;
   },
 
+  // ── Nomenclature / Document Sequences ──
+  hasNomenclatureSetup: async () => {
+    const { data, error } = await supabase.rpc('has_nomenclature_setup');
+    if (error) {
+      // If function doesn't exist yet, fall back to direct query
+      const { data: rows, error: qErr } = await supabase
+        .from('real_document_sequences')
+        .select('id')
+        .limit(1);
+      if (qErr) return false;
+      return rows && rows.length > 0;
+    }
+    return data;
+  },
+
+  getDocumentSequences: async () => {
+    const { data, error } = await supabase
+      .from('real_document_sequences')
+      .select('*')
+      .order('document_type');
+    if (error) throw error;
+    return data || [];
+  },
+
+  saveDocumentSequences: async (sequences) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const rows = sequences.map(s => ({
+      user_id: user.id,
+      document_type: s.document_type,
+      prefix: s.prefix,
+      suffix: s.suffix,
+      current_number: s.current_number,
+      padding: s.padding,
+      updated_at: new Date().toISOString(),
+    }));
+
+    const { data, error } = await supabase
+      .from('real_document_sequences')
+      .upsert(rows, { onConflict: 'user_id,document_type' })
+      .select();
+    if (error) throw error;
+    return data;
+  },
+
+  updateDocumentSequence: async (documentType, updates) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('real_document_sequences')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .eq('document_type', documentType)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
 
   // Customers
   getCustomers: async () => {
     const { data, error } = await supabase
       .from('real_customers')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data;
   },
@@ -44,13 +106,14 @@ export const realDb = {
       .eq('id', id);
     if (error) throw error;
   },
-  
+
   // Quotes
   getQuotes: async () => {
     const { data, error } = await supabase
       .from('real_quotes')
       .select('*, real_customers(*)')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data;
   },
@@ -80,13 +143,14 @@ export const realDb = {
       .eq('id', id);
     if (error) throw error;
   },
-  
+
   // Bookings
   getBookings: async () => {
     const { data, error } = await supabase
       .from('real_bookings')
       .select('*, real_customers(*)')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data;
   },
@@ -116,13 +180,14 @@ export const realDb = {
       .eq('id', id);
     if (error) throw error;
   },
-  
+
   // Payments
   getPayments: async () => {
     const { data, error } = await supabase
       .from('real_payments')
       .select('*, real_customers(*)')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data;
   },
@@ -145,13 +210,14 @@ export const realDb = {
     if (error) throw error;
     return result;
   },
-  
-  // Activity Log
+
+  // Activity Log — limited to 100 most recent entries
   getLogs: async () => {
     const { data, error } = await supabase
       .from('real_activity_log')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(100);
     if (error) throw error;
     return data;
   },
@@ -168,13 +234,14 @@ export const realDb = {
       .eq('is_read', false);
     if (error) throw error;
   },
-  
+
   // Sales Invoices
   getInvoices: async () => {
     const { data, error } = await supabase
       .from('real_sales_invoices')
       .select('*, real_customers(*)')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data;
   },
@@ -197,13 +264,14 @@ export const realDb = {
     if (error) throw error;
     return result;
   },
-  
+
   // Vendors
   getVendors: async () => {
     const { data, error } = await supabase
       .from('real_vendors')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data;
   },
@@ -232,7 +300,8 @@ export const realDb = {
     const { data, error } = await supabase
       .from('real_vendor_bills')
       .select('*, real_vendors(*), real_bookings(booking_number)')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data;
   },
@@ -261,7 +330,8 @@ export const realDb = {
     const { data, error } = await supabase
       .from('real_vendor_payments')
       .select('*, real_vendors(*), real_vendor_bills(bill_number)')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data;
   },
@@ -281,7 +351,8 @@ export const realDb = {
       .from('real_advance_ledger')
       .select('*')
       .eq('customer_id', customerId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(200);
     if (error) throw error;
     return data;
   },
@@ -294,7 +365,7 @@ export const realDb = {
     if (error) throw error;
     return result;
   },
-  
+
   // Settings
   getSettings: async () => {
     const { data, error } = await supabase
@@ -326,13 +397,14 @@ export const realDb = {
     if (error) throw error;
     return result;
   },
-  
+
   // Team
   getTeamMembers: async () => {
     const { data, error } = await supabase
       .from('real_team_members')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(100);
     if (error) throw error;
     return data;
   },
@@ -368,7 +440,8 @@ export const realDb = {
     const { data, error } = await supabase
       .from('real_chart_of_accounts')
       .select('*')
-      .order('code', { ascending: true });
+      .order('code', { ascending: true })
+      .limit(500);
     if (error) throw error;
     return data || [];
   },
@@ -397,7 +470,8 @@ export const realDb = {
     const { data, error } = await supabase
       .from('real_journal_entries')
       .select('*')
-      .order('date', { ascending: false });
+      .order('date', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data || [];
   },
@@ -431,7 +505,8 @@ export const realDb = {
     const { data, error } = await supabase
       .from('real_bank_accounts')
       .select('*')
-      .order('is_default', { ascending: false });
+      .order('is_default', { ascending: false })
+      .limit(50);
     if (error) throw error;
     return data || [];
   },
@@ -460,7 +535,8 @@ export const realDb = {
     const { data, error } = await supabase
       .from('real_general_entries')
       .select('*')
-      .order('date', { ascending: false });
+      .order('date', { ascending: false })
+      .limit(500);
     if (error) throw error;
     return data || [];
   },

@@ -8,6 +8,7 @@ import { TopCustomersCard } from '../shared/components/TopCustomersCard';
 import { QuickActions } from '../components/QuickActions';
 import { drawRevenueChart, drawBookingsChart } from '../shared/utils/chartUtils';
 import { useDemoData } from '../context/DemoContext';
+import { QuoteTypeModal } from '../shared/components/QuoteTypeModal';
 
 const ChartPeriodSelect = ({ id, onChangeMonths }) => {
   const [open, setOpen] = useState(false);
@@ -56,6 +57,7 @@ export const Dashboard = ({ onViewChange }) => {
   const bookTooltipRef = useRef(null);
   const [revMonths, setRevMonths] = useState(6);
   const [bookMonths, setBookMonths] = useState(6);
+  const [showTypeModal, setShowTypeModal] = useState(false);
   const { quotes, bookings, customers } = useDemoData();
 
   const activeBookingsCount = bookings.filter(b => b.status === 'in_progress' || b.status === 'confirmed').length;
@@ -85,7 +87,7 @@ export const Dashboard = ({ onViewChange }) => {
           title="Dashboard"
           subtitle="Welcome back! Here's your business overview."
           showDateFilter={true}
-          onNewQuote={() => onViewChange && onViewChange('create-quote')}
+          onNewQuote={() => setShowTypeModal(true)}
         />
       </div>
 
@@ -180,6 +182,16 @@ export const Dashboard = ({ onViewChange }) => {
       <div className="dash-section-anim" style={{ animationDelay: '600ms' }}>
         <QuickActions onViewChange={onViewChange} />
       </div>
+
+      {showTypeModal && (
+        <QuoteTypeModal
+          onClose={() => setShowTypeModal(false)}
+          onContinue={(type) => {
+            setShowTypeModal(false);
+            onViewChange && onViewChange('create-quote', { quoteType: type });
+          }}
+        />
+      )}
     </div>
   );
 };

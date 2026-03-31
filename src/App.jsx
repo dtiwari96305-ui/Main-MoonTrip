@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './shared/lib/supabase';
-import { LandingScreen } from './pages/LandingScreen';
+import HomePage from './home/HomePage';
+import GuidesPage from './home/GuidesPage';
 import { SignIn } from './auth/pages/SignIn';
 import { SignUp } from './auth/pages/SignUp';
 import { ForgotPassword } from './auth/pages/ForgotPassword';
@@ -13,14 +14,17 @@ function App() {
   // Possible modes: null | 'signin' | 'signup' | 'forgot' | 'demo' | 'real'
   const [appMode, setAppMode]       = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [isLoggedIn, setIsLoggedIn]   = useState(false);
 
   /* ── On mount: check existing Supabase session ─────────── */
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        setIsLoggedIn(true);
         sessionStorage.setItem('appMode', 'real');
         setAppMode('real');
       } else {
+        setIsLoggedIn(false);
         const stored = sessionStorage.getItem('appMode');
         if (stored === 'demo') {
           setAppMode('demo');
@@ -34,9 +38,13 @@ function App() {
     /* Listen for auth state changes */
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
         clearDemoSession();
         sessionStorage.removeItem('appMode');
         setAppMode(null);
+      }
+      if (event === 'SIGNED_IN') {
+        setIsLoggedIn(true);
       }
       if (event === 'PASSWORD_RECOVERY') {
         // User landed from reset link — keep them on forgot flow
@@ -61,6 +69,7 @@ function App() {
     await supabase.auth.signOut();
     clearDemoSession();
     sessionStorage.removeItem('appMode');
+    setIsLoggedIn(false);
     setAppMode(null);
   };
 
@@ -112,13 +121,30 @@ function App() {
     );
   }
 
-  /* ── Landing screen (no auth) ──────────────────────────── */
+  /* ── Guides page ────────────────────────────────────────── */
+  if (appMode === 'guides') {
+    return (
+      <GuidesPage
+        onLogin={() => goTo('signin')}
+        onSignUp={() => goTo('signup')}
+        onHome={() => goTo(null)}
+        onGuides={() => goTo('guides')}
+        isLoggedIn={isLoggedIn}
+        onDashboard={() => goTo('real')}
+      />
+    );
+  }
+
+  /* ── Home page (no auth) ───────────────────────────────── */
   if (!appMode) {
     return (
-      <LandingScreen
-        onDemo={() => goTo('demo')}
-        onSignIn={() => goTo('signin')}
+      <HomePage
+        onLogin={() => goTo('signin')}
         onSignUp={() => goTo('signup')}
+        onDemo={() => goTo('demo')}
+        onGuides={() => goTo('guides')}
+        isLoggedIn={isLoggedIn}
+        onDashboard={() => goTo('real')}
       />
     );
   }

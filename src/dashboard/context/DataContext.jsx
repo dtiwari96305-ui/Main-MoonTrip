@@ -98,6 +98,7 @@ export const DataProvider = ({ children }) => {
   const [vendors, setVendors] = useState([]);
   const [vendorBills, setVendorBills] = useState([]);
   const [vendorPayments, setVendorPayments] = useState([]);
+  const [nomenclatureReady, setNomenclatureReady] = useState(null); // null = loading, true/false
   const [bankAccounts, setBankAccounts] = useState([]);
   const [generalEntries, setGeneralEntries] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
@@ -164,7 +165,7 @@ export const DataProvider = ({ children }) => {
         amount: formatINR(item.total_payable || item.total_cost),
         profit: formatINR(item.total_profit),
         paymentStatus: item.payment_status,
-        paymentText: `${formatINR(item.amount_paid)} / ${formatINR(item.total_cost)}`,
+        paymentText: `${formatINR(item.amount_paid)} / ${formatINR(item.total_payable || item.total_cost)}`,
         remaining: item.amount_pending > 0 ? formatINR(item.amount_pending) : '—',
         status: item.booking_status,
         date: new Date(item.booked_at || item.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -340,9 +341,16 @@ export const DataProvider = ({ children }) => {
       })));
 
     } catch (err) {
-      // handle refresh failure
+      console.error('DataContext: refreshData failed', err);
     } finally {
       setLoading(false);
+      // Check if nomenclature has been set up
+      try {
+        const hasSetup = await realDb.hasNomenclatureSetup();
+        setNomenclatureReady(hasSetup);
+      } catch {
+        setNomenclatureReady(false);
+      }
     }
   }, []);
 
@@ -409,7 +417,7 @@ export const DataProvider = ({ children }) => {
         localStorage.setItem('moontrip_supabase_migrated', 'true');
         // migration complete
       } catch (err) {
-        // handle migration failure
+        console.error('DataContext: migration failed', err);
       }
       refreshData();
     };
@@ -436,6 +444,13 @@ export const DataProvider = ({ children }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'real_vendor_bills' }, debouncedRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'real_vendor_payments' }, debouncedRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'real_activity_log' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_settings' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_advance_ledger' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_hidden_markup_entries' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_bank_accounts' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_general_entries' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_journal_entries' }, debouncedRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'real_chart_of_accounts' }, debouncedRefresh)
       .subscribe();
 
     return () => {
@@ -455,29 +470,34 @@ export const DataProvider = ({ children }) => {
       });
       refreshData();
     } catch (err) {
-      // handle error
+      console.error('DataContext: logActivity failed', err);
     }
   }, [refreshData]);
 
   // ── Customer CRUD ──
   const addCustomer = useCallback(async (data) => {
-    const payload = {
-      full_name: data.name,
-      phone: data.phone,
-      email: data.email,
-      city: data.location,
-      customer_type: data.type?.toLowerCase(),
-      company_name: data.companyName,
-      customer_code: `C-${Date.now()}`
-    };
-    const result = await realDb.createCustomer(payload);
-    await logActivity({
-      type: 'customer',
-      action: 'added',
-      message: `New customer ${data.name || 'Unknown'} added`,
-      id: result.id
-    });
-    return { ...result, id: result.customer_code, uuid: result.id };
+    try {
+      const payload = {
+        full_name: data.name,
+        phone: data.phone,
+        email: data.email,
+        city: data.location,
+        customer_type: data.type?.toLowerCase(),
+        company_name: data.companyName,
+        customer_code: `C-${Date.now()}`
+      };
+      const result = await realDb.createCustomer(payload);
+      await logActivity({
+        type: 'customer',
+        action: 'added',
+        message: `New customer ${data.name || 'Unknown'} added`,
+        id: result.id
+      });
+      return { ...result, id: result.customer_code, uuid: result.id };
+    } catch (err) {
+      console.error('DataContext: addCustomer failed', err);
+      throw err;
+    }
   }, [logActivity]);
 
   const updateCustomer = useCallback(async (id, updates) => {
@@ -554,42 +574,127 @@ export const DataProvider = ({ children }) => {
 
   // ── Booking CRUD ──
   const addBooking = useCallback(async (data) => {
-    const result = await realDb.createBooking(data);
-    refreshData();
-    return { ...result, id: result.booking_number, uuid: result.id };
-  }, [refreshData]);
+    try {
+      // Generate booking number if not provided
+      if (!data.booking_number) {
+        data.booking_number = await realDb.getNextDocNumber('booking').catch(() => `WL-B-${Date.now()}`);
+      }
+      // Ensure payment defaults
+      if (data.amount_paid === undefined) data.amount_paid = 0;
+      if (data.amount_pending === undefined) data.amount_pending = Number(data.total_payable) || Number(data.total_cost) || 0;
+      if (!data.booking_status) data.booking_status = 'confirmed';
+      if (!data.payment_status) data.payment_status = 'unpaid';
+
+      const result = await realDb.createBooking(data);
+      await logActivity({
+        type: 'booking',
+        action: 'created',
+        message: `Booking ${result.booking_number} created`,
+        id: result.id
+      });
+      refreshData();
+      return { ...result, id: result.booking_number, uuid: result.id };
+    } catch (err) {
+      console.error('DataContext: addBooking failed', err);
+      throw err;
+    }
+  }, [logActivity, refreshData]);
 
   const updateBooking = useCallback(async (id, updates) => {
-    const booking = bookings.find(b => b.id === id);
-    if (!booking) return;
-    const result = await realDb.updateBooking(booking.uuid, updates);
-    refreshData();
-    return result;
+    try {
+      const booking = bookings.find(b => b.id === id);
+      if (!booking) return;
+      const result = await realDb.updateBooking(booking.uuid, updates);
+      refreshData();
+      return result;
+    } catch (err) {
+      console.error('DataContext: updateBooking failed', err);
+      throw err;
+    }
   }, [bookings, refreshData]);
 
   const deleteBooking = useCallback(async (id) => {
-    const booking = bookings.find(b => b.id === id);
-    if (!booking) return;
-    await realDb.deleteBooking(booking.uuid);
-    refreshData();
+    try {
+      const booking = bookings.find(b => b.id === id);
+      if (!booking) return;
+      await realDb.deleteBooking(booking.uuid);
+      refreshData();
+    } catch (err) {
+      console.error('DataContext: deleteBooking failed', err);
+      throw err;
+    }
   }, [bookings, refreshData]);
+
+  const updateInvoice = useCallback(async (id, updates) => {
+    try {
+      const result = await realDb.updateInvoice(id, updates);
+      refreshData();
+      return result;
+    } catch (err) {
+      console.error('DataContext: updateInvoice failed', err);
+      throw err;
+    }
+  }, [refreshData]);
 
   // ── Payment CRUD ──
   const addPayment = useCallback(async (data) => {
-    const recNum = await realDb.getNextDocNumber('receipt').catch(() => `REC-${Date.now()}`);
-    const result = await realDb.createPayment({
-      payment_number: recNum,
-      total_amount: Number(data.amount) || parseINR(data.amount),
-      payment_mode: data.mode || data.modeType || 'cash',
-      payment_date: data.date,
-      transaction_reference: data.reference || data.ref || '',
-      bank_name: data.bankName || '',
-      notes: data.notes || data.remarks || '',
-      payment_type: (data.allocateTo === 'advance' || data.againstType === 'advance') ? 'advance' : 'regular'
-    });
-    refreshData();
-    return result;
-  }, [refreshData]);
+    try {
+      const recNum = await realDb.getNextDocNumber('receipt').catch(() => `REC-${Date.now()}`);
+      const isAdvance = data.allocateTo === 'advance' || data.againstType === 'advance';
+      const result = await realDb.createPayment({
+        payment_number: recNum,
+        customer_id: data.customerId || data.customer_id || null,
+        total_amount: Number(data.amount) || parseINR(data.amount),
+        payment_mode: data.mode || data.modeType || 'cash',
+        payment_date: data.date,
+        transaction_reference: data.reference || data.ref || '',
+        bank_name: data.bankName || '',
+        notes: data.notes || data.remarks || '',
+        payment_type: isAdvance ? 'advance' : 'regular',
+        allocations: data.allocations || null,
+      });
+
+      // Update booking payment amounts if allocations exist
+      if (data.allocations && Array.isArray(data.allocations)) {
+        for (const alloc of data.allocations) {
+          if (alloc.booking_id || alloc.bookingId) {
+            const bid = alloc.booking_id || alloc.bookingId;
+            const allocAmt = Number(alloc.amount) || 0;
+            // Fetch current booking to update amount_paid
+            const booking = bookings.find(b => b.uuid === bid || b.id === alloc.booking_number);
+            if (booking) {
+              const currentPaid = Number(booking.raw?.amount_paid) || 0;
+              const totalPayable = Number(booking.raw?.total_payable) || Number(booking.raw?.total_cost) || 0;
+              const newPaid = currentPaid + allocAmt;
+              const newPending = Math.max(0, totalPayable - newPaid);
+              let newStatus = 'unpaid';
+              if (newPaid >= totalPayable && totalPayable > 0) newStatus = 'paid';
+              else if (newPaid > totalPayable && totalPayable > 0) newStatus = 'overpaid';
+              else if (newPaid > 0) newStatus = 'partial';
+
+              await realDb.updateBooking(booking.uuid, {
+                amount_paid: newPaid,
+                amount_pending: newPending,
+                payment_status: newStatus,
+              });
+            }
+          }
+        }
+      }
+
+      await logActivity({
+        type: 'payment',
+        action: 'recorded',
+        message: `Payment ${recNum} of ${formatINR(Number(data.amount) || 0)} recorded`,
+        id: result.id
+      });
+      refreshData();
+      return result;
+    } catch (err) {
+      console.error('DataContext: addPayment failed', err);
+      throw err;
+    }
+  }, [bookings, logActivity, refreshData]);
 
   // ── Settings ──
   const updateSettings = useCallback(async (updates) => {
@@ -623,35 +728,46 @@ export const DataProvider = ({ children }) => {
   const convertQuote = useCallback(async (quoteId, customerEdits = {}) => {
     const quote = quotes.find(q => q.id === quoteId);
     if (!quote) return null;
+    const raw = quote.raw || {};
 
     try {
       // 1. Mark quote as converted
       await realDb.updateQuote(quote.uuid, { status: 'converted' });
 
-      // 2. Create booking
+      // 2. Create booking — copy all relevant fields from quote
       const bookingNum = await realDb.getNextDocNumber('booking').catch(() => `WL-B-${Date.now()}`);
+      const totalPayable = Number(raw.total_payable) || parseINR(quote.amount);
       const bookingPayload = {
         booking_number: bookingNum,
-        customer_id: quote.raw.customer_id,
+        customer_id: raw.customer_id,
+        quote_id: quote.uuid,
         destination: quote.destName,
         destination_type: quote.destType,
-        total_cost: parseINR(quote.amount),
-        total_payable: parseINR(quote.amount),
+        billing_model: raw.billing_model || 'pure-agent',
+        total_cost: Number(raw.total_cost) || parseINR(quote.amount),
+        margin: Number(raw.margin) || 0,
+        total_profit: Number(raw.total_profit) || 0,
+        total_payable: totalPayable,
         amount_paid: 0,
-        amount_pending: parseINR(quote.amount),
+        amount_pending: totalPayable,
         booking_status: 'confirmed',
-        pax: customerEdits.travelers || 1,
-        departure_date: quote.raw.departure_date,
+        payment_status: 'unpaid',
+        pax: customerEdits.travelers || Number(raw.pax) || 1,
+        departure_date: raw.departure_date,
+        services: raw.services || raw.itinerary?.services || null,
+        itinerary: raw.itinerary || null,
+        gst_amount: Number(raw.gst_amount) || 0,
+        tcs_amount: Number(raw.tcs_amount) || 0,
         booked_at: new Date().toISOString()
       };
       const booking = await realDb.createBooking(bookingPayload);
 
-      // 3. Create invoice
-      const invoiceValue = customerEdits.invoiceValue || parseINR(quote.amount);
-      const invoiceNum = await realDb.getNextDocNumber('receipt').catch(() => `INV-${Date.now()}`);
+      // 3. Create invoice — use 'invoice' doc number type
+      const invoiceValue = customerEdits.invoiceValue || totalPayable;
+      const invoiceNum = await realDb.getNextDocNumber('invoice').catch(() => `INV-${Date.now()}`);
       const invoicePayload = {
         invoice_number: invoiceNum,
-        customer_id: quote.raw.customer_id,
+        customer_id: raw.customer_id,
         booking_id: booking.id,
         invoice_date: new Date().toISOString(),
         total_amount: invoiceValue,
@@ -659,6 +775,20 @@ export const DataProvider = ({ children }) => {
         invoice_type: 'tax_invoice'
       };
       const invoice = await realDb.createInvoice(invoicePayload);
+
+      // 4. Create hidden markup entry if Pure Agent billing
+      if ((raw.billing_model || 'pure-agent') === 'pure-agent' && Number(raw.margin) > 0) {
+        try {
+          await supabase.from('real_hidden_markup_entries').insert({
+            booking_id: booking.id,
+            amount: Number(raw.margin),
+            status: 'provisional',
+            description: `Hidden markup from Quote ${quote.id}`
+          });
+        } catch (markupErr) {
+          console.error('DataContext: hidden markup entry creation failed', markupErr);
+        }
+      }
 
       await logActivity({
         type: 'booking',
@@ -670,7 +800,7 @@ export const DataProvider = ({ children }) => {
       await refreshData();
       return { booking, invoice };
     } catch (err) {
-      // handle error
+      console.error('DataContext: convertQuote failed', err);
       return null;
     }
   }, [quotes, logActivity, refreshData]);
@@ -743,24 +873,42 @@ export const DataProvider = ({ children }) => {
   }, [refreshData]);
 
   const addVendorPayment = useCallback(async (data) => {
-    if (data.billId) {
-      await realDb.updateVendorBill(data.billId, { status: 'paid' });
+    try {
+      const payNum = await realDb.getNextDocNumber('vendor_pay').catch(() => `VP-${Date.now()}`);
+      const result = await realDb.createVendorPayment({
+        payment_number: payNum,
+        vendor_id: data.vendorId || null,
+        bill_id: data.billId || null,
+        amount: Number(data.amount) || 0,
+        payment_mode: data.paymentMode || 'bank_transfer',
+        payment_date: data.paymentDate || new Date().toISOString().slice(0, 10),
+        reference: data.reference || '',
+        bank_name: data.bankName || '',
+        notes: data.notes || '',
+      });
+
+      // Update vendor bill status based on total paid vs net_payable
+      if (data.billId) {
+        const bill = vendorBills.find(b => b.id === data.billId);
+        if (bill) {
+          const totalPaidOnBill = vendorPayments
+            .filter(p => p.billId === data.billId)
+            .reduce((s, p) => s + (Number(p.amount) || 0), 0) + (Number(data.amount) || 0);
+          const netPayable = Number(bill.netPayable) || 0;
+          const newStatus = totalPaidOnBill >= netPayable ? 'paid' : 'partial';
+          await realDb.updateVendorBill(data.billId, { status: newStatus });
+        } else {
+          await realDb.updateVendorBill(data.billId, { status: 'paid' });
+        }
+      }
+
+      refreshData();
+      return result;
+    } catch (err) {
+      console.error('DataContext: addVendorPayment failed', err);
+      throw err;
     }
-    const payNum = await realDb.getNextDocNumber('vendor_pay').catch(() => `VP-${Date.now()}`);
-    const result = await realDb.createVendorPayment({
-      payment_number: payNum,
-      vendor_id: data.vendorId || null,
-      bill_id: data.billId || null,
-      amount: Number(data.amount) || 0,
-      payment_mode: data.paymentMode || 'bank_transfer',
-      payment_date: data.paymentDate || new Date().toISOString().slice(0, 10),
-      reference: data.reference || '',
-      bank_name: data.bankName || '',
-      notes: data.notes || '',
-    });
-    refreshData();
-    return result;
-  }, [refreshData]);
+  }, [vendorBills, vendorPayments, refreshData]);
 
   // ── Accounts CRUD ──
   const addBankAccount = useCallback(async (data) => {
@@ -837,8 +985,24 @@ export const DataProvider = ({ children }) => {
     refreshData();
   }, [refreshData]);
 
+  // ── Nomenclature ──
+  const getDocumentSequences = useCallback(async () => {
+    return realDb.getDocumentSequences();
+  }, []);
+
+  const saveDocumentSequences = useCallback(async (sequences) => {
+    const result = await realDb.saveDocumentSequences(sequences);
+    setNomenclatureReady(true);
+    return result;
+  }, []);
+
+  const updateDocumentSequence = useCallback(async (documentType, updates) => {
+    return realDb.updateDocumentSequence(documentType, updates);
+  }, []);
+
   const value = {
     loading,
+    nomenclatureReady,
     customers,
     quotes,
     bookings,
@@ -864,6 +1028,7 @@ export const DataProvider = ({ children }) => {
     updateBooking,
     deleteBooking,
     addPayment,
+    updateInvoice,
     updateSettings,
     getProfileData: (id) => customers.find(c => c.id === id)?.raw?.profile_data,
     updateProfileData: async (id, data) => {
@@ -880,6 +1045,7 @@ export const DataProvider = ({ children }) => {
     addVendorPayment,
     bankAccounts, generalEntries, journalEntries, chartOfAccounts,
     addBankAccount, addGeneralEntry, addJournalEntry, addCoAAccount, updateCoAAccount,
+    getDocumentSequences, saveDocumentSequences, updateDocumentSequence,
     refreshData
   };
 

@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { DemoModal } from '../components/DemoModal';
 import { demoDb } from '../lib/demoDb';
+import { supabase } from '../../shared/lib/supabase';
 
 // ── Helpers ──────────────────────────────────────────────────────
 const AVATAR_GRADIENTS = [
@@ -46,6 +47,36 @@ const nowTime = () => {
   const ampm = h >= 12 ? 'pm' : 'am';
   h = h % 12 || 12;
   return `${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`;
+};
+
+// ── Map Supabase demo_activity_log row → LogPopup-compatible shape ──
+const ACTION_TYPE_MAP = {
+  customer_created:  { type: 'customer', action: 'added' },
+  customer_updated:  { type: 'customer', action: 'updated' },
+  customer_deleted:  { type: 'customer', action: 'deleted' },
+  quote_created:     { type: 'quote',    action: 'created' },
+  quote_updated:     { type: 'quote',    action: 'updated' },
+  quote_converted:   { type: 'quote',    action: 'converted' },
+  booking_created:   { type: 'booking',  action: 'created' },
+  booking_updated:   { type: 'booking',  action: 'updated' },
+  booking_cancelled: { type: 'booking',  action: 'cancelled' },
+  booking_completed: { type: 'booking',  action: 'completed' },
+  payment_recorded:  { type: 'payment',  action: 'recorded' },
+  advance_recorded:  { type: 'payment',  action: 'advance-recorded' },
+};
+
+const mapLogToActivity = (item) => {
+  const mapped = ACTION_TYPE_MAP[item.action_type] || { type: item.reference_type || 'other', action: 'created' };
+  return {
+    id: item.id,
+    type: mapped.type,
+    action: mapped.action,
+    message: item.description || item.title || '',
+    timestamp: new Date(item.created_at).getTime(),
+    is_read: item.is_read || false,
+    referenceId: item.reference_id,
+    referenceType: item.reference_type,
+  };
 };
 
 // ── Contexts ──────────────────────────────────────────────────────
@@ -174,14 +205,7 @@ export const DemoProvider = ({ children }) => {
         raw: item
       })));
 
-      setActivities(logs.map(item => ({
-        id: item.id,
-        referenceId: item.reference_id,
-        referenceType: item.reference_type,
-        type: item.reference_type === 'customer' ? 'customers' : item.reference_type === 'quote' ? 'quotes' : 'bookings',
-        title: item.title,
-        createdAt: item.created_at,
-      })));
+      setActivities(logs.map(item => mapLogToActivity(item)));
 
       // Populate quote details from itinerary field
       const details = {};
@@ -319,6 +343,20 @@ export const DemoProvider = ({ children }) => {
   useEffect(() => {
     refreshData();
   }, [refreshData]);
+
+  // ── Real-time subscription on demo_activity_log ──
+  useEffect(() => {
+    const channel = supabase
+      .channel('demo-activity-log-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_activity_log' }, () => {
+        // Re-fetch logs on any change (insert, update, delete) — shared across all users
+        demoDb.getLogs().then(logs => {
+          setActivities((logs || []).map(item => mapLogToActivity(item)));
+        }).catch(() => {});
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   // ── Customer CRUD ──
   const addCustomer = useCallback(async (data) => {
@@ -532,6 +570,14 @@ export const DemoProvider = ({ children }) => {
       
       const booking = await demoDb.createBooking(bPayload);
 
+      await demoDb.createLog({
+        action_type: 'quote_converted',
+        title: 'Quote Converted to Booking',
+        description: `${quote.quoteNumber} converted → ${booking.booking_number} for ${quote.customerName}`,
+        reference_id: booking.id,
+        reference_type: 'booking'
+      });
+
       refreshData();
       return { booking };
     } catch (err) {
@@ -735,6 +781,17 @@ export const DemoProvider = ({ children }) => {
     } catch (err) { throw err; }
   }, [refreshData]);
 
+  // ── Mark all demo activities as read (shared across all users) ──
+  const markAllActivitiesRead = useCallback(async () => {
+    try {
+      await demoDb.markAllRead();
+      // Optimistically update local state
+      setActivities(prev => prev.map(a => ({ ...a, is_read: true })));
+    } catch (err) {
+      console.error('DemoContext: markAllActivitiesRead failed', err);
+    }
+  }, []);
+
   const dataValue = {
     loading,
     customers, quotes, bookings, payments, invoices, activities, quoteDetailData,
@@ -749,6 +806,7 @@ export const DemoProvider = ({ children }) => {
     addVendorPayment,
     bankAccounts, generalEntries, journalEntries, chartOfAccounts,
     addBankAccount, addGeneralEntry, addJournalEntry, addCoAAccount, updateCoAAccount,
+    markAllActivitiesRead,
     refreshData
   };
 

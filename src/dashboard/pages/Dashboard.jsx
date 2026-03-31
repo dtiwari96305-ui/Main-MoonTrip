@@ -15,6 +15,7 @@ import {
   getRevenueYLabels,
   getBookingsYLabels,
 } from '../utils/realChartUtils';
+import { QuoteTypeModal } from '../../shared/components/QuoteTypeModal';
 
 // ─── Chart Period Selector (same as demo) ─────────────────────────
 
@@ -121,6 +122,7 @@ export const RealDashboard = ({ onViewChange }) => {
   const bookTooltipRef = useRef(null);
   const [revMonths, setRevMonths] = useState(6);
   const [bookMonths, setBookMonths] = useState(6);
+  const [showTypeModal, setShowTypeModal] = useState(false);
 
   // ── Computed stats ──────────────────────────────────────────────
 
@@ -282,7 +284,7 @@ export const RealDashboard = ({ onViewChange }) => {
           title="Dashboard"
           subtitle="Welcome back! Here's your business overview."
           showDateFilter={true}
-          onNewQuote={() => onViewChange && onViewChange('create-quote')}
+          onNewQuote={() => setShowTypeModal(true)}
         />
       </div>
 
@@ -587,6 +589,16 @@ export const RealDashboard = ({ onViewChange }) => {
           </div>
         </div>
       </div>
+
+      {showTypeModal && (
+        <QuoteTypeModal
+          onClose={() => setShowTypeModal(false)}
+          onContinue={(type) => {
+            setShowTypeModal(false);
+            onViewChange && onViewChange('create-quote', { quoteType: type });
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -22,6 +22,7 @@ import { RealSalesInvoices } from '../pages/SalesInvoices';
 import { RealSettings } from '../pages/Settings';
 import { RealAccounts } from '../pages/Accounts';
 import { RealCreateQuote } from '../pages/CreateQuote';
+import { RealQuickQuote } from '../pages/QuickQuote';
 import { RealCustomerProfile } from '../pages/CustomerProfile';
 import { RealQuoteDetail } from '../pages/QuoteDetail';
 import { RealBilling } from '../pages/Billing';
@@ -36,10 +37,11 @@ import { RealCreateVendorBill } from '../pages/CreateVendorBill';
 import { RealVendorPayments } from '../pages/VendorPayments';
 import { registerVendorNav } from '../../utils/vendorNav';
 import { ErrorBoundary } from '../../shared/components/ErrorBoundary';
+import { NomenclatureSetup } from '../pages/NomenclatureSetup';
 
 
 const DashboardRouterInner = ({ onSwitchMode }) => {
-  const { settings, loading } = useData();
+  const { settings, loading, nomenclatureReady } = useData();
   const [activeView, setActiveView] = useState(() => sessionStorage.getItem('activeView') || 'dashboard');
   const [viewData, setViewData] = useState({});
   const [billingFromView, setBillingFromView] = useState(null);
@@ -167,6 +169,11 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
     );
   }
 
+  // Show nomenclature onboarding for new users
+  if (nomenclatureReady === false) {
+    return <NomenclatureSetup onComplete={() => handleViewChange('dashboard')} />;
+  }
+
   return (
     <RealLayout
       activeView={activeView}
@@ -180,6 +187,7 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
           {activeView === 'customers' && <RealCustomers onViewChange={handleViewChange} />}
           {activeView === 'quotes' && <RealQuotes onViewChange={handleViewChange} />}
           {activeView === 'create-quote' && <RealCreateQuote onViewChange={handleViewChange} prefilledCustomer={createQuoteCustomer} editQuote={editQuoteData} />}
+          {activeView === 'quick-quote' && <RealQuickQuote onViewChange={handleViewChange} />}
           {activeView === 'bookings' && <RealBookings onViewChange={handleViewChange} />}
           {activeView === 'booking-detail' && (
             <RealBookingDetail

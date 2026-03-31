@@ -3,6 +3,208 @@ import { InfoBtn } from '../../shared/components/InfoBtn';
 import { RealHeader as Header } from '../components/RealHeader';
 import { useData } from '../context/DataContext';
 
+const NOM_DOC_TYPES = [
+  { key: 'quote',       label: 'Quotes',              icon: '\uD83D\uDCC4', defaultPrefix: 'WL-Q-' },
+  { key: 'booking',     label: 'Bookings',            icon: '\uD83D\uDCC5', defaultPrefix: 'WL-B-' },
+  { key: 'invoice',     label: 'Tax Invoices',        icon: '\uD83E\uDDFE', defaultPrefix: 'INV-' },
+  { key: 'receipt',     label: 'Receipts',            icon: '\uD83D\uDCB3', defaultPrefix: 'REC-' },
+  { key: 'cn',          label: 'Cancellation Notes',  icon: '\uD83D\uDD04', defaultPrefix: 'CN-' },
+  { key: 'vendor_bill', label: 'Vendor Bills',        icon: '\uD83C\uDFEA', defaultPrefix: 'VB-' },
+  { key: 'hm_invoice',  label: 'HM Invoices',         icon: '\uD83D\uDCCA', defaultPrefix: 'HM-' },
+];
+
+const NOM_PADDING_OPTIONS = [
+  { value: 4, label: '4 digits (0001)' },
+  { value: 3, label: '3 digits (001)' },
+  { value: 2, label: '2 digits (01)' },
+  { value: 1, label: 'No padding (1)' },
+];
+
+function NomenclatureTab() {
+  const { getDocumentSequences, saveDocumentSequences } = useData();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [globalPadding, setGlobalPadding] = useState(4);
+  const [rows, setRows] = useState(
+    NOM_DOC_TYPES.map(d => ({
+      document_type: d.key,
+      prefix: d.defaultPrefix,
+      nextNumber: 1,
+      suffix: '',
+    }))
+  );
+
+  // Load existing sequences on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const sequences = await getDocumentSequences();
+        if (sequences && sequences.length > 0) {
+          const mapped = NOM_DOC_TYPES.map(d => {
+            const seq = sequences.find(s => s.document_type === d.key);
+            if (seq) {
+              return {
+                document_type: d.key,
+                prefix: seq.prefix,
+                nextNumber: (seq.current_number || 0) + 1,
+                suffix: seq.suffix || '',
+              };
+            }
+            return { document_type: d.key, prefix: d.defaultPrefix, nextNumber: 1, suffix: '' };
+          });
+          setRows(mapped);
+          // Use padding from first found sequence
+          const firstSeq = sequences[0];
+          if (firstSeq?.padding) setGlobalPadding(firstSeq.padding);
+        }
+      } catch (err) {
+        console.error('NomenclatureTab: load failed', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [getDocumentSequences]);
+
+  const updateRow = (idx, field, value) => {
+    setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
+  };
+
+  const handleSaveNom = async () => {
+    setSaving(true);
+    try {
+      const sequences = rows.map(r => ({
+        document_type: r.document_type,
+        prefix: r.prefix,
+        suffix: r.suffix,
+        current_number: Math.max(0, Number(r.nextNumber) - 1),
+        padding: globalPadding,
+      }));
+      await saveDocumentSequences(sequences);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error('NomenclatureTab: save failed', err);
+      alert('Failed to save nomenclature settings.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const padPreview = (num, pad) => String(num || 1).padStart(pad, '0');
+
+  if (loading) {
+    return (
+      <div id="nomenclature-tab" className="settings-pane active">
+        <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>Loading nomenclature settings...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div id="nomenclature-tab" className="settings-pane active">
+      <div className="nom-intro">
+        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>Document Numbering</h2>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+          Customize the prefix, suffix, and starting number for each document type. Changes apply to all future documents immediately.
+        </p>
+      </div>
+
+      <div className="nom-cards-grid" style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 20 }}>
+        {NOM_DOC_TYPES.map((docType, idx) => {
+          const row = rows[idx];
+          const preview = `${row.prefix}${padPreview(row.nextNumber, globalPadding)}${row.suffix}`;
+          return (
+            <div key={docType.key} className="nom-card">
+              <div className="nom-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <h3 className="nom-title" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: '1.1rem' }}>{docType.icon}</span> {docType.label}
+                </h3>
+                <span style={{
+                  fontSize: '0.8rem', fontWeight: 600, fontFamily: 'monospace',
+                  color: '#22c55e', background: '#f0fdf4', padding: '3px 10px', borderRadius: 6,
+                }}>
+                  Next: {preview}
+                </span>
+              </div>
+              <div className="nom-grid">
+                <div className="form-group m-0">
+                  <label className="form-label">Prefix</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={row.prefix}
+                    onChange={e => updateRow(idx, 'prefix', e.target.value)}
+                  />
+                </div>
+                <div className="form-group m-0">
+                  <label className="form-label">Next Number</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="1"
+                    value={row.nextNumber}
+                    onChange={e => updateRow(idx, 'nextNumber', e.target.value)}
+                  />
+                </div>
+                <div className="form-group m-0">
+                  <label className="form-label">Suffix</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={row.suffix}
+                    onChange={e => updateRow(idx, 'suffix', e.target.value)}
+                    placeholder="optional"
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Global padding selector */}
+      <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <label className="form-label" style={{ marginBottom: 0, whiteSpace: 'nowrap' }}>Number Format:</label>
+        <div className="select-wrapper" style={{ flex: 1, maxWidth: 240 }}>
+          <select
+            className="form-input"
+            value={globalPadding}
+            onChange={e => setGlobalPadding(Number(e.target.value))}
+          >
+            {NOM_PADDING_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <svg className="select-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+
+      {/* Warning note */}
+      <div style={{
+        marginTop: 20, padding: '12px 16px', background: '#fffbeb', border: '1px solid #fde68a',
+        borderRadius: 10, fontSize: '0.82rem', color: '#92400e', display: 'flex', alignItems: 'flex-start', gap: 8,
+      }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}>
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>
+          Changing the starting number will affect the next document created. Existing documents are not renamed. Ensure your new numbers do not conflict with already issued document numbers.
+        </span>
+      </div>
+
+      {/* Save button */}
+      <div className="form-actions" style={{ justifyContent: 'flex-end', marginTop: 24 }}>
+        <button className="btn-primary" onClick={handleSaveNom} disabled={saving}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          {saved ? 'Saved!' : saving ? 'Saving...' : 'Save Nomenclature Settings'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export const RealSettings = () => {
   const { settings, updateSettings } = useData();
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('real_settings_activeTab') || 'profile-tab');
@@ -40,16 +242,6 @@ export const RealSettings = () => {
     upiId: settings.upiId || '',
     invoiceTerms: settings.invoiceTerms || '',
     gstEnabled: settings.gstEnabled !== false,
-  });
-
-  // Nomenclature form
-  const [nomForm, setNomForm] = useState({
-    bookingPrefix: settings.bookingPrefix || 'WL-B-',
-    bookingNextNum: settings.bookingNextNum || '1',
-    bookingSuffix: settings.bookingSuffix || '',
-    quotePrefix: settings.quotePrefix || 'WL-Q-',
-    quoteNextNum: settings.quoteNextNum || '1',
-    quoteSuffix: settings.quoteSuffix || '',
   });
 
   // Itinerary state
@@ -352,90 +544,7 @@ export const RealSettings = () => {
 
           {/* ── NOMENCLATURE TAB ── */}
           {activeTab === 'nomenclature-tab' && (
-            <div id="nomenclature-tab" className="settings-pane active">
-              <div className="nom-intro">
-                <p>Customize how your booking invoices, quotes, and payments are numbered.</p>
-                <p className="nom-format-help">Format: Prefix-Number-Suffix (e.g. NT-1-FY26)</p>
-              </div>
-
-              <div className="nom-cards-grid" style={{display:'flex', flexDirection:'column', gap:24}}>
-                <div className="nom-card">
-                  <div className="nom-card-header">
-                    <h3 className="nom-title"><span className="hash-icon">#</span> Booking / Tax Invoice</h3>
-                  </div>
-                  <div className="nom-grid">
-                    <div className="form-group m-0">
-                      <label className="form-label">Prefix (optional) <InfoBtn infoKey="nom_prefix_booking" /></label>
-                      <input type="text" className="form-input" value={nomForm.bookingPrefix} onChange={e => setNomForm(f => ({ ...f, bookingPrefix: e.target.value }))} />
-                    </div>
-                    <div className="form-group m-0">
-                      <label className="form-label">Next Number <InfoBtn infoKey="nom_number_booking" /></label>
-                      <input type="text" className="form-input" value={nomForm.bookingNextNum} onChange={e => setNomForm(f => ({ ...f, bookingNextNum: e.target.value }))} />
-                    </div>
-                    <div className="form-group m-0">
-                      <label className="form-label">Suffix (optional) <InfoBtn infoKey="nom_suffix_booking" /></label>
-                      <input type="text" className="form-input" value={nomForm.bookingSuffix} onChange={e => setNomForm(f => ({ ...f, bookingSuffix: e.target.value }))} placeholder="e.g. FY26" />
-                    </div>
-                  </div>
-                  <div className="nom-preview-box">
-                    <div className="nom-preview-row">
-                      <span className="np-label">Next:</span> <span className="np-value font-mono">{nomForm.bookingPrefix}{nomForm.bookingSuffix ? '-' : ''}{nomForm.bookingNextNum}{nomForm.bookingSuffix ? `-${nomForm.bookingSuffix}` : ''}</span>
-                    </div>
-                  </div>
-                  <div className="nom-card-save">
-                    <button className="nom-card-btn" onClick={() => handleSave({ bookingPrefix: nomForm.bookingPrefix, bookingNextNum: nomForm.bookingNextNum, bookingSuffix: nomForm.bookingSuffix })}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                      Save
-                    </button>
-                  </div>
-                </div>
-
-                <div className="nom-card">
-                  <div className="nom-card-header">
-                    <h3 className="nom-title"><span className="hash-icon">#</span> Quote</h3>
-                  </div>
-                  <div className="nom-grid">
-                    <div className="form-group m-0">
-                      <label className="form-label">Prefix (optional) <InfoBtn infoKey="nom_prefix_quote" /></label>
-                      <input type="text" className="form-input" value={nomForm.quotePrefix} onChange={e => setNomForm(f => ({ ...f, quotePrefix: e.target.value }))} />
-                    </div>
-                    <div className="form-group m-0">
-                      <label className="form-label">Next Number <InfoBtn infoKey="nom_number_quote" /></label>
-                      <input type="text" className="form-input" value={nomForm.quoteNextNum} onChange={e => setNomForm(f => ({ ...f, quoteNextNum: e.target.value }))} />
-                    </div>
-                    <div className="form-group m-0">
-                      <label className="form-label">Suffix (optional) <InfoBtn infoKey="nom_suffix_quote" /></label>
-                      <input type="text" className="form-input" value={nomForm.quoteSuffix} onChange={e => setNomForm(f => ({ ...f, quoteSuffix: e.target.value }))} placeholder="e.g. FY26" />
-                    </div>
-                  </div>
-                  <div className="nom-preview-box">
-                    <div className="nom-preview-row">
-                      <span className="np-label">Next:</span> <span className="np-value font-mono">{nomForm.quotePrefix}{nomForm.quoteSuffix ? '-' : ''}{nomForm.quoteNextNum}{nomForm.quoteSuffix ? `-${nomForm.quoteSuffix}` : ''}</span>
-                    </div>
-                  </div>
-                  <div className="nom-card-save">
-                    <button className="nom-card-btn" onClick={() => handleSave({ quotePrefix: nomForm.quotePrefix, quoteNextNum: nomForm.quoteNextNum, quoteSuffix: nomForm.quoteSuffix })}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                      Save
-                    </button>
-                  </div>
-                </div>
-
-                <div className="nom-card" style={{background: '#fafafa'}}>
-                  <div className="nom-card-header" style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                    <h3 className="nom-title" style={{marginBottom:0}}><span className="hash-icon">#</span> Payment</h3>
-                    <span className="nom-readonly-pill">Read-only</span>
-                  </div>
-                  <div className="nom-readonly-preview" style={{marginTop: 16}}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    Current format: <strong>REC--1</strong>
-                  </div>
-                  <div style={{fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 12, display:'flex', alignItems:'center', gap:4, paddingLeft: 24}}>
-                    Payment receipt nomenclature is system-managed. <InfoBtn infoKey="nom_payment" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <NomenclatureTab />
           )}
 
           {/* ── TEAM TAB ── */}
