@@ -84,8 +84,9 @@ function NomenclatureTab() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
-      console.error('NomenclatureTab: save failed', err);
-      alert('Failed to save nomenclature settings.');
+      console.error('NomenclatureTab: save failed:', err);
+      console.error('Error details:', err.message, err.code, err.details, err.hint);
+      alert(`Failed to save: ${err.message || 'Please check that the nomenclature table exists in Supabase and try again.'}`);
     } finally {
       setSaving(false);
     }

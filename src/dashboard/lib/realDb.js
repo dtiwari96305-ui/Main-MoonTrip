@@ -10,47 +10,87 @@ export const realDb = {
 
   // ── Nomenclature / Document Sequences ──
   hasNomenclatureSetup: async () => {
-    const { data, error } = await supabase.rpc('has_nomenclature_setup');
-    if (error) {
-      // If function doesn't exist yet, fall back to direct query
-      const { data: rows, error: qErr } = await supabase
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return true; // No user = can't check, assume done
+
+      // Try direct query filtered by THIS user
+      const { data: rows, error } = await supabase
         .from('real_document_sequences')
         .select('id')
+        .eq('user_id', user.id)
         .limit(1);
-      if (qErr) return false;
+
+      if (error) {
+        // Table doesn't exist or RLS issue — fail open, assume done
+        console.warn('Nomenclature check failed (table may not exist):', error.message);
+        return true;
+      }
       return rows && rows.length > 0;
+    } catch (err) {
+      // Any unexpected error — fail open, never block existing users
+      console.warn('Nomenclature check error:', err);
+      return true;
     }
-    return data;
   },
 
   getDocumentSequences: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
     const { data, error } = await supabase
       .from('real_document_sequences')
       .select('*')
+      .eq('user_id', user.id)
       .order('document_type');
-    if (error) throw error;
+    if (error) {
+      console.error('getDocumentSequences error:', error);
+      return [];
+    }
     return data || [];
   },
 
   saveDocumentSequences: async (sequences) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error in saveDocumentSequences:', authError);
+      throw new Error('You must be logged in to save settings.');
+    }
 
     const rows = sequences.map(s => ({
       user_id: user.id,
       document_type: s.document_type,
-      prefix: s.prefix,
-      suffix: s.suffix,
-      current_number: s.current_number,
-      padding: s.padding,
+      prefix: (s.prefix || '').trim(),
+      suffix: (s.suffix || '').trim(),
+      current_number: Math.max(0, parseInt(s.current_number) || 0),
+      padding: parseInt(s.padding) || 4,
       updated_at: new Date().toISOString(),
     }));
 
     const { data, error } = await supabase
       .from('real_document_sequences')
-      .upsert(rows, { onConflict: 'user_id,document_type' })
+      .upsert(rows, { onConflict: 'user_id,document_type', ignoreDuplicates: false })
       .select();
-    if (error) throw error;
+
+    if (error) {
+      console.error('Nomenclature upsert error:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw new Error(error.message || 'Failed to save nomenclature settings.');
+    }
+
+    // Mark setup as complete in user metadata for fast future checks
+    try {
+      await supabase.auth.updateUser({
+        data: { nomenclature_setup_complete: true }
+      });
+    } catch (metaErr) {
+      console.warn('Could not update user metadata:', metaErr);
+    }
+
     return data;
   },
 

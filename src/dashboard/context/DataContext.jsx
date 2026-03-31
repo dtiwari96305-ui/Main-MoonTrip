@@ -344,12 +344,23 @@ export const DataProvider = ({ children }) => {
       console.error('DataContext: refreshData failed', err);
     } finally {
       setLoading(false);
-      // Check if nomenclature has been set up
+      // Check if nomenclature has been set up — fail open (assume true on error)
       try {
-        const hasSetup = await realDb.hasNomenclatureSetup();
-        setNomenclatureReady(hasSetup);
+        // Fast check: user metadata flag
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.user_metadata?.nomenclature_setup_complete) {
+          setNomenclatureReady(true);
+        } else {
+          const hasSetup = await realDb.hasNomenclatureSetup();
+          setNomenclatureReady(hasSetup);
+          // If they have sequences but no metadata flag, set the flag now
+          if (hasSetup && user) {
+            supabase.auth.updateUser({ data: { nomenclature_setup_complete: true } }).catch(() => {});
+          }
+        }
       } catch {
-        setNomenclatureReady(false);
+        // On ANY error — fail open, never block existing users
+        setNomenclatureReady(true);
       }
     }
   }, []);

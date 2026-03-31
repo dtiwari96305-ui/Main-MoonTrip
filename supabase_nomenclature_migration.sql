@@ -13,20 +13,42 @@ CREATE TABLE IF NOT EXISTS real_document_sequences (
   current_number int NOT NULL DEFAULT 0,
   padding int NOT NULL DEFAULT 4,
   updated_at timestamptz DEFAULT now(),
-  created_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now(),
+  CONSTRAINT real_doc_seq_user_type_unique UNIQUE (user_id, document_type)
 );
 
--- 2. Unique constraint: one sequence per user per document type
-CREATE UNIQUE INDEX IF NOT EXISTS real_doc_seq_unique
-  ON real_document_sequences(user_id, document_type);
+-- 2. If table already existed without the constraint, add it
+-- (This is safe — it will skip if constraint already exists from CREATE TABLE)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'real_doc_seq_user_type_unique'
+  ) THEN
+    ALTER TABLE real_document_sequences
+      ADD CONSTRAINT real_doc_seq_user_type_unique UNIQUE (user_id, document_type);
+  END IF;
+END $$;
 
--- 3. RLS
+-- 3. RLS — separate policies for each operation (more reliable)
 ALTER TABLE real_document_sequences ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "user_own_sequences" ON real_document_sequences;
-CREATE POLICY "user_own_sequences" ON real_document_sequences
-  FOR ALL USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "user_own_sequences_select" ON real_document_sequences;
+DROP POLICY IF EXISTS "user_own_sequences_insert" ON real_document_sequences;
+DROP POLICY IF EXISTS "user_own_sequences_update" ON real_document_sequences;
+DROP POLICY IF EXISTS "user_own_sequences_delete" ON real_document_sequences;
+
+CREATE POLICY "user_own_sequences_select" ON real_document_sequences
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "user_own_sequences_insert" ON real_document_sequences
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "user_own_sequences_update" ON real_document_sequences
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "user_own_sequences_delete" ON real_document_sequences
+  FOR DELETE USING (auth.uid() = user_id);
 
 -- 4. Create or replace the atomic document number generation function
 CREATE OR REPLACE FUNCTION get_next_doc_number(p_type text)
@@ -70,7 +92,7 @@ BEGIN
   IF NOT FOUND THEN
     INSERT INTO real_document_sequences (user_id, document_type, prefix, suffix, current_number, padding)
     VALUES (v_user_id, p_type, v_default_prefix, '', 1, 4)
-    ON CONFLICT (user_id, document_type) DO UPDATE
+    ON CONFLICT ON CONSTRAINT real_doc_seq_user_type_unique DO UPDATE
       SET current_number = real_document_sequences.current_number + 1,
           updated_at = now()
     RETURNING prefix, suffix, padding, current_number

@@ -169,9 +169,12 @@ const DashboardRouterInner = ({ onSwitchMode }) => {
     );
   }
 
-  // Show nomenclature onboarding for new users
+  // Show nomenclature onboarding only for truly new users (nomenclatureReady is definitively false)
   if (nomenclatureReady === false) {
-    return <NomenclatureSetup onComplete={() => handleViewChange('dashboard')} />;
+    return <NomenclatureSetup onComplete={() => {
+      // saveDocumentSequences already sets nomenclatureReady=true in DataContext
+      handleViewChange('dashboard');
+    }} />;
   }
 
   return (

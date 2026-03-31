@@ -52,8 +52,9 @@ export const NomenclatureSetup = ({ onComplete }) => {
       await saveDocumentSequences(sequences);
       onComplete();
     } catch (err) {
-      console.error('NomenclatureSetup: save failed', err);
-      alert('Failed to save settings. Please try again.');
+      console.error('NomenclatureSetup: save failed:', err);
+      console.error('Error details:', err.message, err.code, err.details, err.hint);
+      alert(`Failed to save: ${err.message || 'Please check that the nomenclature table exists in Supabase and try again.'}`);
     } finally {
       setSaving(false);
     }
@@ -72,8 +73,8 @@ export const NomenclatureSetup = ({ onComplete }) => {
       await saveDocumentSequences(sequences);
       onComplete();
     } catch (err) {
-      console.error('NomenclatureSetup: defaults save failed', err);
-      alert('Failed to save settings. Please try again.');
+      console.error('NomenclatureSetup: defaults save failed:', err);
+      alert(`Failed to save: ${err.message || 'Please check that the nomenclature table exists in Supabase and try again.'}`);
     } finally {
       setSaving(false);
     }
