@@ -688,6 +688,7 @@ export const RealCustomerProfile = ({ customerId, fromView, onBack, onViewChange
         onClose={() => setRecordPaymentOpen(false)}
         preselectedCustomer={customer}
         customers={customers}
+        bookings={bookings}
         onSave={handleRecordPayment}
       />
     </div>

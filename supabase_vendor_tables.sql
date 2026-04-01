@@ -139,10 +139,77 @@ INSERT INTO demo_vendor_payments (payment_number, vendor_id, amount, payment_mod
   ('VP-2026-002', 'a1000000-0000-0000-0000-000000000005', 40000, 'bank_transfer', '2026-03-22', 'IMPS/2026/03/SBIN112233', 'SBI', '60% advance for Kashmir ground package')
 ON CONFLICT (payment_number) DO NOTHING;
 
--- ── ROW LEVEL SECURITY (optional, enable if needed) ───────────────────
--- ALTER TABLE demo_vendors ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE demo_vendor_bills ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE demo_vendor_payments ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE real_vendors ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE real_vendor_bills ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE real_vendor_payments ENABLE ROW LEVEL SECURITY;
+-- ═══════════════════════════════════════════════════════════════════════
+-- SCHEMA UPDATES — Add missing columns (safe to re-run)
+-- ═══════════════════════════════════════════════════════════════════════
+
+-- Add invoice tracking fields to vendor bills
+ALTER TABLE real_vendor_bills ADD COLUMN IF NOT EXISTS invoice_number TEXT DEFAULT '';
+ALTER TABLE real_vendor_bills ADD COLUMN IF NOT EXISTS invoice_date DATE;
+
+-- Add user_id to real vendor tables for RLS
+ALTER TABLE real_vendors ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE real_vendor_bills ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE real_vendor_payments ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ROW LEVEL SECURITY — Real vendor tables
+-- ═══════════════════════════════════════════════════════════════════════
+
+ALTER TABLE real_vendors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE real_vendor_bills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE real_vendor_payments ENABLE ROW LEVEL SECURITY;
+
+-- Vendors RLS
+DROP POLICY IF EXISTS "vendors_select" ON real_vendors;
+DROP POLICY IF EXISTS "vendors_insert" ON real_vendors;
+DROP POLICY IF EXISTS "vendors_update" ON real_vendors;
+DROP POLICY IF EXISTS "vendors_delete" ON real_vendors;
+CREATE POLICY "vendors_select" ON real_vendors FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "vendors_insert" ON real_vendors FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "vendors_update" ON real_vendors FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "vendors_delete" ON real_vendors FOR DELETE USING (auth.uid() = user_id);
+
+-- Vendor Bills RLS
+DROP POLICY IF EXISTS "vendor_bills_select" ON real_vendor_bills;
+DROP POLICY IF EXISTS "vendor_bills_insert" ON real_vendor_bills;
+DROP POLICY IF EXISTS "vendor_bills_update" ON real_vendor_bills;
+DROP POLICY IF EXISTS "vendor_bills_delete" ON real_vendor_bills;
+CREATE POLICY "vendor_bills_select" ON real_vendor_bills FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "vendor_bills_insert" ON real_vendor_bills FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "vendor_bills_update" ON real_vendor_bills FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "vendor_bills_delete" ON real_vendor_bills FOR DELETE USING (auth.uid() = user_id);
+
+-- Vendor Payments RLS
+DROP POLICY IF EXISTS "vendor_payments_select" ON real_vendor_payments;
+DROP POLICY IF EXISTS "vendor_payments_insert" ON real_vendor_payments;
+DROP POLICY IF EXISTS "vendor_payments_update" ON real_vendor_payments;
+DROP POLICY IF EXISTS "vendor_payments_delete" ON real_vendor_payments;
+CREATE POLICY "vendor_payments_select" ON real_vendor_payments FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "vendor_payments_insert" ON real_vendor_payments FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "vendor_payments_update" ON real_vendor_payments FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "vendor_payments_delete" ON real_vendor_payments FOR DELETE USING (auth.uid() = user_id);
+
+-- Create the trigger function if it doesn't exist
+CREATE OR REPLACE FUNCTION set_real_user_id()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.user_id IS NULL THEN
+    NEW.user_id := auth.uid();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Auto-set user_id triggers
+CREATE OR REPLACE TRIGGER set_real_vendors_user_id
+  BEFORE INSERT ON real_vendors
+  FOR EACH ROW EXECUTE FUNCTION set_real_user_id();
+
+CREATE OR REPLACE TRIGGER set_real_vendor_bills_user_id
+  BEFORE INSERT ON real_vendor_bills
+  FOR EACH ROW EXECUTE FUNCTION set_real_user_id();
+
+CREATE OR REPLACE TRIGGER set_real_vendor_payments_user_id
+  BEFORE INSERT ON real_vendor_payments
+  FOR EACH ROW EXECUTE FUNCTION set_real_user_id();

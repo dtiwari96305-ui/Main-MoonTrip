@@ -62,13 +62,11 @@ export const SalesInvoices = () => {
     });
 
     let result = enhancedInvoices;
-    
-    if (activeTab === 'active') {
-      result = result.filter(inv => inv.status === 'Active');
-    } else if (activeTab === 'cancelled') {
-       result = [];
-    } else if (activeTab === 'ext') {
-       result = [];
+
+    if (activeTab !== 'all') {
+      result = result.filter(inv =>
+        (inv.status || '').toLowerCase() === activeTab.toLowerCase()
+      );
     }
 
     if (searchQuery) {

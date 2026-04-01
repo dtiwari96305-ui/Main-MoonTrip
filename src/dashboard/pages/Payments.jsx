@@ -396,6 +396,7 @@ export const RealPayments = () => {
         isOpen={recordPaymentOpen}
         onClose={() => setRecordPaymentOpen(false)}
         customers={customers}
+        bookings={bookings}
         onSave={handleSavePayment}
       />
 

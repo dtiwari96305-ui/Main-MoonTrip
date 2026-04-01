@@ -43,10 +43,10 @@ export const RealSalesInvoices = () => {
   // Filter invoices from stored collection
   let filteredInvoices = [...invoices];
 
-  if (activeTab === 'unpaid') {
-    filteredInvoices = filteredInvoices.filter(inv => inv.status === 'Unpaid');
-  } else if (activeTab === 'paid') {
-    filteredInvoices = filteredInvoices.filter(inv => inv.status === 'Paid');
+  if (activeTab !== 'all') {
+    filteredInvoices = filteredInvoices.filter(inv =>
+      (inv.status || '').toLowerCase() === activeTab.toLowerCase()
+    );
   }
 
   if (searchQuery) {

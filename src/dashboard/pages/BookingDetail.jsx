@@ -493,6 +493,7 @@ export const RealBookingDetail = ({ bookingId, onBack }) => {
           onClose={() => setRecordPayOpen(false)}
           preselectedCustomer={customer}
           customers={customers}
+          bookings={bookings}
           onSave={handleRecordPayment}
         />
       )}

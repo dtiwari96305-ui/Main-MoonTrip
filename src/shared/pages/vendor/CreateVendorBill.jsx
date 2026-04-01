@@ -293,6 +293,7 @@ export const CreateVendorBill = ({ vendors, bookings, addVendor, addVendorBill, 
             setShowAddVendor(false);
             if (result) set('vendorId', result.id);
           }}
+          mode={mode}
         />
       )}
     </div>

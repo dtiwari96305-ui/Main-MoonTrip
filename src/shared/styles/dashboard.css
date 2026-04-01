@@ -1824,6 +1824,25 @@ button {
   color: var(--text-primary);
 }
 
+.tc-view-all-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.tc-view-all-btn:hover {
+  background: var(--hover-bg, rgba(99, 102, 241, 0.06));
+}
+
 /* ===========================
    QUICK ACTIONS
 =========================== */
@@ -5910,6 +5929,7 @@ tr:hover .dt-actions .action-btn {
   border-radius: 10px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   overflow: hidden;
+  max-width: 100%;
 }
 .dropdown-search {
   width: 100%;
@@ -5922,7 +5942,7 @@ tr:hover .dt-actions .action-btn {
   box-sizing: border-box;
 }
 .dropdown-search:focus { outline: none; }
-.dropdown-list { max-height: 220px; overflow-y: auto; }
+.dropdown-list { max-height: 200px; overflow-y: auto; }
 .dropdown-item {
   padding: 10px 14px;
   cursor: pointer;

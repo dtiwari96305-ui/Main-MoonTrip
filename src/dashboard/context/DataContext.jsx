@@ -248,29 +248,35 @@ export const DataProvider = ({ children }) => {
         raw: v,
       })));
 
-      setVendorBills(vbills.map(b => ({
-        id: b.id,
-        billNumber: b.bill_number,
-        vendorId: b.vendor_id,
-        vendorName: b.real_vendors?.name || '—',
-        bookingId: b.booking_id,
-        bookingNumber: b.real_bookings?.booking_number || '—',
-        serviceType: b.service_type,
-        serviceDate: b.service_date || '',
-        grossAmount: Number(b.gross_amount) || 0,
-        commissionAmount: Number(b.commission_amount) || 0,
-        tdsReceivable: Number(b.tds_receivable) || 0,
-        processingFee: Number(b.processing_fee) || 0,
-        vendorGstCgst: Number(b.vendor_gst_cgst) || 0,
-        vendorGstSgst: Number(b.vendor_gst_sgst) || 0,
-        roundOff: Number(b.round_off) || 0,
-        netPayable: Number(b.net_payable) || 0,
-        status: b.status || 'unpaid',
-        serviceDetails: b.service_details || {},
-        notes: b.notes || '',
-        createdAt: b.created_at,
-        raw: b,
-      })));
+      setVendorBills(vbills.map(b => {
+        const paidOnBill = vpay.filter(p => p.bill_id === b.id).reduce((s, p) => s + (Number(p.amount) || 0), 0);
+        return {
+          id: b.id,
+          billNumber: b.bill_number,
+          vendorId: b.vendor_id,
+          vendorName: b.real_vendors?.name || '—',
+          bookingId: b.booking_id,
+          bookingNumber: b.real_bookings?.booking_number || '—',
+          serviceType: b.service_type,
+          serviceDate: b.service_date || '',
+          invoiceNumber: b.invoice_number || '',
+          invoiceDate: b.invoice_date || '',
+          grossAmount: Number(b.gross_amount) || 0,
+          amountPaid: paidOnBill,
+          commissionAmount: Number(b.commission_amount) || 0,
+          tdsReceivable: Number(b.tds_receivable) || 0,
+          processingFee: Number(b.processing_fee) || 0,
+          vendorGstCgst: Number(b.vendor_gst_cgst) || 0,
+          vendorGstSgst: Number(b.vendor_gst_sgst) || 0,
+          roundOff: Number(b.round_off) || 0,
+          netPayable: Number(b.net_payable) || 0,
+          status: b.status || 'unpaid',
+          serviceDetails: b.service_details || {},
+          notes: b.notes || '',
+          createdAt: b.created_at,
+          raw: b,
+        };
+      }));
 
       setVendorPayments(vpay.map(p => ({
         id: p.id,
@@ -871,7 +877,7 @@ export const DataProvider = ({ children }) => {
       ifsc_code: data.ifscCode || '',
       notes: data.notes || '',
     });
-    refreshData();
+    await refreshData();
     return result;
   }, [refreshData]);
 
@@ -890,7 +896,7 @@ export const DataProvider = ({ children }) => {
       ifsc_code: data.ifscCode || '',
       notes: data.notes || '',
     });
-    refreshData();
+    await refreshData();
   }, [refreshData]);
 
   const addVendorBill = useCallback(async (data) => {
@@ -900,7 +906,9 @@ export const DataProvider = ({ children }) => {
       vendor_id: data.vendorId || null,
       booking_id: data.bookingId || null,
       service_type: data.serviceType || 'other',
-      service_date: data.serviceDate || null,
+      service_date: data.serviceDate || data.invoiceDate || null,
+      invoice_number: data.invoiceNumber || '',
+      invoice_date: data.invoiceDate || data.serviceDate || null,
       gross_amount: Number(data.grossAmount) || 0,
       commission_amount: Number(data.commissionAmount) || 0,
       tds_receivable: Number(data.tdsReceivable) || 0,
@@ -913,13 +921,13 @@ export const DataProvider = ({ children }) => {
       service_details: data.serviceDetails || {},
       notes: data.notes || '',
     });
-    refreshData();
+    await refreshData();
     return result;
   }, [refreshData]);
 
   const updateVendorBill = useCallback(async (id, data) => {
     await realDb.updateVendorBill(id, data);
-    refreshData();
+    await refreshData();
   }, [refreshData]);
 
   const addVendorPayment = useCallback(async (data) => {

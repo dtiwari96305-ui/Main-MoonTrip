@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { AddVendorModal } from '../../components/vendor/AddVendorModal';
 import { Header } from '../../components/Header';
+import { openVendorDetail } from '../../../utils/vendorNav';
 
 export const VendorsList = ({ vendors, vendorBills, vendorPayments, addVendor, onViewChange, mode = 'demo' }) => {
   const [search, setSearch] = useState('');
@@ -79,7 +80,7 @@ export const VendorsList = ({ vendors, vendorBills, vendorPayments, addVendor, o
               {filtered.map(v => (
                 <tr
                   key={v.id}
-                  onClick={() => onViewChange('vendor-detail', v.id)}
+                  onClick={() => mode === 'real' ? openVendorDetail(v.id, 'vendors-list') : onViewChange('vendor-detail', v.id)}
                   style={{ cursor: 'pointer' }}
                 >
                   <td style={{ fontWeight: 600 }}>{v.name}</td>
@@ -104,7 +105,9 @@ export const VendorsList = ({ vendors, vendorBills, vendorPayments, addVendor, o
           onSave={addVendor}
           onClose={(result) => {
             setShowAdd(false);
-            if (result) onViewChange('vendor-detail', result.id);
+            if (result) {
+              mode === 'real' ? openVendorDetail(result.id, 'vendors-list') : onViewChange('vendor-detail', result.id);
+            }
           }}
           mode={mode}
         />

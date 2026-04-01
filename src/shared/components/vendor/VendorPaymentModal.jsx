@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 
 const fmt = (n) => '₹' + Number(n).toLocaleString('en-IN');
@@ -19,7 +19,9 @@ const ModeIcon = ({ mode }) => {
   return null;
 };
 
-export const VendorPaymentModal = ({ bill, vendor, onSave, onClose, mode = 'demo' }) => {
+export const VendorPaymentModal = ({ bill, vendor, vendors = [], vendorBills = [], onSave, onClose, mode = 'demo' }) => {
+  const [selectedVendorId, setSelectedVendorId] = useState(vendor?.id || bill?.vendorId || '');
+  const [selectedBillId, setSelectedBillId] = useState(bill?.id || '');
   const [form, setForm] = useState({
     amount: bill ? String(bill.netPayable) : '',
     paymentMode: 'bank_transfer',
@@ -31,11 +33,32 @@ export const VendorPaymentModal = ({ bill, vendor, onSave, onClose, mode = 'demo
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [demoNotice, setDemoNotice] = useState(false);
+  const [vendorSearch, setVendorSearch] = useState('');
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  // Determine if we need vendor/bill selectors
+  const needsVendorSelect = !vendor && !bill;
+  const resolvedVendor = vendor || vendors.find(v => v.id === selectedVendorId);
+
+  // Bills for the selected vendor (only unpaid/partial)
+  const availableBills = useMemo(() => {
+    if (!selectedVendorId) return [];
+    return vendorBills.filter(b => b.vendorId === selectedVendorId && b.status !== 'paid');
+  }, [vendorBills, selectedVendorId]);
+
+  const resolvedBill = bill || vendorBills.find(b => b.id === selectedBillId);
+
+  const filteredVendors = useMemo(() => {
+    if (!vendorSearch) return vendors;
+    const q = vendorSearch.toLowerCase();
+    return vendors.filter(v => v.name.toLowerCase().includes(q));
+  }, [vendors, vendorSearch]);
+
   const handleSave = async (e) => {
     e.preventDefault();
+    const vendorId = vendor?.id || bill?.vendorId || selectedVendorId;
+    if (!vendorId) { setError('Please select a vendor.'); return; }
     if (!form.amount || Number(form.amount) <= 0) { setError('Enter a valid amount.'); return; }
     if (mode === 'demo') { setDemoNotice(true); return; }
     setSaving(true);
@@ -43,8 +66,8 @@ export const VendorPaymentModal = ({ bill, vendor, onSave, onClose, mode = 'demo
       await onSave({
         ...form,
         amount: Number(form.amount),
-        vendorId: vendor?.id || bill?.vendorId,
-        billId: bill?.id || null,
+        vendorId,
+        billId: bill?.id || selectedBillId || null,
       });
       onClose();
     } catch (err) {
@@ -87,7 +110,7 @@ export const VendorPaymentModal = ({ bill, vendor, onSave, onClose, mode = 'demo
 
         {/* Body */}
         <div className="modal-body">
-          {/* Bill info */}
+          {/* Bill info — show when bill is pre-selected */}
           {bill && (
             <div style={{
               background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10,
@@ -104,6 +127,79 @@ export const VendorPaymentModal = ({ bill, vendor, onSave, onClose, mode = 'demo
           )}
 
           <form id="vendor-payment-form" onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+
+            {/* Vendor selector — only when no vendor/bill pre-selected */}
+            {needsVendorSelect && (
+              <div className="rp-field">
+                <label className="rp-field-label">VENDOR <span className="rp-required">*</span></label>
+                <input
+                  className="rp-input"
+                  placeholder="Search vendor..."
+                  value={selectedVendorId ? (resolvedVendor?.name || '') : vendorSearch}
+                  onChange={e => { setVendorSearch(e.target.value); setSelectedVendorId(''); setSelectedBillId(''); }}
+                  onFocus={() => setVendorSearch('')}
+                />
+                {vendorSearch && !selectedVendorId && (
+                  <div style={{
+                    position: 'absolute', zIndex: 20, left: 0, right: 0, marginTop: 2,
+                    background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxHeight: 200, overflowY: 'auto',
+                  }}>
+                    {filteredVendors.length === 0 ? (
+                      <div style={{ padding: 12, color: '#9ca3af', fontSize: 13 }}>No vendors found</div>
+                    ) : filteredVendors.map(v => (
+                      <div
+                        key={v.id}
+                        style={{ padding: '8px 14px', cursor: 'pointer', fontSize: 13, color: '#374151' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                        onClick={() => { setSelectedVendorId(v.id); setVendorSearch(''); setSelectedBillId(''); }}
+                      >
+                        <div style={{ fontWeight: 500 }}>{v.name}</div>
+                        {v.city && <div style={{ fontSize: 11, color: '#9ca3af' }}>{v.city}</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Bill selector — when vendor is selected but no bill pre-selected */}
+            {needsVendorSelect && selectedVendorId && availableBills.length > 0 && (
+              <div className="rp-field">
+                <label className="rp-field-label">AGAINST BILL (optional)</label>
+                <select
+                  className="rp-input"
+                  value={selectedBillId}
+                  onChange={e => {
+                    setSelectedBillId(e.target.value);
+                    if (e.target.value) {
+                      const b = vendorBills.find(b => b.id === e.target.value);
+                      if (b) set('amount', String(b.netPayable - (b.amountPaid || 0)));
+                    }
+                  }}
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <option value="">General payment (no bill)</option>
+                  {availableBills.map(b => (
+                    <option key={b.id} value={b.id}>
+                      {b.billNumber} — {b.serviceType} — Remaining: {fmt(b.netPayable - (b.amountPaid || 0))}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Outstanding helper */}
+            {resolvedBill && !bill && (
+              <div style={{
+                background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8,
+                padding: '8px 12px', marginBottom: 8, fontSize: 12, color: '#1e40af',
+              }}>
+                Outstanding: <strong>{fmt(resolvedBill.netPayable - (resolvedBill.amountPaid || 0))}</strong>
+              </div>
+            )}
+
             <div className="rp-field">
               <label className="rp-field-label">PAYMENT AMOUNT <span className="rp-required">*</span></label>
               <div className="rp-amount-wrap">
@@ -112,7 +208,7 @@ export const VendorPaymentModal = ({ bill, vendor, onSave, onClose, mode = 'demo
                   type="number" className="rp-amount-input" placeholder="0"
                   min="1" value={form.amount}
                   onChange={e => set('amount', e.target.value)}
-                  autoFocus
+                  autoFocus={!needsVendorSelect}
                 />
               </div>
             </div>

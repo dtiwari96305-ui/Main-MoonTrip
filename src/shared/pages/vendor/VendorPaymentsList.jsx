@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { VendorPaymentModal } from '../../components/vendor/VendorPaymentModal';
 import { Header } from '../../components/Header';
+import { openVendorDetail } from '../../../utils/vendorNav';
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
@@ -96,7 +97,7 @@ export const VendorPaymentsList = ({ vendorPayments, vendorBills, vendors, addVe
               <tr key={p.id}>
                 <td style={{ fontWeight: 500, color: '#e8eaed' }}>{p.paymentNumber}</td>
                 <td>
-                  <button className="link-btn" onClick={() => onViewChange('vendor-detail', p.vendorId)}>
+                  <button className="link-btn" onClick={() => mode === 'real' ? openVendorDetail(p.vendorId, 'vendors-payments') : onViewChange('vendor-detail', p.vendorId)}>
                     {p.vendorName}
                   </button>
                 </td>
@@ -115,6 +116,8 @@ export const VendorPaymentsList = ({ vendorPayments, vendorBills, vendors, addVe
         <VendorPaymentModal
           bill={null}
           vendor={null}
+          vendors={vendors}
+          vendorBills={vendorBills}
           onSave={addVendorPayment}
           onClose={() => setShowPay(false)}
           mode={mode}

@@ -218,7 +218,7 @@ export const RealDashboard = ({ onViewChange }) => {
     return customers
       .map(c => ({ ...c, totalRevenue: totals[c.name] || 0, bookingCount: bookingCounts[c.name] || 0 }))
       .sort((a, b) => b.totalRevenue - a.totalRevenue)
-      .slice(0, 5);
+      .slice(0, 3);
   }, [customers, payments, bookings]);
 
   const gradients = [
