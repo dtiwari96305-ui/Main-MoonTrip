@@ -2060,6 +2060,63 @@ html { scroll-behavior: smooth; }
 }
 .itin-add-page-btn:hover { border-color: var(--accent); color: var(--accent); background: #f0fdf4; }
 
+/* ── Itinerary Page Entries ── */
+.itin-page-entries { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+.itin-page-entry {
+  border: 1px solid var(--border-color, #e5e7eb); border-radius: 10px;
+  padding: 12px; background: #fafbfc;
+}
+.itin-page-entry-top {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.itin-page-name-input {
+  flex: 1; padding: 6px 10px; border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px; font-size: 13px; font-weight: 600;
+  font-family: var(--font); color: var(--text-primary);
+  background: #fff; outline: none;
+}
+.itin-page-name-input:focus { border-color: var(--accent); }
+.itin-page-type-select {
+  padding: 6px 8px; border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px; font-size: 12px; font-family: var(--font);
+  color: var(--text-secondary); background: #fff; cursor: pointer; outline: none;
+}
+.itin-page-remove-btn {
+  width: 30px; height: 30px; min-width: 30px; border-radius: 6px;
+  border: 1px solid var(--border-color, #e5e7eb); background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-muted); transition: all 0.15s;
+}
+.itin-page-remove-btn:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+.itin-page-image-upload {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 16px; border: 1.5px dashed #d1d9e4; border-radius: 8px;
+  cursor: pointer; font-size: 12px; color: var(--text-muted);
+  transition: all 0.15s; background: #fff;
+}
+.itin-page-image-upload:hover { border-color: var(--accent); color: var(--accent); background: #f0fdf4; }
+.itin-page-image-preview {
+  position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 6px;
+}
+.itin-page-image-preview img {
+  width: 100%; height: 100px; object-fit: cover; display: block; border-radius: 8px;
+}
+.itin-page-image-remove {
+  position: absolute; top: 6px; right: 6px;
+  padding: 3px 8px; border-radius: 4px; border: none;
+  background: rgba(0,0,0,0.6); color: #fff; font-size: 11px;
+  cursor: pointer; font-weight: 600;
+}
+.itin-page-image-remove:hover { background: rgba(239,68,68,0.9); }
+.itin-page-options {
+  display: flex; gap: 16px; margin-top: 8px;
+}
+.itin-page-toggle {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--text-secondary); cursor: pointer;
+}
+.itin-page-toggle input { cursor: pointer; }
+
 /* Header & Footer card header bar */
 .itin-hf-card-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -2807,53 +2864,29 @@ html { scroll-behavior: smooth; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   QUOTES TABLE — ITINERARY DROPDOWN  (qt-itin-)
+   QUOTES TABLE — ROW ACTION BUTTONS  (qt-action / qt-download / qt-delete)
    ═══════════════════════════════════════════════════════════════════ */
 
-.qt-itin-wrap {
-  position: relative; display: inline-block;
+.qt-row-actions {
+  display: flex; align-items: center; gap: 6px;
+  justify-content: flex-end; white-space: nowrap;
 }
-.qt-itin-btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 11px; border-radius: 7px;
-  border: 1.5px solid var(--border-color); background: #fff;
-  font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
-  cursor: pointer; font-family: var(--font); transition: all 0.15s;
-  white-space: nowrap;
+.qt-action-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; min-width: 34px;
+  border-radius: 8px; border: 1.5px solid var(--border-color);
+  background: #fff; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s; flex-shrink: 0;
 }
-.qt-itin-btn:hover { border-color: var(--accent); color: var(--accent); background: #f0fdf4; }
-.qt-itin-btn-open { border-color: var(--accent); color: var(--accent); background: #f0fdf4; }
-
-.qt-itin-dropdown {
-  position: absolute; right: 0; top: calc(100% + 6px); z-index: 300;
-  background: #fff; border: 1px solid var(--border-color);
-  border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06);
-  min-width: 210px; overflow: hidden;
-  animation: itinDropIn 0.15s ease-out;
+.qt-download-btn:hover {
+  border-color: #16a34a; color: #16a34a; background: #f0fdf4;
 }
-@keyframes itinDropIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+.qt-delete-btn:hover {
+  border-color: #ef4444; color: #ef4444; background: #fef2f2;
 }
-.qt-itin-drop-item {
-  display: flex; align-items: center; gap: 12px;
-  width: 100%; padding: 11px 14px;
-  border: none; background: transparent; cursor: pointer;
-  font-family: var(--font); text-align: left;
-  transition: background 0.12s;
+@media (max-width: 768px) {
+  .qt-action-btn { width: 44px; height: 44px; min-width: 44px; }
 }
-.qt-itin-drop-item:hover { background: #f8fafc; }
-.qt-itin-drop-item:not(:last-child) { border-bottom: 1px solid #f1f5f9; }
-.qt-itin-drop-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.qt-itin-simple-icon { background: #f0f9ff; color: #0369a1; }
-.qt-itin-design-icon { background: #fdf4ff; color: #9333ea; }
-.qt-itin-drop-text { display: flex; flex-direction: column; gap: 1px; }
-.qt-itin-drop-label { font-size: 0.84rem; font-weight: 600; color: var(--text-primary); }
-.qt-itin-drop-sub { font-size: 0.72rem; color: var(--text-muted); }
 
 /* ═══════════════════════════════════════════════════════════════════
    QUOTE DESIGNER  (qds-)

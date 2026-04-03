@@ -110,6 +110,7 @@ export const VendorsList = ({ vendors, vendorBills, vendorPayments, addVendor, o
             }
           }}
           mode={mode}
+          vendors={vendors}
         />
       )}
     </div>

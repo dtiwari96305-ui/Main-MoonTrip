@@ -39,6 +39,10 @@ export const VendorBillsList = ({ vendorBills, vendors, addVendorPayment, onView
     });
   }, [vendorBills, search, filterStatus]);
 
+  const totalPayable = useMemo(() => filtered.reduce((s, b) => s + (Number(b.netPayable) || 0), 0), [filtered]);
+  const totalPaid = useMemo(() => filtered.reduce((s, b) => s + (Number(b.amountPaid) || 0), 0), [filtered]);
+  const totalPending = Math.max(0, totalPayable - totalPaid);
+
   return (
     <div className="page-content">
       <Header title="Vendor Bills" subtitle="Manage vendor costs and payments" showNewQuote={false} mode={mode}>
@@ -159,6 +163,24 @@ export const VendorBillsList = ({ vendorBills, vendors, addVendorPayment, onView
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ── Summary Boxes ── */}
+      {filtered.length > 0 && (
+        <div className="vb-summary-row">
+          <div className="vb-summary-card">
+            <span className="vb-summary-label">TOTAL PAYABLE</span>
+            <span className="vb-summary-value">{fmt(totalPayable)}</span>
+          </div>
+          <div className="vb-summary-card">
+            <span className="vb-summary-label">TOTAL PAID</span>
+            <span className="vb-summary-value" style={{ color: '#16a34a' }}>{fmt(totalPaid)}</span>
+          </div>
+          <div className="vb-summary-card">
+            <span className="vb-summary-label">TOTAL PENDING</span>
+            <span className="vb-summary-value" style={{ color: totalPending > 0 ? '#f97316' : '#6b7280' }}>{fmt(totalPending)}</span>
+          </div>
         </div>
       )}
 

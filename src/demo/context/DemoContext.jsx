@@ -468,6 +468,17 @@ export const DemoProvider = ({ children }) => {
     }
   }, [quotes, refreshData]);
 
+  const deleteQuote = useCallback(async (id) => {
+    try {
+      const quote = quotes.find(q => q.id === id);
+      if (!quote) return;
+      await demoDb.deleteQuote(quote.uuid);
+      refreshData();
+    } catch (err) {
+      console.error('DemoContext: deleteQuote failed', err);
+    }
+  }, [quotes, refreshData]);
+
   const updateQuoteFromForm = useCallback(async (id, formData, calcResult) => {
     try {
       const quote = quotes.find(q => q.id === id);
@@ -796,7 +807,7 @@ export const DemoProvider = ({ children }) => {
     loading,
     customers, quotes, bookings, payments, invoices, activities, quoteDetailData,
     addCustomer, updateCustomer, getCustomerById,
-    addQuote, updateQuote, updateQuoteFromForm, saveQuoteDetail, getQuoteById,
+    addQuote, updateQuote, deleteQuote, updateQuoteFromForm, saveQuoteDetail, getQuoteById,
     updateBooking, getBookingById,
     addPayment, getPaymentById,
     convertQuote,

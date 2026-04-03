@@ -20,7 +20,7 @@ const QUOTES_COLUMNS = [
 
 export const Quotes = ({ onViewChange }) => {
   const triggerDemoPopup = useDemoPopup();
-  const { quotes, updateQuote, convertQuote, customers, quoteDetailData } = useDemoData();
+  const { quotes, updateQuote, convertQuote, deleteQuote, customers, quoteDetailData } = useDemoData();
   const [activeFilter, setActiveFilter] = useState(() => sessionStorage.getItem('quotes_activeFilter') || 'all');
   const [activeTypeFilter, setActiveTypeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,6 +49,9 @@ export const Quotes = ({ onViewChange }) => {
         break;
       case 'convert':
         convertQuote(quoteId);
+        break;
+      case 'delete':
+        if (deleteQuote) deleteQuote(quoteId);
         break;
       default:
         break;
@@ -110,6 +113,7 @@ export const Quotes = ({ onViewChange }) => {
           quoteDetailData={quoteDetailData}
           buildEditFormData={buildEditFormData}
           onAction={handleQuoteAction}
+          companyName="Wanderlust Travels"
         />
       ) : (
 

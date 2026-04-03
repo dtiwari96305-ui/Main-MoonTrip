@@ -252,11 +252,78 @@ export const RealSettings = () => {
   const [showCompanyLogo, setShowCompanyLogo] = useState(true);
   const [logoPosition, setLogoPosition] = useState('left');
   const [companyNameHeader, setCompanyNameHeader] = useState(settings.companyName || '');
-  const [tagline, setTagline] = useState('');
-  const [contactInfo, setContactInfo] = useState('');
-  const [footerLeft, setFooterLeft] = useState('');
-  const [footerCenter, setFooterCenter] = useState('');
-  const [footerRight, setFooterRight] = useState('');
+  const [tagline, setTagline] = useState(settings.itineraryHeader?.tagline || '');
+  const [contactInfo, setContactInfo] = useState(settings.itineraryHeader?.contactInfo || '');
+  const [footerLeft, setFooterLeft] = useState(settings.itineraryFooter?.left || '');
+  const [footerCenter, setFooterCenter] = useState(settings.itineraryFooter?.center || '');
+  const [footerRight, setFooterRight] = useState(settings.itineraryFooter?.right || '');
+  const [prefixPages, setPrefixPages] = useState(settings.itineraryPages?.filter(p => p.position === 'prefix') || []);
+  const [suffixPages, setSuffixPages] = useState(settings.itineraryPages?.filter(p => p.position === 'suffix') || []);
+  const [uploadingPageId, setUploadingPageId] = useState(null);
+  const [itinSaving, setItinSaving] = useState(false);
+  const [itinSaved, setItinSaved] = useState(false);
+
+  const addPage = (position) => {
+    const pages = position === 'prefix' ? prefixPages : suffixPages;
+    const setter = position === 'prefix' ? setPrefixPages : setSuffixPages;
+    const newPage = {
+      id: crypto.randomUUID(),
+      position,
+      name: `Page ${pages.length + 1}`,
+      type: 'custom',
+      imageUrl: null,
+      showCompanyName: true,
+      showPageNumber: true,
+      footerText: '',
+      order: pages.length,
+    };
+    setter(prev => [...prev, newPage]);
+  };
+
+  const removePage = (pageId, position) => {
+    const setter = position === 'prefix' ? setPrefixPages : setSuffixPages;
+    setter(prev => prev.filter(p => p.id !== pageId));
+  };
+
+  const updatePage = (pageId, field, value, position) => {
+    const setter = position === 'prefix' ? setPrefixPages : setSuffixPages;
+    setter(prev => prev.map(p => p.id === pageId ? { ...p, [field]: value } : p));
+  };
+
+  const handlePageImageUpload = (e, pageId, position) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) { alert('Only JPG, PNG, WebP, and GIF images are allowed.'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('Image size must be less than 5MB.'); return; }
+    setUploadingPageId(pageId);
+    const reader = new FileReader();
+    reader.onload = () => {
+      updatePage(pageId, 'imageUrl', reader.result, position);
+      setUploadingPageId(null);
+    };
+    reader.onerror = () => { alert('Failed to read image.'); setUploadingPageId(null); };
+    reader.readAsDataURL(file);
+  };
+
+  const saveItinerarySettings = async () => {
+    setItinSaving(true);
+    try {
+      const allPages = [...prefixPages, ...suffixPages];
+      await updateSettings({
+        itineraryPages: allPages,
+        itineraryHeader: { tagline, contactInfo, companyName: companyNameHeader, headerMode, showCompanyLogo, logoPosition },
+        itineraryFooter: { left: footerLeft, center: footerCenter, right: footerRight },
+      });
+      setItinSaved(true);
+      setTimeout(() => setItinSaved(false), 2500);
+    } catch (err) {
+      console.error('Save itinerary settings failed:', err);
+      alert('Failed to save itinerary settings.');
+    } finally {
+      setItinSaving(false);
+    }
+  };
 
   useEffect(() => {
     sessionStorage.setItem('real_settings_activeTab', activeTab);
@@ -726,33 +793,123 @@ export const RealSettings = () => {
                   </span>
                 </div>
                 <div className="itin-pages-grid">
+                  {/* PREFIX column */}
                   <div className="itin-pages-col">
                     <div className="itin-pages-row">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
                       <span className="itin-pages-row-label">PREFIX PAGES</span>
-                      <span className="itin-pages-badge">0</span>
+                      <span className="itin-pages-badge">{prefixPages.length}</span>
                     </div>
-                    <div className="itin-pages-empty">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                      <p>No prefix pages yet</p>
-                    </div>
-                    <button className="itin-add-page-btn">
+                    {prefixPages.length === 0 ? (
+                      <div className="itin-pages-empty">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <p>No prefix pages yet</p>
+                      </div>
+                    ) : (
+                      <div className="itin-page-entries">
+                        {prefixPages.map(page => (
+                          <div key={page.id} className="itin-page-entry">
+                            <div className="itin-page-entry-top">
+                              <input type="text" className="itin-page-name-input" value={page.name} onChange={e => updatePage(page.id, 'name', e.target.value, 'prefix')} placeholder="Page name" />
+                              <select className="itin-page-type-select" value={page.type} onChange={e => updatePage(page.id, 'type', e.target.value, 'prefix')}>
+                                <option value="cover">Cover</option>
+                                <option value="day_page">Day Page</option>
+                                <option value="summary">Summary</option>
+                                <option value="custom">Custom</option>
+                              </select>
+                              <button className="itin-page-remove-btn" onClick={() => removePage(page.id, 'prefix')} title="Remove page">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              </button>
+                            </div>
+                            {page.imageUrl ? (
+                              <div className="itin-page-image-preview">
+                                <img src={page.imageUrl} alt={page.name} />
+                                <button className="itin-page-image-remove" onClick={() => updatePage(page.id, 'imageUrl', null, 'prefix')}>✕ Remove</button>
+                              </div>
+                            ) : (
+                              <div className="itin-page-image-upload" onClick={() => document.getElementById(`itin-img-${page.id}`).click()}>
+                                <input id={`itin-img-${page.id}`} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{display:'none'}} onChange={e => handlePageImageUpload(e, page.id, 'prefix')} />
+                                {uploadingPageId === page.id ? (
+                                  <span style={{fontSize:13, color:'var(--text-muted)'}}>Uploading...</span>
+                                ) : (
+                                  <>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    <span>Click to upload</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                            <div className="itin-page-options">
+                              <label className="itin-page-toggle"><input type="checkbox" checked={page.showCompanyName} onChange={e => updatePage(page.id, 'showCompanyName', e.target.checked, 'prefix')} /> Show company name</label>
+                              <label className="itin-page-toggle"><input type="checkbox" checked={page.showPageNumber} onChange={e => updatePage(page.id, 'showPageNumber', e.target.checked, 'prefix')} /> Show page number</label>
+                            </div>
+                            <input type="text" className="form-input" style={{fontSize:13, marginTop:6}} value={page.footerText || ''} onChange={e => updatePage(page.id, 'footerText', e.target.value, 'prefix')} placeholder="Footer text for this page..." />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <button className="itin-add-page-btn" onClick={() => addPage('prefix')}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                       Add page
                     </button>
                   </div>
                   <div className="itin-pages-divider" />
+                  {/* SUFFIX column */}
                   <div className="itin-pages-col">
                     <div className="itin-pages-row">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
                       <span className="itin-pages-row-label">SUFFIX PAGES</span>
-                      <span className="itin-pages-badge">0</span>
+                      <span className="itin-pages-badge">{suffixPages.length}</span>
                     </div>
-                    <div className="itin-pages-empty">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                      <p>No suffix pages yet</p>
-                    </div>
-                    <button className="itin-add-page-btn">
+                    {suffixPages.length === 0 ? (
+                      <div className="itin-pages-empty">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <p>No suffix pages yet</p>
+                      </div>
+                    ) : (
+                      <div className="itin-page-entries">
+                        {suffixPages.map(page => (
+                          <div key={page.id} className="itin-page-entry">
+                            <div className="itin-page-entry-top">
+                              <input type="text" className="itin-page-name-input" value={page.name} onChange={e => updatePage(page.id, 'name', e.target.value, 'suffix')} placeholder="Page name" />
+                              <select className="itin-page-type-select" value={page.type} onChange={e => updatePage(page.id, 'type', e.target.value, 'suffix')}>
+                                <option value="cover">Cover</option>
+                                <option value="day_page">Day Page</option>
+                                <option value="summary">Summary</option>
+                                <option value="custom">Custom</option>
+                              </select>
+                              <button className="itin-page-remove-btn" onClick={() => removePage(page.id, 'suffix')} title="Remove page">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              </button>
+                            </div>
+                            {page.imageUrl ? (
+                              <div className="itin-page-image-preview">
+                                <img src={page.imageUrl} alt={page.name} />
+                                <button className="itin-page-image-remove" onClick={() => updatePage(page.id, 'imageUrl', null, 'suffix')}>✕ Remove</button>
+                              </div>
+                            ) : (
+                              <div className="itin-page-image-upload" onClick={() => document.getElementById(`itin-img-${page.id}`).click()}>
+                                <input id={`itin-img-${page.id}`} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{display:'none'}} onChange={e => handlePageImageUpload(e, page.id, 'suffix')} />
+                                {uploadingPageId === page.id ? (
+                                  <span style={{fontSize:13, color:'var(--text-muted)'}}>Uploading...</span>
+                                ) : (
+                                  <>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    <span>Click to upload</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                            <div className="itin-page-options">
+                              <label className="itin-page-toggle"><input type="checkbox" checked={page.showCompanyName} onChange={e => updatePage(page.id, 'showCompanyName', e.target.checked, 'suffix')} /> Show company name</label>
+                              <label className="itin-page-toggle"><input type="checkbox" checked={page.showPageNumber} onChange={e => updatePage(page.id, 'showPageNumber', e.target.checked, 'suffix')} /> Show page number</label>
+                            </div>
+                            <input type="text" className="form-input" style={{fontSize:13, marginTop:6}} value={page.footerText || ''} onChange={e => updatePage(page.id, 'footerText', e.target.value, 'suffix')} placeholder="Footer text for this page..." />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <button className="itin-add-page-btn" onClick={() => addPage('suffix')}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                       Add page
                     </button>
@@ -773,12 +930,15 @@ export const RealSettings = () => {
                       <p className="itin-card-subtitle">Applied to all new itineraries — can be overridden per itinerary</p>
                     </div>
                   </div>
-                  <button className="itin-save-btn" onClick={() => handleSave({})}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                      <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
-                    </svg>
-                    Save
+                  <button className="itin-save-btn" onClick={saveItinerarySettings} disabled={itinSaving}>
+                    {itinSaved ? (
+                      <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> Saved!</>
+                    ) : (
+                      <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                      </svg> {itinSaving ? 'Saving…' : 'Save'}</>
+                    )}
                   </button>
                 </div>
 

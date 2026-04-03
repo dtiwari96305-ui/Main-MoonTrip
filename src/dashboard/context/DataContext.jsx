@@ -42,6 +42,9 @@ function mapSettingsFromDb(s) {
     userRole: s.user_role || 'admin',
     email: s.email || '',
     phone: s.phone || '',
+    itineraryPages: s.itinerary_pages || [],
+    itineraryHeader: s.itinerary_header || {},
+    itineraryFooter: s.itinerary_footer || {},
   };
 }
 
@@ -78,6 +81,9 @@ function mapSettingsToDb(updates) {
     userRole: 'user_role',
     email: 'email',
     phone: 'phone',
+    itineraryPages: 'itinerary_pages',
+    itineraryHeader: 'itinerary_header',
+    itineraryFooter: 'itinerary_footer',
   };
   const result = {};
   for (const [key, value] of Object.entries(updates)) {

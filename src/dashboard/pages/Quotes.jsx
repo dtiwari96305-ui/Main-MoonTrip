@@ -5,7 +5,6 @@ import { QuotesTable } from '../../shared/components/QuotesTable';
 import { TableSkeleton } from '../../shared/components/PageSkeleton';
 import { ExportDropdown } from '../../shared/components/ExportDropdown';
 import { EmptyState } from '../components/EmptyState';
-import { ConfirmDeleteModal } from '../components/ConfirmDeleteModal';
 import { ConvertToBookingModal } from '../components/ConvertToBookingModal';
 import { buildEditFormData } from '../../shared/utils/buildEditFormData';
 import { useData } from '../context/DataContext';
@@ -28,7 +27,6 @@ export const RealQuotes = ({ onViewChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [convertTarget, setConvertTarget] = useState(null);
   const [showTypeModal, setShowTypeModal] = useState(false);
 
@@ -55,8 +53,7 @@ export const RealQuotes = ({ onViewChange }) => {
       setConvertTarget(quoteId);
       return; // open modal — don't refresh yet
     } else if (actionType === 'delete') {
-      setDeleteTarget(quoteId);
-      return;
+      deleteQuote(quoteId);
     }
     setRefreshKey(prev => prev + 1);
   };
@@ -68,14 +65,6 @@ export const RealQuotes = ({ onViewChange }) => {
     setRefreshKey(prev => prev + 1);
     // Optionally navigate to bookings
     if (onViewChange) onViewChange('bookings');
-  };
-
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      deleteQuote(deleteTarget);
-      setDeleteTarget(null);
-      setRefreshKey(prev => prev + 1);
-    }
   };
 
   const handleRefresh = () => {
@@ -141,6 +130,7 @@ export const RealQuotes = ({ onViewChange }) => {
           quoteDetailData={quoteDetailData}
           buildEditFormData={buildEditFormData}
           onAction={handleAction}
+          companyName={settings?.companyName || 'Wanderlust Travels'}
         />
       ) : (
         <div className="empty-state-card">
@@ -151,14 +141,6 @@ export const RealQuotes = ({ onViewChange }) => {
           <p className="empty-state-desc">Try adjusting your filters or search.</p>
         </div>
       )}
-
-      <ConfirmDeleteModal
-        isOpen={!!deleteTarget}
-        title="Confirm Delete"
-        message={`Are you sure you want to delete quote ${deleteTarget}? This action cannot be undone.`}
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteTarget(null)}
-      />
 
       {convertTarget && convertQuoteObj && (
         <ConvertToBookingModal

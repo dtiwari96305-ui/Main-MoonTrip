@@ -5868,6 +5868,59 @@ tr:hover .dt-actions .action-btn {
 }
 .link-btn:hover { color: #a5b4fc; }
 
+/* ── Vendor Bills Summary Boxes ── */
+.vb-summary-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+.vb-summary-card {
+  background: #fff;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vb-summary-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-muted, #9ca3af);
+  text-transform: uppercase;
+}
+.vb-summary-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+
+/* ── Vendor Code Auto Badge ── */
+.auto-badge {
+  display: inline-block;
+  background: #f0fdf4;
+  color: #16a34a;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  border: 1px solid #bbf7d0;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.vendor-code-hint {
+  font-size: 11px;
+  color: var(--text-muted, #9ca3af);
+  margin-top: 2px;
+}
+.vendor-code-error {
+  font-size: 11px;
+  color: #ef4444;
+  margin-top: 2px;
+}
+
 /* Filter select */
 .filter-select {
   padding: 8px 12px;

@@ -58,7 +58,14 @@ export const demoDb = {
     if (error) throw error;
     return result;
   },
-  
+  deleteQuote: async (id) => {
+    const { error } = await supabase
+      .from('demo_quotes')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+
   // Bookings
   getBookings: async () => {
     const { data, error } = await supabase

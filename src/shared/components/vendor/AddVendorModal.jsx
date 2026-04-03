@@ -1,20 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
-export const AddVendorModal = ({ onSave, onClose, mode = 'demo' }) => {
+export const AddVendorModal = ({ onSave, onClose, mode = 'demo', vendors = [] }) => {
+  const autoCode = `VND-${String((vendors.length || 0) + 1).padStart(4, '0')}`;
   const [form, setForm] = useState({
-    name: '', vendorCode: '', city: '', contactPerson: '', phone: '', email: '',
+    name: '', vendorCode: autoCode, city: '', contactPerson: '', phone: '', email: '',
     gstNumber: '', panNumber: '', bankName: '', bankAccount: '', ifscCode: '', notes: '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [vendorCodeError, setVendorCodeError] = useState('');
   const [demoNotice, setDemoNotice] = useState(false);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  // Re-generate code if vendors prop changes (e.g. modal re-opens after adding)
+  useEffect(() => {
+    const code = `VND-${String((vendors.length || 0) + 1).padStart(4, '0')}`;
+    setForm(f => f.vendorCode === '' || f.vendorCode === autoCode ? { ...f, vendorCode: code } : f);
+  }, [vendors.length]);
+
+  const set = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    if (k === 'vendorCode') setVendorCodeError('');
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) { setError('Vendor name is required.'); return; }
+    if (!form.vendorCode.trim()) { setVendorCodeError('Vendor code is required.'); return; }
+    // Check uniqueness against existing vendors
+    const isDuplicate = vendors.some(v => (v.vendorCode || '').toLowerCase() === form.vendorCode.trim().toLowerCase());
+    if (isDuplicate) { setVendorCodeError('This vendor code already exists. Please use a different code.'); return; }
     if (mode === 'demo') { setDemoNotice(true); return; }
     setSaving(true);
     try {
@@ -72,8 +87,13 @@ export const AddVendorModal = ({ onSave, onClose, mode = 'demo' }) => {
                 <input className="rp-input" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. IndiGo Airlines" autoFocus />
               </div>
               <div className="rp-field">
-                <label className="rp-field-label">VENDOR CODE</label>
-                <input className="rp-input" value={form.vendorCode} onChange={e => set('vendorCode', e.target.value)} placeholder="e.g. VND-0001" />
+                <label className="rp-field-label">VENDOR CODE <span className="auto-badge">Auto</span></label>
+                <input className="rp-input" value={form.vendorCode} onChange={e => set('vendorCode', e.target.value.toUpperCase())} placeholder="VND-0001" />
+                {vendorCodeError ? (
+                  <span className="vendor-code-error">{vendorCodeError}</span>
+                ) : (
+                  <span className="vendor-code-hint">Auto-generated. You can edit this.</span>
+                )}
               </div>
             </div>
 
