@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { InfoBtn } from './InfoBtn';
+import { phoneOnly } from '../utils/inputHelpers';
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -448,7 +449,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
                       className="sp-phone-num"
                       placeholder="9876543210"
                       value={phone}
-                      onChange={e => setPhone(e.target.value)}
+                      onChange={e => setPhone(phoneOnly(e.target.value))}
                     />
                   </div>
                 </div>
@@ -467,7 +468,7 @@ export const CustomerSidePanel = ({ isOpen, mode, customer, profileExt, onClose,
                       className="sp-phone-num"
                       placeholder="9876543210"
                       value={altPhone}
-                      onChange={e => setAltPhone(e.target.value)}
+                      onChange={e => setAltPhone(phoneOnly(e.target.value))}
                     />
                   </div>
                 </div>

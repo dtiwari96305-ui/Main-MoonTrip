@@ -306,6 +306,25 @@
 
 /* ─── PART 2: Date Picker / Calendar Input ──────────────────────────────────── */
 
+/* ── Global: click anywhere on a date input opens the calendar ── */
+input[type="date"] {
+  position: relative;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 1;
+}
+
 /* Base date input improvements */
 .sp-input.sp-date-input,
 .rp-input[type="date"],
@@ -328,14 +347,7 @@ input[type="date"].cq-date-input {
   border-color: #16A34A;
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
-.sp-input.sp-date-input::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(107deg) brightness(94%) contrast(80%);
-  opacity: 0.7;
-}
-.sp-input.sp-date-input:hover::-webkit-calendar-picker-indicator {
-  opacity: 1;
-}
+/* calendar indicator handled by global rule above */
 
 /* Record Payment date input */
 .rp-input[type="date"] {
@@ -350,14 +362,7 @@ input[type="date"].cq-date-input {
   border-color: #16A34A;
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
-.rp-input[type="date"]::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(107deg) brightness(94%) contrast(80%);
-  opacity: 0.7;
-}
-.rp-input[type="date"]:hover::-webkit-calendar-picker-indicator {
-  opacity: 1;
-}
+/* calendar indicator handled by global rule above */
 
 /* CreateQuote travel date section */
 .cq-date-split {
@@ -402,14 +407,7 @@ input[type="date"].cq-date-input {
   cursor: pointer;
   font-family: var(--font);
 }
-.cq-date-input::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(107deg) brightness(94%) contrast(80%);
-  opacity: 0.7;
-}
-.cq-date-input:hover::-webkit-calendar-picker-indicator {
-  opacity: 1;
-}
+/* calendar indicator handled by global rule above */
 
 /* Duration boxes (Nights / Days) */
 .rcq-duration-boxes {

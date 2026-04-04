@@ -4,6 +4,9 @@ import { openBilling } from '../utils/billingNav';
 import { openDesigner } from '../utils/designerNav';
 import { useDemoPopup, useDemoData } from '../context/DemoContext';
 import { InfoBtn } from '../shared/components/InfoBtn';
+import { ImportPNRModal } from '../shared/components/ImportPNRModal';
+import { VendorSelectDropdown } from '../shared/components/VendorSelectDropdown';
+import { numericOnly, lettersOnly, phoneOnly, blockNonNumericKeys } from '../shared/utils/inputHelpers';
 import { calculate, extractGstinState } from '../shared/utils/calculationEngine';
 
 const STEPS = [
@@ -247,7 +250,7 @@ const Step1Customer = ({ data, onChange }) => {
                 type="text"
                 placeholder="Customer name"
                 value={data.newCustomerName || ''}
-                onChange={e => onChange({ newCustomerName: e.target.value })}
+                onChange={e => onChange({ newCustomerName: lettersOnly(e.target.value) })}
               />
             </div>
             <div className="cq-field-group">
@@ -267,7 +270,7 @@ const Step1Customer = ({ data, onChange }) => {
                   className="cq-phone-number"
                   placeholder="9876543210"
                   value={data.newCustomerPhone || ''}
-                  onChange={e => onChange({ newCustomerPhone: e.target.value })}
+                  onChange={e => onChange({ newCustomerPhone: phoneOnly(e.target.value) })}
                 />
               </div>
             </div>
@@ -541,7 +544,7 @@ const Step2Trip = ({ data, onChange }) => {
         {Array.from({ length: total }, (_, i) => (
           <div key={i} className="cq-traveler-row">
             <span className={`cq-trav-badge cq-trav-badge-${getType(i).toLowerCase()}`}>{getType(i)}</span>
-            <input type="text" placeholder="Full name" value={(travelerDetails[i] || {}).name || ''} onChange={e => updateTraveler(i, 'name', e.target.value)} />
+            <input type="text" placeholder="Full name" value={(travelerDetails[i] || {}).name || ''} onChange={e => updateTraveler(i, 'name', lettersOnly(e.target.value))} />
             <input type="text" placeholder="Passport / ID No." value={(travelerDetails[i] || {}).passportId || ''} onChange={e => updateTraveler(i, 'passportId', e.target.value)} />
           </div>
         ))}
@@ -597,9 +600,9 @@ const CQDate = ({ value, onChange, placeholder }) => (
 );
 const CQTime = ({ hh, mm, onHH, onMM }) => (
   <span className="cq-time-wrap">
-    <input type="text" className="cq-time-in" placeholder="HH" maxLength={2} value={hh||''} onChange={e=>onHH(e.target.value)} />
+    <input type="text" className="cq-time-in" placeholder="HH" maxLength={2} value={hh||''} onChange={e=>onHH(numericOnly(e.target.value, false))} onKeyDown={blockNonNumericKeys} />
     <span className="cq-colon">:</span>
-    <input type="text" className="cq-time-in" placeholder="MM" maxLength={2} value={mm||''} onChange={e=>onMM(e.target.value)} />
+    <input type="text" className="cq-time-in" placeholder="MM" maxLength={2} value={mm||''} onChange={e=>onMM(numericOnly(e.target.value, false))} onKeyDown={blockNonNumericKeys} />
   </span>
 );
 const CQTimeHelper = () => <p className="cq-time-help">Time is in 24-hour format (HH:mm)</p>;
@@ -644,14 +647,14 @@ const CQVendorAdj = ({ show, adj, onToggle, onAdj }) => (
     )}
   </div>
 );
-const CQSimpleForm = ({ det, onU }) => (
+const CQSimpleForm = ({ det, onU, vendors = [] }) => (
   <div className="cq-simple-form">
     <div className="cq-simple-row">
       <CQCurSelect value={det.currency} onChange={v=>onU({ currency:v })} />
       <input type="number" className="cq-svc-in" placeholder="Cost" value={det.cost||''} onChange={e=>onU({ cost:e.target.value })} />
       <span className="cq-svc-rs">₹</span>
       <input type="number" className="cq-svc-in" placeholder="Margin" value={det.margin||''} onChange={e=>onU({ margin:e.target.value })} />
-      <input type="text" className="cq-svc-vendor" placeholder="Vendor name" value={det.vendor||''} onChange={e=>onU({ vendor:e.target.value })} />
+      <VendorSelectDropdown value={det.vendor||''} onChange={v=>onU({ vendor:v })} vendors={vendors} className="cq-svc-vendor" />
     </div>
     <p className="cq-svc-note">Entered in {det.currency||'INR'}</p>
   </div>
@@ -679,7 +682,8 @@ const CQCostBreakdown = ({ item, onItem }) => (
 );
 
 // ─── Step 3: Services ─────────────────────────────────────────────────────────
-const Step3Services = ({ data, onChange }) => {
+const Step3Services = ({ data, onChange, vendors = [] }) => {
+  const [showImportPNR, setShowImportPNR] = useState(false);
   const selected   = data.services       || {};
   const details    = data.serviceDetails || {};
   const todayFx    = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
@@ -741,15 +745,52 @@ const Step3Services = ({ data, onChange }) => {
     });
   };
 
+  // Import PNR: map parsed legs to flight leg structure
+  const handlePNRImport = (parsed) => {
+    const newLegs = parsed.legs.map(pl => {
+      const sector = pl.sector ? pl.sector.split('/') : ['',''];
+      let depDate = '';
+      if (pl.date) {
+        const dm = pl.date.match(/^(\d{1,2})([A-Z]{3})(\d{2,4})?$/i);
+        if (dm) {
+          const months = { JAN:'01',FEB:'02',MAR:'03',APR:'04',MAY:'05',JUN:'06',JUL:'07',AUG:'08',SEP:'09',OCT:'10',NOV:'11',DEC:'12' };
+          const mm = months[dm[2].toUpperCase()] || '01';
+          const dd = dm[1].padStart(2,'0');
+          let yy = dm[3] ? (dm[3].length === 2 ? '20' + dm[3] : dm[3]) : new Date().getFullYear().toString();
+          depDate = `${yy}-${mm}-${dd}`;
+        }
+      }
+      const depHH = pl.depTime ? pl.depTime.padStart(4,'0').slice(0,2) : '';
+      const depMM = pl.depTime ? pl.depTime.padStart(4,'0').slice(2,4) : '';
+      const arrHH = pl.arrTime ? pl.arrTime.padStart(4,'0').slice(0,2) : '';
+      const arrMM = pl.arrTime ? pl.arrTime.padStart(4,'0').slice(2,4) : '';
+      const fnMatch = (pl.flightNumber || '').match(/^([A-Z]{2})\s?(\d+)$/);
+      const airline = fnMatch ? fnMatch[1] : '';
+      return {
+        id: uid(), from: sector[0] || '', to: sector[1] || '',
+        airline, flightNo: pl.flightNumber || '',
+        depDate, depHH, depMM, arrDate: depDate, arrHH, arrMM,
+        cost: '', showBd: !!pl.baseFare, baseFare: pl.baseFare || '', taxes: pl.taxes || '', otherCharges: '',
+        vendor: ''
+      };
+    });
+    const fDet = details['flight'] || mkDet();
+    const existingItems = fDet.items || [];
+    updDet('flight', { items: [...existingItems, ...newLegs], mode: 'detailed' });
+    if (!selected['flight']) {
+      onChange({ services: { ...selected, flight: true } });
+    }
+  };
+
   const renderServiceBody = (key, det) => {
     const isSimple = det.mode === 'simple';
 
     if (key === 'landPackage' || key === 'fooding') {
-      return <CQSimpleForm det={det} onU={p=>updDet(key,p)} />;
+      return <CQSimpleForm det={det} onU={p=>updDet(key,p)} vendors={vendors} />;
     }
 
     if (isSimple) {
-      return <CQSimpleForm det={det} onU={p=>updDet(key,p)} />;
+      return <CQSimpleForm det={det} onU={p=>updDet(key,p)} vendors={vendors} />;
     }
 
     // FLIGHT
@@ -808,19 +849,20 @@ const Step3Services = ({ data, onChange }) => {
               </div>
               <div className="cq-field-g">
                 <label className="cq-field-lbl">Vendor</label>
-                <input type="text" className="cq-text-in" placeholder="Vendor name" value={leg.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                <VendorSelectDropdown value={leg.vendor||''} onChange={v=>updItem(key,idx,{vendor:v})} vendors={vendors} />
               </div>
             </div>
           ))}
           <div className="cq-add-btns">
             <button type="button" className="cq-add-btn-orange" onClick={()=>addItem(key,mkLeg)}>+ Add Flight Leg</button>
-            <button type="button" className="cq-add-btn-purple">
+            <button type="button" className="cq-add-btn-purple" onClick={()=>setShowImportPNR(true)}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
               Import PNR
             </button>
           </div>
           <CQVendorAdj show={det.showVendorAdj} adj={det.vendorAdj||{}} onToggle={()=>updDet(key,{showVendorAdj:!det.showVendorAdj})} onAdj={v=>updDet(key,{vendorAdj:v})} />
           <CQServiceFooter total={total} margin={det.margin} onMargin={v=>updDet(key,{margin:v})} />
+          {showImportPNR && <ImportPNRModal onImport={handlePNRImport} onClose={()=>setShowImportPNR(false)} />}
         </div>
       );
     }
@@ -864,7 +906,7 @@ const Step3Services = ({ data, onChange }) => {
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
-                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={ex.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                  <VendorSelectDropdown value={ex.vendor||''} onChange={v=>updItem(key,idx,{vendor:v})} vendors={vendors} />
                 </div>
               </div>
             </div>
@@ -1112,7 +1154,7 @@ const Step3Services = ({ data, onChange }) => {
               </div>
               <div className="cq-field-g">
                 <label className="cq-field-lbl">Vendor</label>
-                <input type="text" className="cq-text-in" placeholder="Vendor name" value={h.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                <VendorSelectDropdown value={h.vendor||''} onChange={v=>updItem(key,idx,{vendor:v})} vendors={vendors} />
               </div>
             </div>
           ))}
@@ -1148,7 +1190,7 @@ const Step3Services = ({ data, onChange }) => {
             </div>
             <div className="cq-field-g">
               <label className="cq-field-lbl">Vendor</label>
-              <input type="text" className="cq-text-in" placeholder="Vendor name" value={det.visaVendor||''} onChange={e=>updDet(key,{visaVendor:e.target.value})} />
+              <VendorSelectDropdown value={det.visaVendor||''} onChange={v=>updDet(key,{visaVendor:v})} vendors={vendors} />
             </div>
           </div>
         </div>
@@ -1202,7 +1244,7 @@ const Step3Services = ({ data, onChange }) => {
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
-                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={a.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                  <VendorSelectDropdown value={a.vendor||''} onChange={v=>updItem(key,idx,{vendor:v})} vendors={vendors} />
                 </div>
               </div>
             </div>
@@ -1258,7 +1300,7 @@ const Step3Services = ({ data, onChange }) => {
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
-                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={x.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                  <VendorSelectDropdown value={x.vendor||''} onChange={v=>updItem(key,idx,{vendor:v})} vendors={vendors} />
                 </div>
               </div>
             </div>
@@ -1313,7 +1355,7 @@ const Step3Services = ({ data, onChange }) => {
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
-                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={a.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                  <VendorSelectDropdown value={a.vendor||''} onChange={v=>updItem(key,idx,{vendor:v})} vendors={vendors} />
                 </div>
               </div>
             </div>
@@ -1326,7 +1368,7 @@ const Step3Services = ({ data, onChange }) => {
 
     // TRAVEL INSURANCE
     if (key === 'insurance') {
-      return <CQSimpleForm det={det} onU={p=>updDet(key,p)} />;
+      return <CQSimpleForm det={det} onU={p=>updDet(key,p)} vendors={vendors} />;
     }
 
     // OTHER
@@ -1362,7 +1404,7 @@ const Step3Services = ({ data, onChange }) => {
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
-                  <input type="text" className="cq-text-in" placeholder="Vendor name" value={it.vendor||''} onChange={e=>updItem(key,idx,{vendor:e.target.value})} />
+                  <VendorSelectDropdown value={it.vendor||''} onChange={v=>updItem(key,idx,{vendor:v})} vendors={vendors} />
                 </div>
               </div>
             </div>
@@ -2218,7 +2260,7 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
   const isPrefilled = Boolean(prefilledCustomer) && !editMode;
   const firstStep   = editMode ? (editQuote._startStep || 1) : isPrefilled ? 2 : 1;
 
-  const { addQuote, updateQuoteFromForm } = useDemoData();
+  const { addQuote, updateQuoteFromForm, vendors } = useDemoData();
   const triggerDemoPopup = useDemoPopup();
     const [currentStep, setCurrentStep] = useState(firstStep);
   const [calcMode, setCalcMode] = useState('agent');
@@ -2309,7 +2351,7 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
     switch (currentStep) {
       case 1: return <Step1Customer data={formData} onChange={updateFormData} />;
       case 2: return <Step2Trip data={formData} onChange={updateFormData} />;
-      case 3: return <Step3Services data={formData} onChange={updateFormData} />;
+      case 3: return <Step3Services data={formData} onChange={updateFormData} vendors={vendors || []} />;
       case 4: return <Step4Pricing data={formData} onChange={updateFormData} calc={calcResult} />;
       case 5: return <Step5Review data={formData} onChange={updateFormData} editMode={editMode} isPrefilled={isPrefilled} prefilledCustomer={prefilledCustomer} calc={calcResult} />;
       case 6: return <Step6Itinerary data={formData} onChange={updateFormData} editMode={editMode} onOpenDesigner={() => {
