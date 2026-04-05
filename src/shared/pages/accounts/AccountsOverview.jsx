@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { Header } from '../../components/Header';
+import { blockNonNumericKeys } from '../../utils/inputHelpers';
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 const parseAmt = (s) => {
@@ -70,6 +71,7 @@ const ConvertToInvoiceModal = ({ availableBalance, onClose, onSubmit }) => {
               type="number" min="0" step="0.01"
               value={form.amount}
               onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+              onKeyDown={blockNonNumericKeys}
               placeholder="Enter amount"
               style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 14, color: '#111827', outline: 'none', fontFamily: 'inherit' }}
               required

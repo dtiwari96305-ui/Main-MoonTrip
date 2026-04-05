@@ -3,7 +3,8 @@
     "allow": [
       "Read(//c/Users/ACER/OneDrive/Desktop/**)",
       "Bash(find c:/Users/ACER/OneDrive/Desktop/Moontrip* -name *.sql -o -name migrations -type d)",
-      "Bash(node -e \"try { require\\(''''fs''''\\).readFileSync\\(''''src/dashboard/context/DataContext.jsx'''',''''utf8''''\\); const acorn = require\\(''''acorn''''\\); } catch\\(e\\) {}\")"
+      "Bash(node -e \"try { require\\(''''fs''''\\).readFileSync\\(''''src/dashboard/context/DataContext.jsx'''',''''utf8''''\\); const acorn = require\\(''''acorn''''\\); } catch\\(e\\) {}\")",
+      "Bash(echo \"exit:$?\")"
     ]
   }
 }

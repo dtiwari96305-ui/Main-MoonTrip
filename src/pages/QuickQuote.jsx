@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Header } from '../shared/components/Header';
 import { calculate } from '../shared/utils/calculationEngine';
+import { blockNonNumericKeys } from '../shared/utils/inputHelpers';
 import { useDemoPopup, useDemoData } from '../context/DemoContext';
 
 const BILLING_MODELS = [
@@ -197,7 +198,7 @@ export const QuickQuote = ({ onViewChange }) => {
             </div>
             <div>
               <label style={{ fontSize: 13, color: '#374151', fontWeight: 500, display: 'block', marginBottom: 6 }}>No. of Pax</label>
-              <input className="form-input" placeholder="e.g. 4" type="number" value={pax} onChange={e => setPax(e.target.value)} />
+              <input className="form-input" placeholder="e.g. 4" type="number" value={pax} onChange={e => setPax(e.target.value)} onKeyDown={blockNonNumericKeys} />
             </div>
             <div>
               <label style={{ fontSize: 13, color: '#374151', fontWeight: 500, display: 'block', marginBottom: 6 }}>Travel Date</label>
@@ -263,6 +264,7 @@ export const QuickQuote = ({ onViewChange }) => {
                   className="form-input" type="number" placeholder="0" style={{ paddingLeft: 28 }}
                   value={pricingMode === 'total-quote' ? totalQuoteAmount : marginAmount}
                   onChange={e => pricingMode === 'total-quote' ? setTotalQuoteAmount(e.target.value) : setMarginAmount(e.target.value)}
+                  onKeyDown={blockNonNumericKeys}
                 />
               </div>
             </div>
@@ -273,6 +275,7 @@ export const QuickQuote = ({ onViewChange }) => {
                 <input
                   className="form-input" type="number" placeholder="0" style={{ paddingLeft: 28 }}
                   value={vendorCommission} onChange={e => setVendorCommission(e.target.value)}
+                  onKeyDown={blockNonNumericKeys}
                 />
               </div>
             </div>
@@ -287,6 +290,7 @@ export const QuickQuote = ({ onViewChange }) => {
                   <input
                     className="form-input" type="number" placeholder="0" style={{ paddingLeft: 28 }}
                     value={displayProcessingCharge} onChange={e => setDisplayProcessingCharge(e.target.value)}
+                    onKeyDown={blockNonNumericKeys}
                   />
                 </div>
               </div>

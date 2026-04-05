@@ -1,4 +1,5 @@
 import React from 'react';
+import { blockNonNumericKeys } from '../../utils/inputHelpers';
 
 /* ── Individual service type sub-forms ─────────────────────────────── */
 
@@ -98,11 +99,11 @@ export const FlightDetailsForm = ({ data, onChange }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Base Fare (₹)</label>
-              <input className="form-input" type="number" step="0.01" value={leg.baseFare} onChange={e => updateLeg(idx, 'baseFare', e.target.value)} placeholder="0" />
+              <input className="form-input" type="number" step="0.01" value={leg.baseFare} onChange={e => updateLeg(idx, 'baseFare', e.target.value)} onKeyDown={blockNonNumericKeys} placeholder="0" />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Taxes (₹)</label>
-              <input className="form-input" type="number" step="0.01" value={leg.taxes} onChange={e => updateLeg(idx, 'taxes', e.target.value)} placeholder="0" />
+              <input className="form-input" type="number" step="0.01" value={leg.taxes} onChange={e => updateLeg(idx, 'taxes', e.target.value)} onKeyDown={blockNonNumericKeys} placeholder="0" />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Leg Total (₹)</label>
@@ -116,7 +117,7 @@ export const FlightDetailsForm = ({ data, onChange }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <div className="form-group" style={{ marginBottom: 0 }}>
           <label className="form-label">K3 Tax (₹)</label>
-          <input className="form-input" type="number" step="0.01" value={data.k3Amount || ''} onChange={e => s('k3Amount', e.target.value)} placeholder="0" />
+          <input className="form-input" type="number" step="0.01" value={data.k3Amount || ''} onChange={e => s('k3Amount', e.target.value)} onKeyDown={blockNonNumericKeys} placeholder="0" />
         </div>
         <div className="form-group" style={{ marginBottom: 0 }}>
           <label className="form-label">Subtotal (₹)</label>

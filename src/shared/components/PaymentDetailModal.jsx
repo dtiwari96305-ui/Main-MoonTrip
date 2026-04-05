@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { jsPDF } from 'jspdf';
 import { LOGO_BASE64 } from '../utils/branding';
+import { blockNonNumericKeys } from '../utils/inputHelpers';
 
 
 // ─── Mode Icon Map ─────────────────────────────────────────────────────────────
@@ -272,6 +273,7 @@ export const PaymentDetailModal = ({ paymentId, onClose, getPaymentById, onSave 
                   type="number"
                   value={editAmount}
                   onChange={e => setEditAmount(e.target.value)}
+                  onKeyDown={blockNonNumericKeys}
                   placeholder="Enter amount"
                 />
               </div>

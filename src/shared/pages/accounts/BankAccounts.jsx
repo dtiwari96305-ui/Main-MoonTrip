@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Header } from '../../components/Header';
+import { blockNonNumericKeys } from '../../utils/inputHelpers';
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
@@ -106,7 +107,7 @@ export const BankAccounts = ({ bankAccounts = [], addBankAccount, onViewChange, 
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Opening Balance</label>
-                <input className="form-input" type="number" step="0.01" value={form.openingBalance} onChange={e => set('openingBalance', e.target.value)} placeholder="0.00" />
+                <input className="form-input" type="number" step="0.01" value={form.openingBalance} onChange={e => set('openingBalance', e.target.value)} onKeyDown={blockNonNumericKeys} placeholder="0.00" />
               </div>
             </div>
             {/* Buttons */}

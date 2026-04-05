@@ -412,35 +412,44 @@ input[type="date"].cq-date-input {
 /* Duration boxes (Nights / Days) */
 .rcq-duration-boxes {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 16px;
+  margin-top: 16px;
 }
 .rcq-dur-box {
+  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
+  justify-content: center;
+  gap: 2px;
+  padding: 20px 16px 16px;
+  border-radius: 16px;
+  min-height: 120px;
 }
-.rcq-dur-box span {
+.rcq-dur-icon {
+  font-size: 22px;
+  line-height: 1;
+  margin-bottom: 2px;
+  opacity: 0.85;
+}
+.rcq-dur-num {
+  font-size: 38px;
   font-weight: 700;
-  font-size: 16px;
+  line-height: 1.1;
+}
+.rcq-dur-label {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.7;
+  letter-spacing: 0.01em;
 }
 .rcq-dur-night {
-  background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+  background: linear-gradient(135deg, #ede9fe, #dbeafe);
   color: #5b21b6;
-}
-.rcq-dur-night svg {
-  color: #7c3aed;
 }
 .rcq-dur-day {
   background: linear-gradient(135deg, #fef3c7, #fef9c3);
-  color: #92400e;
-}
-.rcq-dur-day svg {
-  color: #d97706;
+  color: #b45309;
 }
 
 

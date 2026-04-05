@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { InfoBtn } from './InfoBtn';
+import { blockNonNumericKeys } from '../utils/inputHelpers';
 
 // ─── Mode option icons ─────────────────────────────────────────────────────
 const ModeIcon = ({ mode }) => {
@@ -228,6 +229,7 @@ export const RecordPaymentModal = ({ isOpen, onClose, preselectedCustomer = null
                     placeholder="0"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
+                    onKeyDown={blockNonNumericKeys}
                     min="0"
                   />
                 </div>

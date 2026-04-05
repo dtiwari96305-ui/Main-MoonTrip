@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Header } from '../../components/Header';
+import { blockNonNumericKeys } from '../../utils/inputHelpers';
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
@@ -135,7 +136,7 @@ export const GeneralEntries = ({ generalEntries = [], bankAccounts = [], addGene
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Amount (₹) *</label>
-                <input className="form-input" type="number" step="0.01" value={form.amount} onChange={e => set('amount', e.target.value)} placeholder="0" required />
+                <input className="form-input" type="number" step="0.01" value={form.amount} onChange={e => set('amount', e.target.value)} onKeyDown={blockNonNumericKeys} placeholder="0" required />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Payment Mode</label>

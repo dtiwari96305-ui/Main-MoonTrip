@@ -5488,6 +5488,29 @@ tr:hover .dt-actions .action-btn {
 
 .cq-simple-form { padding: 10px 0; }
 .cq-simple-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cq-simple-labeled-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+.cq-simple-field { display: flex; flex-direction: column; gap: 6px; }
+.cq-simple-field-lbl { font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.03em; }
+.cq-simple-amount-wrap {
+  display: flex; align-items: center;
+  border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: hidden;
+}
+.cq-simple-rs { padding: 0 10px; font-size: 15px; color: #9ca3af; font-weight: 500; }
+.cq-simple-amount-in {
+  flex: 1; border: none; outline: none; padding: 10px 12px 10px 0;
+  font-size: 14px; color: #111827; background: transparent;
+}
+.cq-simple-amount-in::-webkit-inner-spin-button,
+.cq-simple-amount-in::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+.cq-simple-amount-in[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+.cq-simple-amount-wrap:focus-within { border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.1); }
+.cq-simple-vendor-in {
+  border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 12px;
+  font-size: 14px; color: #111827; outline: none; width: 100%; box-sizing: border-box;
+}
+.cq-simple-vendor-in:focus { border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.1); }
 .cq-cur-sel { border: 1px solid #d1d5db; border-radius: 7px; padding: 7px 10px; font-size: 13px; color: #374151; outline: none; background: #fff; cursor: pointer; }
 .cq-cur-sel:focus { border-color: #f97316; }
 .cq-svc-in { border: 1px solid #d1d5db; border-radius: 7px; padding: 7px 10px; font-size: 13px; width: 90px; outline: none; }
@@ -6215,3 +6238,73 @@ tr:hover .dt-actions .action-btn {
 .vendor-dd-empty {
   padding: 8px 14px; font-size: 12px; color: #94a3b8;
 }
+
+/* ─── Import Data Section ──────────────────────────────────────────────────── */
+.cq-import-section {
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
+  padding: 20px 24px; margin: 0 auto 20px; max-width: 1200px;
+}
+.cq-import-header { margin-bottom: 16px; }
+.cq-import-title { font-size: 17px; font-weight: 700; color: #111827; margin: 0 0 4px; }
+.cq-import-subtitle { font-size: 13px; color: #9ca3af; margin: 0; }
+.cq-import-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+}
+.cq-import-card {
+  display: flex; align-items: center; gap: 14px;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+  padding: 16px 18px; cursor: pointer; transition: background 0.15s, border-color 0.15s;
+  text-align: left;
+}
+.cq-import-card:hover { border-color: #d1d5db; }
+.cq-import-card-upload:hover { background: #eff6ff; }
+.cq-import-card-pnr:hover { background: #faf5ff; }
+.cq-import-card-rail:hover { background: #fff7ed; }
+.cq-import-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.cq-import-icon-blue { background: #dbeafe; color: #2563eb; }
+.cq-import-icon-purple { background: #ede9fe; color: #7c3aed; }
+.cq-import-icon-orange { background: #ffedd5; color: #ea580c; }
+.cq-import-text { display: flex; flex-direction: column; gap: 2px; }
+.cq-import-card-title { font-size: 14px; font-weight: 600; color: #111827; }
+.cq-import-card-sub { font-size: 12px; color: #9ca3af; }
+.cq-import-docs {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+}
+.cq-import-doc-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px;
+  padding: 6px 10px; font-size: 12px; color: #374151;
+}
+.cq-import-doc-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cq-import-doc-remove {
+  background: none; border: none; color: #94a3b8; cursor: pointer;
+  font-size: 13px; padding: 0 2px; line-height: 1;
+}
+.cq-import-doc-remove:hover { color: #ef4444; }
+.cq-import-panel {
+  margin-top: 14px; background: #f9fafb; border: 1px solid #e5e7eb;
+  border-radius: 10px; padding: 16px;
+}
+.cq-import-panel-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+.cq-import-panel-textarea {
+  width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; font-family: inherit; resize: vertical;
+  min-height: 100px; outline: none; color: #111827;
+}
+.cq-import-panel-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.12); }
+.cq-import-panel-actions {
+  display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;
+}
+.cq-import-panel-cancel {
+  background: #fff; border: 1px solid #d1d5db; border-radius: 8px;
+  padding: 8px 16px; font-size: 13px; color: #374151; cursor: pointer;
+}
+.cq-import-panel-cancel:hover { background: #f3f4f6; }
+.cq-import-panel-submit {
+  background: #6366f1; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.cq-import-panel-submit:hover { background: #4f46e5; }

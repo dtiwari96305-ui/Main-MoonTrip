@@ -3393,7 +3393,7 @@ html { scroll-behavior: smooth; }
   position: absolute; top: calc(100% + 4px); left: 0; right: 0;
   background: #fff; border: 1.5px solid var(--border-color);
   border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-  max-height: 240px; overflow-y: auto; z-index: 50;
+  max-height: 240px; overflow-y: auto; z-index: 9999;
 }
 .rcq-search-result {
   display: flex; align-items: center; gap: 12px;
@@ -3415,6 +3415,17 @@ html { scroll-behavior: smooth; }
 }
 .rcq-result-meta {
   font-size: 0.77rem; color: var(--text-muted);
+}
+
+.rcq-search-empty {
+  padding: 14px 16px; font-size: 0.85rem; color: var(--text-muted); text-align: center;
+}
+.rcq-search-empty-link {
+  background: none; border: none; color: var(--accent); cursor: pointer;
+  font-size: 0.85rem; font-weight: 600; text-decoration: underline; padding: 0;
+}
+.cq-search-hint {
+  color: var(--text-muted); font-size: 0.85rem; margin: 12px 0 0; text-align: center;
 }
 
 /* ── Field error ── */

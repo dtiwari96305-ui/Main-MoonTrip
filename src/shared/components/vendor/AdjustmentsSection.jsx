@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { blockNonNumericKeys } from '../../utils/inputHelpers';
 
 const RupeeField = ({ label, value, onChange, hint, required }) => (
   <div className="form-group" style={{ marginBottom: 0 }}>
@@ -11,6 +12,7 @@ const RupeeField = ({ label, value, onChange, hint, required }) => (
         step="0.01"
         value={value}
         onChange={e => onChange(e.target.value === '' ? '' : Number(e.target.value))}
+        onKeyDown={blockNonNumericKeys}
         placeholder="0"
       />
       {hint && <span style={{ display: 'flex', alignItems: 'center', padding: '0 10px', fontSize: 11, color: '#9ca3af', background: '#f9fafb', borderLeft: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>{hint}</span>}

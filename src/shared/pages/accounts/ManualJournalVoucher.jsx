@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Header } from '../../components/Header';
+import { blockNonNumericKeys } from '../../utils/inputHelpers';
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
@@ -152,6 +153,7 @@ export const ManualJournalVoucher = ({ chartOfAccounts = [], addJournalEntry, on
                         type="number" step="0.01" min="0"
                         value={line.debit}
                         onChange={e => setLine(i, 'debit', e.target.value)}
+                        onKeyDown={blockNonNumericKeys}
                         placeholder="0.00"
                         style={{ width: '100%', padding: '7px 10px', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 13, outline: 'none', textAlign: 'right', fontFamily: 'var(--font)' }}
                       />
@@ -161,6 +163,7 @@ export const ManualJournalVoucher = ({ chartOfAccounts = [], addJournalEntry, on
                         type="number" step="0.01" min="0"
                         value={line.credit}
                         onChange={e => setLine(i, 'credit', e.target.value)}
+                        onKeyDown={blockNonNumericKeys}
                         placeholder="0.00"
                         style={{ width: '100%', padding: '7px 10px', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 13, outline: 'none', textAlign: 'right', fontFamily: 'var(--font)' }}
                       />

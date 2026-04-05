@@ -189,8 +189,7 @@ const COUNTRY_CODES = [
 ];
 
 const Step1Customer = ({ data, onChange }) => {
-  // Default mode is 'new' — shows the new customer form (matches reference image)
-  const [mode, setMode] = useState('new');
+  const [mode, setMode] = useState('search');
   const [countryCode, setCountryCode] = useState('IN');
   const selectedDial = COUNTRY_CODES.find(c => c.code === countryCode)?.dial || '+91';
 
@@ -199,9 +198,7 @@ const Step1Customer = ({ data, onChange }) => {
       <div className="cq-section-header">
         <div>
           <h3 className="cq-section-title">Customer Details</h3>
-          <p className="cq-section-subtitle">
-            {mode === 'new' ? 'Enter new customer details' : 'Search existing customer or add a new one'}
-          </p>
+          <p className="cq-section-subtitle">Search existing customer or add a new one</p>
         </div>
 
         {mode === 'new' ? (
@@ -226,17 +223,22 @@ const Step1Customer = ({ data, onChange }) => {
 
       {/* ── Search mode ── */}
       {mode === 'search' && (
-        <div className="cq-search-field">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            placeholder="Search customers by name, email, or phone..."
-            value={data.customerSearch || ''}
-            onChange={e => onChange({ customerSearch: e.target.value })}
-          />
-        </div>
+        <>
+          <div className="cq-search-field">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search customers by name, email, or phone..."
+              value={data.customerSearch || ''}
+              onChange={e => onChange({ customerSearch: e.target.value })}
+            />
+          </div>
+          {!(data.customerSearch || '').trim() && (
+            <p className="cq-search-hint">Select or add a customer to get started</p>
+          )}
+        </>
       )}
 
       {/* ── New customer form (matches reference image exactly) ── */}
@@ -390,6 +392,16 @@ const Step2Trip = ({ data, onChange }) => {
     return 'Infant';
   };
 
+  // Duration calculation
+  const depDate = data.departureDate ? new Date(data.departureDate) : null;
+  const retDate = data.returnDate ? new Date(data.returnDate) : null;
+  let nights = 0, days = 0;
+  if (depDate && retDate && retDate >= depDate) {
+    const diff = Math.ceil((retDate - depDate) / (1000 * 60 * 60 * 24));
+    nights = diff;
+    days = diff + 1;
+  }
+
   return (
     <div className="cq-step-content">
       <div className="cq-section-header">
@@ -500,6 +512,20 @@ const Step2Trip = ({ data, onChange }) => {
             />
           </div>
         </div>
+        {depDate && retDate && retDate >= depDate && (
+          <div className="rcq-duration-boxes">
+            <div className="rcq-dur-box rcq-dur-night">
+              <span className="rcq-dur-icon">🌙</span>
+              <span className="rcq-dur-num">{nights}</span>
+              <span className="rcq-dur-label">Night{nights !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="rcq-dur-box rcq-dur-day">
+              <span className="rcq-dur-icon">☀️</span>
+              <span className="rcq-dur-num">{days}</span>
+              <span className="rcq-dur-label">Day{days !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Travellers — expandable */}
@@ -625,7 +651,7 @@ const CQServiceFooter = ({ total, margin, onMargin }) => (
     <div className="cq-svc-margin-row">
       <span className="cq-svc-margin-lbl">Margin <InfoBtn infoKey="cq_svc_margin" variant="light" /></span>
       <span className="cq-svc-rs">₹</span>
-      <input type="number" className="cq-svc-margin-in" placeholder="0" value={margin||''} onChange={e=>onMargin(e.target.value)} />
+      <input type="number" className="cq-svc-margin-in" placeholder="0" value={margin||''} onChange={e=>onMargin(e.target.value)} onKeyDown={blockNonNumericKeys} />
     </div>
   </div>
 );
@@ -639,7 +665,7 @@ const CQVendorAdj = ({ show, adj, onToggle, onAdj }) => (
         {[['commission','Commission','I earn (Less)'],['tds','TDS','Receivable'],['vendorFee','Vendor Fee','Processing (Add)'],['feeGst','Fee GST','CGST+SGST (Add)']].map(([k,lbl,help])=>(
           <div key={k} className="cq-adj-row">
             <label className="cq-adj-lbl">{lbl}</label>
-            <input type="number" className="cq-adj-in" placeholder="0" value={adj[k]||''} onChange={e=>onAdj({ ...adj, [k]:e.target.value })} />
+            <input type="number" className="cq-adj-in" placeholder="0" value={adj[k]||''} onChange={e=>onAdj({ ...adj, [k]:e.target.value })} onKeyDown={blockNonNumericKeys} />
             <span className="cq-adj-help">{help}</span>
           </div>
         ))}
@@ -649,14 +675,19 @@ const CQVendorAdj = ({ show, adj, onToggle, onAdj }) => (
 );
 const CQSimpleForm = ({ det, onU, vendors = [] }) => (
   <div className="cq-simple-form">
-    <div className="cq-simple-row">
-      <CQCurSelect value={det.currency} onChange={v=>onU({ currency:v })} />
-      <input type="number" className="cq-svc-in" placeholder="Cost" value={det.cost||''} onChange={e=>onU({ cost:e.target.value })} />
-      <span className="cq-svc-rs">₹</span>
-      <input type="number" className="cq-svc-in" placeholder="Margin" value={det.margin||''} onChange={e=>onU({ margin:e.target.value })} />
-      <VendorSelectDropdown value={det.vendor||''} onChange={v=>onU({ vendor:v })} vendors={vendors} className="cq-svc-vendor" />
+    <div className="cq-simple-labeled-row">
+      <div className="cq-simple-field">
+        <label className="cq-simple-field-lbl">Amount</label>
+        <div className="cq-simple-amount-wrap">
+          <span className="cq-simple-rs">₹</span>
+          <input type="number" className="cq-simple-amount-in" placeholder="0" value={det.cost||''} onChange={e=>onU({ cost:e.target.value })} onKeyDown={blockNonNumericKeys} />
+        </div>
+      </div>
+      <div className="cq-simple-field">
+        <label className="cq-simple-field-lbl">Vendor</label>
+        <VendorSelectDropdown value={det.vendor||''} onChange={v=>onU({ vendor:v })} vendors={vendors} className="cq-simple-vendor-in" placeholder="Search vendor..." />
+      </div>
     </div>
-    <p className="cq-svc-note">Entered in {det.currency||'INR'}</p>
   </div>
 );
 const CQCostBreakdown = ({ item, onItem }) => (
@@ -667,13 +698,13 @@ const CQCostBreakdown = ({ item, onItem }) => (
         {item.showBd ? 'Hide' : 'Breakdown'}
       </button>
     </div>
-    <input type="number" className="cq-text-in" placeholder="0" value={item.cost||''} onChange={e=>onItem({ cost:e.target.value })} />
+    <input type="number" className="cq-text-in" placeholder="0" value={item.cost||''} onChange={e=>onItem({ cost:e.target.value })} onKeyDown={blockNonNumericKeys} />
     {item.showBd && (
       <div className="cq-bd-fields">
         {[['baseFare','Base Fare'],['taxes','Taxes'],['otherCharges','Other Charges']].map(([fk,fl])=>(
           <div key={fk} className="cq-bd-item">
             <label className="cq-field-lbl-sm">{fl}</label>
-            <input type="number" className="cq-text-in" placeholder="0" value={item[fk]||''} onChange={e=>onItem({ [fk]:e.target.value })} />
+            <input type="number" className="cq-text-in" placeholder="0" value={item[fk]||''} onChange={e=>onItem({ [fk]:e.target.value })} onKeyDown={blockNonNumericKeys} />
           </div>
         ))}
       </div>
@@ -902,7 +933,7 @@ const Step3Services = ({ data, onChange, vendors = [] }) => {
               <div className="cq-grid-2">
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Cost</label>
-                  <input type="number" className="cq-text-in" placeholder="0" value={ex.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                  <input type="number" className="cq-text-in" placeholder="0" value={ex.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} onKeyDown={blockNonNumericKeys} />
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
@@ -981,7 +1012,7 @@ const Step3Services = ({ data, onChange, vendors = [] }) => {
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Cost</label>
-                  <input type="number" className="cq-text-in" placeholder="0" value={j.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                  <input type="number" className="cq-text-in" placeholder="0" value={j.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} onKeyDown={blockNonNumericKeys} />
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
@@ -1072,7 +1103,7 @@ const Step3Services = ({ data, onChange, vendors = [] }) => {
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Cost</label>
-                  <input type="number" className="cq-text-in" placeholder="0" value={j.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                  <input type="number" className="cq-text-in" placeholder="0" value={j.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} onKeyDown={blockNonNumericKeys} />
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
@@ -1186,7 +1217,7 @@ const Step3Services = ({ data, onChange, vendors = [] }) => {
           <div className="cq-grid-2">
             <div className="cq-field-g">
               <label className="cq-field-lbl">Cost</label>
-              <input type="number" className="cq-text-in" placeholder="0" value={det.visaCost||''} onChange={e=>updDet(key,{visaCost:e.target.value, cost:e.target.value})} />
+              <input type="number" className="cq-text-in" placeholder="0" value={det.visaCost||''} onChange={e=>updDet(key,{visaCost:e.target.value, cost:e.target.value})} onKeyDown={blockNonNumericKeys} />
             </div>
             <div className="cq-field-g">
               <label className="cq-field-lbl">Vendor</label>
@@ -1240,7 +1271,7 @@ const Step3Services = ({ data, onChange, vendors = [] }) => {
               <div className="cq-grid-2">
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Cost</label>
-                  <input type="number" className="cq-text-in" placeholder="Cost" value={a.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                  <input type="number" className="cq-text-in" placeholder="Cost" value={a.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} onKeyDown={blockNonNumericKeys} />
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
@@ -1296,7 +1327,7 @@ const Step3Services = ({ data, onChange, vendors = [] }) => {
               <div className="cq-grid-2">
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Cost</label>
-                  <input type="number" className="cq-text-in" placeholder="0" value={x.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                  <input type="number" className="cq-text-in" placeholder="0" value={x.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} onKeyDown={blockNonNumericKeys} />
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
@@ -1341,7 +1372,7 @@ const Step3Services = ({ data, onChange, vendors = [] }) => {
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">No. of Tickets</label>
-                  <input type="number" className="cq-text-in" placeholder="0" value={a.tickets||''} onChange={e=>updItem(key,idx,{tickets:e.target.value})} />
+                  <input type="number" className="cq-text-in" placeholder="0" value={a.tickets||''} onChange={e=>updItem(key,idx,{tickets:e.target.value})} onKeyDown={blockNonNumericKeys} />
                 </div>
               </div>
               <div className="cq-field-g">
@@ -1351,7 +1382,7 @@ const Step3Services = ({ data, onChange, vendors = [] }) => {
               <div className="cq-grid-2">
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Cost</label>
-                  <input type="number" className="cq-text-in" placeholder="0" value={a.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                  <input type="number" className="cq-text-in" placeholder="0" value={a.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} onKeyDown={blockNonNumericKeys} />
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
@@ -1400,7 +1431,7 @@ const Step3Services = ({ data, onChange, vendors = [] }) => {
               <div className="cq-grid-2">
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Cost</label>
-                  <input type="number" className="cq-text-in" placeholder="Cost" value={it.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} />
+                  <input type="number" className="cq-text-in" placeholder="Cost" value={it.cost||''} onChange={e=>updItem(key,idx,{cost:e.target.value})} onKeyDown={blockNonNumericKeys} />
                 </div>
                 <div className="cq-field-g">
                   <label className="cq-field-lbl">Vendor</label>
@@ -1628,6 +1659,7 @@ const Step4Pricing = ({ data, onChange, calc }) => {
             placeholder="Enter total amount customer will pay"
             value={data.totalQuoteAmount || ''}
             onChange={e => setField('totalQuoteAmount', e.target.value)}
+            onKeyDown={blockNonNumericKeys}
           />
           {calc && (parseFloat(data.totalQuoteAmount) || 0) > 0 && (
             <p className="cq-p4-hint" style={{ color: '#059669', fontWeight: 500 }}>
@@ -1650,6 +1682,7 @@ const Step4Pricing = ({ data, onChange, calc }) => {
             placeholder="Enter your desired margin (or set per-service)"
             value={data.marginAmount || ''}
             onChange={e => setField('marginAmount', e.target.value, { hiddenMarkup: e.target.value })}
+            onKeyDown={blockNonNumericKeys}
           />
           <p className="cq-p4-hint">Per-service margins are set in the Services step. Edit here to override.</p>
         </>
@@ -1665,6 +1698,7 @@ const Step4Pricing = ({ data, onChange, calc }) => {
         placeholder="Optional vendor commission"
         value={data.vendorCommission || ''}
         onChange={e => setField('vendorCommission', e.target.value)}
+        onKeyDown={blockNonNumericKeys}
       />
       <p className="cq-p4-hint">Commission is tracked separately and added to total profit</p>
 
@@ -1700,6 +1734,7 @@ const Step4Pricing = ({ data, onChange, calc }) => {
             placeholder="Display processing charge amount"
             value={data.displayProcessingCharge || ''}
             onChange={e => setField('displayProcessingCharge', e.target.value, { processingCharge: e.target.value })}
+            onKeyDown={blockNonNumericKeys}
           />
         </div>
       )}
@@ -2064,7 +2099,7 @@ const Step6Itinerary = ({ data, onChange, editMode, onOpenDesigner }) => {
             <div key={i} className="cq-it-cost-row">
               <input className="cq-it-cost-label" placeholder="Item label" value={item.label} onChange={e => cSet(i, 'label', e.target.value)} />
               <span className="cq-it-cost-rupee">₹</span>
-              <input type="number" className="cq-it-cost-amt" placeholder="0" value={item.amount} onChange={e => cSet(i, 'amount', e.target.value)} />
+              <input type="number" className="cq-it-cost-amt" placeholder="0" value={item.amount} onChange={e => cSet(i, 'amount', e.target.value)} onKeyDown={blockNonNumericKeys} />
               <button type="button" className="cq-it-act-rem" style={{ marginLeft: 6 }} onClick={() => cRem(i)}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -2413,15 +2448,41 @@ export const CreateQuote = ({ onViewChange, prefilledCustomer, editQuote }) => {
         </div>
       </div>
 
-      {/* ── Upload Vendor Quote ── */}
-      <div className="cq-upload-zone" onClick={triggerDemoPopup}>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
-          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
-        </svg>
-        <p className="cq-upload-label">Upload Vendor Quote</p>
-        <p className="cq-upload-hint">PDF, Image, or Excel — drag &amp; drop or click to browse</p>
-        <input ref={fileInputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls" style={{ display: 'none' }} onChange={triggerDemoPopup} />
+      {/* Import Data Section */}
+      <div className="cq-import-section">
+        <div className="cq-import-header">
+          <h3 className="cq-import-title">Import Data</h3>
+          <p className="cq-import-subtitle">Vendor quote, itinerary, ticket, voucher, or any booking document</p>
+        </div>
+        <div className="cq-import-cards">
+          <button type="button" className="cq-import-card cq-import-card-upload" onClick={triggerDemoPopup}>
+            <div className="cq-import-icon cq-import-icon-blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div className="cq-import-text">
+              <span className="cq-import-card-title">Upload Document</span>
+              <span className="cq-import-card-sub">PDF, image, or Excel</span>
+            </div>
+          </button>
+          <button type="button" className="cq-import-card cq-import-card-pnr" onClick={triggerDemoPopup}>
+            <div className="cq-import-icon cq-import-icon-purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </div>
+            <div className="cq-import-text">
+              <span className="cq-import-card-title">Airline Ticket / PNR</span>
+              <span className="cq-import-card-sub">GDS, e-ticket, booking text</span>
+            </div>
+          </button>
+          <button type="button" className="cq-import-card cq-import-card-rail" onClick={triggerDemoPopup}>
+            <div className="cq-import-icon cq-import-icon-orange">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 2v9"/><path d="M8 18l-2 4"/><path d="M16 18l2 4"/></svg>
+            </div>
+            <div className="cq-import-text">
+              <span className="cq-import-card-title">Indian Railways</span>
+              <span className="cq-import-card-sub">NTES schedule & live lookup</span>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* ── Step Progress Bar ── */}

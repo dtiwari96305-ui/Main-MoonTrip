@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import ReactDOM from 'react-dom';
+import { blockNonNumericKeys } from '../../utils/inputHelpers';
 
 const fmt = (n) => '₹' + Number(n).toLocaleString('en-IN');
 
@@ -208,6 +209,7 @@ export const VendorPaymentModal = ({ bill, vendor, vendors = [], vendorBills = [
                   type="number" className="rp-amount-input" placeholder="0"
                   min="1" value={form.amount}
                   onChange={e => set('amount', e.target.value)}
+                  onKeyDown={blockNonNumericKeys}
                   autoFocus={!needsVendorSelect}
                 />
               </div>
