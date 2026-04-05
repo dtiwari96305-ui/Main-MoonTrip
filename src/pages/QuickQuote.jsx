@@ -3,6 +3,7 @@ import { Header } from '../shared/components/Header';
 import { calculate } from '../shared/utils/calculationEngine';
 import { blockNonNumericKeys } from '../shared/utils/inputHelpers';
 import { useDemoPopup, useDemoData } from '../context/DemoContext';
+import { VendorSelectDropdown } from '../shared/components/VendorSelectDropdown';
 
 const BILLING_MODELS = [
   { key: 'pure-agent',   label: 'Pure Agent (GST @18% on margin only)' },
@@ -58,7 +59,7 @@ const SectionCard = ({ num, title, children }) => (
 
 export const QuickQuote = ({ onViewChange }) => {
   const triggerDemoPopup = useDemoPopup();
-  const { customers = [] } = useDemoData();
+  const { customers = [], vendors = [] } = useDemoData();
 
   const [customerSearch, setCustomerSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -73,6 +74,8 @@ export const QuickQuote = ({ onViewChange }) => {
   const [duration, setDuration] = useState('');
 
   const [services, setServices] = useState({});
+  const [serviceCosts, setServiceCosts] = useState({});
+  const [serviceVendors, setServiceVendors] = useState({});
 
   const [billingModel, setBillingModel] = useState('pure-agent');
   const [pricingMode, setPricingMode] = useState('total-quote');
@@ -212,6 +215,30 @@ export const QuickQuote = ({ onViewChange }) => {
               <label style={{ fontSize: 13, color: '#374151', fontWeight: 500, display: 'block', marginBottom: 6 }}>Duration</label>
               <input className="form-input" placeholder="e.g. 3N/4D" value={duration} onChange={e => setDuration(e.target.value)} />
             </div>
+            {(() => {
+              const dep = travelDate ? new Date(travelDate) : null;
+              const ret = returnDate ? new Date(returnDate) : null;
+              if (dep && ret && ret >= dep) {
+                const n = Math.ceil((ret - dep) / (1000 * 60 * 60 * 24));
+                return (
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <div className="rcq-duration-boxes">
+                      <div className="rcq-dur-box rcq-dur-night">
+                        <span className="rcq-dur-icon">🌙</span>
+                        <span className="rcq-dur-num">{n}</span>
+                        <span className="rcq-dur-label">Night{n !== 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="rcq-dur-box rcq-dur-day">
+                        <span className="rcq-dur-icon">☀️</span>
+                        <span className="rcq-dur-num">{n + 1}</span>
+                        <span className="rcq-dur-label">Day{n + 1 !== 1 ? 's' : ''}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
         </SectionCard>
 
@@ -219,19 +246,33 @@ export const QuickQuote = ({ onViewChange }) => {
         <SectionCard num="3" title="Services">
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {SERVICES.map((svc, i) => (
-              <label
-                key={svc.key}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 4px', borderBottom: i < SERVICES.length - 1 ? '1px solid #f3f4f6' : 'none', cursor: 'pointer' }}
-              >
-                <input
-                  type="checkbox"
-                  checked={!!services[svc.key]}
-                  onChange={e => setServices(prev => ({ ...prev, [svc.key]: e.target.checked }))}
-                  style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#f97316' }}
-                />
-                <span style={{ color: '#6b7280' }}>{svc.icon}</span>
-                <span style={{ fontSize: 14, color: '#374151', fontWeight: 500 }}>{svc.label}</span>
-              </label>
+              <div key={svc.key} style={{ borderBottom: i < SERVICES.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 4px', cursor: 'pointer', background: services[svc.key] ? '#fff7ed' : 'transparent', borderRadius: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!services[svc.key]}
+                    onChange={e => setServices(prev => ({ ...prev, [svc.key]: e.target.checked }))}
+                    style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#f97316' }}
+                  />
+                  <span style={{ color: '#6b7280' }}>{svc.icon}</span>
+                  <span style={{ fontSize: 14, color: '#374151', fontWeight: 500 }}>{svc.label}</span>
+                </label>
+                {services[svc.key] && (
+                  <div className="cq-simple-labeled-row" style={{ padding: '4px 4px 14px' }}>
+                    <div className="cq-simple-field">
+                      <label className="cq-simple-field-lbl">Amount</label>
+                      <div className="cq-simple-amount-wrap">
+                        <span className="cq-simple-rs">₹</span>
+                        <input type="number" className="cq-simple-amount-in" placeholder="0" value={serviceCosts[svc.key] || ''} onChange={e => setServiceCosts(prev => ({ ...prev, [svc.key]: e.target.value }))} onKeyDown={blockNonNumericKeys} />
+                      </div>
+                    </div>
+                    <div className="cq-simple-field">
+                      <label className="cq-simple-field-lbl">Vendor</label>
+                      <VendorSelectDropdown value={serviceVendors[svc.key] || ''} onChange={v => setServiceVendors(prev => ({ ...prev, [svc.key]: v }))} vendors={vendors} mode="demo" className="cq-simple-vendor-in" placeholder="Search vendor..." />
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </SectionCard>

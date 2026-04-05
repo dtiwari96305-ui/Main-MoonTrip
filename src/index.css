@@ -906,7 +906,7 @@ html { scroll-behavior: smooth; }
 .cq-form-area { display: flex; flex-direction: column; gap: 12px; }
 .cq-form-card {
   background: #fff; border: 1px solid var(--border-color);
-  border-radius: var(--radius); overflow: hidden;
+  border-radius: var(--radius); overflow: visible;
 }
 
 /* Step content */

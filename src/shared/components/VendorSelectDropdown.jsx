@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { AddVendorModal } from './vendor/AddVendorModal';
 
-export const VendorSelectDropdown = ({ value, onChange, vendors = [], placeholder = 'Vendor name', className = 'cq-text-in' }) => {
+export const VendorSelectDropdown = ({ value, onChange, vendors = [], onVendorAdded, placeholder = 'Vendor name', className = 'cq-text-in', mode = 'real' }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
   const wrapRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -38,6 +40,19 @@ export const VendorSelectDropdown = ({ value, onChange, vendors = [], placeholde
     setOpen(true);
   };
 
+  const handleAddNewClick = () => {
+    setOpen(false);
+    setShowAddModal(true);
+  };
+
+  const handleModalClose = (result) => {
+    setShowAddModal(false);
+    if (result && result.name) {
+      onChange(result.name);
+      if (onVendorAdded) onVendorAdded(result);
+    }
+  };
+
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
       <input
@@ -60,11 +75,19 @@ export const VendorSelectDropdown = ({ value, onChange, vendors = [], placeholde
           {filtered.length === 0 && search && (
             <div className="vendor-dd-empty">No matching vendors</div>
           )}
-          <div className="vendor-dd-item vendor-dd-add" onClick={() => { onChange(value || search); setOpen(false); }}>
+          <div className="vendor-dd-item vendor-dd-add" onClick={handleAddNewClick}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            {search ? `Add "${search}" as new vendor` : 'Type a new vendor name'}
+            Add new vendor
           </div>
         </div>
+      )}
+      {showAddModal && (
+        <AddVendorModal
+          onSave={onVendorAdded || (async (data) => data)}
+          onClose={handleModalClose}
+          mode={mode}
+          vendors={vendors}
+        />
       )}
     </div>
   );
